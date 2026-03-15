@@ -3,7 +3,7 @@
  * Change apiBaseUrl in public/config.json to point to your backend.
  */
 let config = {
-  apiBaseUrl: '/api',
+  apiBaseUrl: import.meta.env.VITE_API_URL || '/api',
 }
 
 export async function loadConfig() {
@@ -13,7 +13,7 @@ export async function loadConfig() {
       const data = await res.json()
       config = { ...config, ...data }
     }
-  } catch (_) {}
+  } catch (_) { }
   return config
 }
 

@@ -10,12 +10,6 @@ export function AuthProvider({ children }) {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    loadConfig().then((cfg) => {
-      if (cfg.apiBaseUrl) setApiBaseUrl(cfg.apiBaseUrl)
-    })
-  }, [])
-
-  useEffect(() => {
     const token = localStorage.getItem('token')
     if (!token) {
       setLoading(false)

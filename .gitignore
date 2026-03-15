@@ -20,3 +20,5 @@ playwright-report/
 # Optional: ignore local config (uncomment if you don't want to commit secrets)
 # backend/config.json
 # frontend/public/config.json
+.env
+frontend/.env
