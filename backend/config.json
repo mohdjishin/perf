@@ -1,0 +1,12 @@
+{
+    "port": "8080",
+    "host": "0.0.0.0",
+    "mongo_uri": "mongodb+srv://user:password@cluster.mongodb.net/database?retryWrites=true&w=majority",
+    "jwt_secret": "your-256-bit-secret",
+    "cors_origins": [
+        "http://localhost:5173",
+        "http://your-ec2-ip"
+    ],
+    "google_client_id": "your-google-client-id.apps.googleusercontent.com",
+    "google_client_secret": "your-google-client-secret"
+}

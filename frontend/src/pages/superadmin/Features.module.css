@@ -1,0 +1,175 @@
+/* Super Admin Features page */
+
+.loading {
+  color: var(--color-text-muted);
+  margin-top: 1rem;
+}
+
+.form {
+  max-width: 480px;
+  padding: 1.5rem;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  margin-top: 1rem;
+}
+
+.groupLabel {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--color-text);
+  margin: 1rem 0 0.35rem;
+}
+
+.groupLabel:first-of-type {
+  margin-top: 0;
+}
+
+.toggle {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+  font-size: 0.95rem;
+  cursor: pointer;
+}
+
+.toggle input {
+  width: auto;
+  margin: 0;
+}
+
+.hint {
+  font-size: 0.85rem;
+  color: var(--color-text-muted);
+  margin: -0.5rem 0 0 1.75rem;
+}
+
+.whyFields {
+  margin: 0.5rem 0 0 1.75rem;
+  padding: 1rem;
+  background: var(--color-bg);
+  border-radius: var(--radius);
+  border: 1px solid var(--color-border);
+}
+
+.row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+.fieldLabel {
+  display: block;
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: var(--color-text-muted);
+  margin-bottom: 0.35rem;
+  margin-top: 0.75rem;
+}
+
+.fieldLabel:first-child {
+  margin-top: 0;
+}
+
+.input {
+  width: 100%;
+  padding: 0.5rem 0.6rem;
+  font-size: 0.9rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  margin-bottom: 0.5rem;
+  box-sizing: border-box;
+}
+
+.whyItem {
+  display: grid;
+  grid-template-columns: 1fr 1fr auto;
+  gap: 0.5rem;
+  align-items: end;
+  margin-bottom: 0.75rem;
+}
+
+.whyItem .input {
+  margin-bottom: 0;
+}
+
+.removeItemBtn {
+  padding: 0.4rem 0.6rem;
+  font-size: 0.8rem;
+  background: transparent;
+  border: 1px solid var(--color-border);
+  color: var(--color-text-muted);
+  border-radius: var(--radius);
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.removeItemBtn:hover {
+  background: var(--color-error-muted);
+  color: var(--color-error);
+  border-color: var(--color-error);
+}
+
+.addItemBtn {
+  margin-top: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  font-size: 0.85rem;
+  background: transparent;
+  border: 1px dashed var(--color-border);
+  color: var(--color-text-muted);
+  border-radius: var(--radius);
+  cursor: pointer;
+}
+
+.addItemBtn:hover {
+  border-color: var(--color-accent);
+  color: var(--color-accent);
+}
+
+.link {
+  color: var(--color-accent);
+  text-decoration: none;
+}
+
+.link:hover {
+  text-decoration: underline;
+}
+
+.actions {
+  margin-top: 1.25rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--color-border);
+}
+
+.saveBtn {
+  padding: 0.5rem 1.25rem;
+  background: var(--color-accent);
+  color: var(--color-on-accent);
+  border: none;
+  font-size: 0.9rem;
+  font-weight: 600;
+  border-radius: var(--radius);
+  cursor: pointer;
+}
+
+.saveBtn:hover:not(:disabled) {
+  background: var(--color-accent-hover);
+}
+
+.saveBtn:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.error {
+  color: var(--color-error);
+  font-size: 0.9rem;
+  margin: 0 0 1rem;
+}
+
+.message {
+  color: var(--color-success);
+  font-size: 0.9rem;
+  margin: 0 0 1rem;
+}

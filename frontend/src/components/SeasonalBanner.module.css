@@ -1,0 +1,134 @@
+/* Seasonal sale banner */
+
+.banner {
+  position: relative;
+  min-height: 180px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-xl) var(--space-lg);
+  overflow: hidden;
+}
+
+.bgImage {
+  position: absolute;
+  inset: 0;
+  background-size: cover;
+  background-position: center;
+}
+
+.overlay {
+  position: absolute;
+  inset: 0;
+}
+
+.themeDark .overlay {
+  background: linear-gradient(90deg, rgba(0, 0, 0, 0.7) 0%, rgba(0, 0, 0, 0.4) 100%);
+}
+
+.themeLight .overlay {
+  background: linear-gradient(90deg, rgba(255, 255, 255, 0.85) 0%, rgba(255, 255, 255, 0.5) 100%);
+}
+
+.content {
+  position: relative;
+  z-index: 1;
+  text-align: center;
+  max-width: 560px;
+}
+
+.themeDark .headline,
+.themeDark .subheadline {
+  color: var(--color-on-accent);
+}
+
+.themeDark .subheadline {
+  opacity: 0.9;
+}
+
+.themeLight .headline,
+.themeLight .subheadline {
+  color: var(--color-text);
+}
+
+.themeLight .subheadline {
+  color: var(--color-text-muted);
+}
+
+.headline {
+  font-family: var(--font-serif);
+  font-size: clamp(1.35rem, 4vw, 1.75rem);
+  font-weight: 400;
+  margin: 0 0 0.35rem;
+  letter-spacing: 0.02em;
+}
+
+.subheadline {
+  font-size: 0.95rem;
+  margin: 0 0 1rem;
+  line-height: 1.4;
+}
+
+.cta {
+  display: inline-block;
+  padding: 0.5rem 1.25rem;
+  font-size: 0.8rem;
+  font-weight: 500;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  transition: opacity 0.2s, background 0.2s;
+  text-decoration: none;
+  border-radius: var(--radius);
+}
+
+.themeDark .cta {
+  background: var(--color-surface);
+  color: var(--color-text);
+}
+
+.themeDark .cta:hover {
+  opacity: 0.92;
+}
+
+.themeLight .cta {
+  background: var(--color-accent);
+  color: var(--color-on-accent);
+}
+
+.themeLight .cta:hover {
+  opacity: 0.92;
+  background: var(--color-accent-hover);
+}
+
+.close {
+  position: absolute;
+  top: 0.5rem;
+  right: 0.75rem;
+  z-index: 2;
+  width: 2rem;
+  height: 2rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.3);
+  border: none;
+  color: var(--color-on-accent);
+  font-size: 1.25rem;
+  line-height: 1;
+  cursor: pointer;
+  border-radius: 4px;
+  transition: background 0.2s;
+}
+
+.close:hover {
+  background: var(--overlay-dark);
+}
+
+.themeLight .close {
+  background: var(--overlay);
+  color: var(--color-text);
+}
+
+.themeLight .close:hover {
+  background: var(--overlay-dark);
+}

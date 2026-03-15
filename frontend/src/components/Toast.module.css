@@ -1,0 +1,82 @@
+.toast {
+  position: fixed;
+  bottom: var(--space-xl);
+  left: 50%;
+  transform: translateX(-50%) translateY(0);
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+  padding: var(--space-md) var(--space-lg);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-lg);
+  z-index: 1000;
+  animation: toastIn 0.3s var(--ease-out) both;
+}
+
+@keyframes toastIn {
+  from {
+    opacity: 0;
+    transform: translateX(-50%) translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+}
+
+.message {
+  font-size: 0.95rem;
+  color: var(--color-text);
+  margin: 0;
+}
+
+.action {
+  padding: var(--space-sm) var(--space-md);
+  background: var(--color-accent);
+  color: white;
+  border-radius: var(--radius);
+  font-size: 0.9rem;
+  font-weight: 500;
+  white-space: nowrap;
+  transition: all var(--transition);
+}
+
+.action:hover {
+  background: var(--color-accent-hover);
+}
+
+.close {
+  margin-left: var(--space-xs);
+  padding: var(--space-xs);
+  font-size: 1.25rem;
+  line-height: 1;
+  color: var(--color-text-muted);
+  transition: color var(--transition);
+}
+
+.close:hover {
+  color: var(--color-text);
+}
+
+@media (max-width: 480px) {
+  .toast {
+    left: var(--space-md);
+    right: var(--space-md);
+    transform: translateY(0);
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  @keyframes toastIn {
+    from {
+      opacity: 0;
+      transform: translateY(16px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+}

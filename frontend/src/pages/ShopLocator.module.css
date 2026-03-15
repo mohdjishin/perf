@@ -1,0 +1,125 @@
+/* Shop Locator — find a store */
+
+.page {
+  padding: var(--space-2xl) 0;
+  animation: fadeIn 0.5s var(--ease-out) both;
+}
+
+.container {
+  max-width: var(--max-width);
+  margin: 0 auto;
+  padding: 0 var(--space-lg);
+}
+
+.title {
+  font-family: var(--font-serif);
+  font-size: clamp(1.75rem, 4vw, 2.25rem);
+  font-weight: 400;
+  margin-bottom: var(--space-xs);
+}
+
+.subtitle {
+  font-size: 0.95rem;
+  color: var(--color-text-muted);
+  margin-bottom: var(--space-2xl);
+}
+
+.loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 30vh;
+  color: var(--color-text-muted);
+}
+
+.list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  gap: var(--space-lg);
+}
+
+.card {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: var(--space-lg);
+  transition: border-color var(--transition), box-shadow var(--transition), transform var(--transition);
+}
+
+.card:hover {
+  border-color: rgba(59, 130, 246, 0.25);
+  box-shadow: var(--shadow-md), 0 8px 24px rgba(59, 130, 246, 0.08);
+  transform: translateY(-2px);
+}
+
+.cardTitle {
+  font-family: var(--font-serif);
+  font-size: 1.25rem;
+  font-weight: 400;
+  margin: 0 0 var(--space-sm);
+}
+
+.address {
+  font-size: 0.95rem;
+  color: var(--color-text-muted);
+  margin: 0 0 var(--space-sm);
+  line-height: 1.5;
+}
+
+.phone {
+  font-size: 0.9rem;
+  margin-bottom: var(--space-xs);
+}
+
+.hours {
+  font-size: 0.85rem;
+  color: var(--color-text-muted);
+  margin-bottom: var(--space-md);
+}
+
+.mapLink {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-sm);
+  padding: 0.5rem 1rem;
+  background: var(--color-accent);
+  color: var(--color-on-accent);
+  border-radius: var(--radius-lg);
+  font-size: 0.9rem;
+  font-weight: 500;
+  text-decoration: none;
+  transition: background var(--transition);
+}
+
+.mapLink:hover {
+  background: var(--color-accent-hover);
+}
+
+.empty {
+  text-align: center;
+  padding: var(--space-3xl);
+  color: var(--color-text-muted);
+  font-size: 1rem;
+}
+
+.backLink {
+  margin-top: var(--space-2xl);
+}
+
+.backLinkA {
+  font-size: 0.9rem;
+  color: var(--color-text-muted);
+  text-decoration: none;
+}
+
+.backLinkA:hover {
+  color: var(--color-accent);
+}
+
+@media (max-width: 768px) {
+  .container {
+    padding: 0 var(--space-md);
+  }
+}

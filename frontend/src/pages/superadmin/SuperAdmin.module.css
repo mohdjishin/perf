@@ -1,0 +1,66 @@
+/* Super Admin dashboard */
+
+.page {
+  min-height: 100vh;
+  padding: clamp(1rem, 4vw, 2rem);
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+.title {
+  font-family: var(--font-serif);
+  font-size: clamp(1.5rem, 4vw, 2rem);
+  font-weight: 400;
+  margin: 0 0 0.25rem;
+}
+
+.subtitle {
+  font-size: 0.9rem;
+  color: var(--color-text-muted);
+  margin-bottom: 1.5rem;
+}
+
+.back {
+  display: inline-block;
+  font-size: 0.9rem;
+  color: var(--color-text-muted);
+  margin-bottom: 1rem;
+  text-decoration: none;
+}
+
+.back:hover {
+  color: var(--color-accent);
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 1rem;
+}
+
+.card {
+  padding: 1.5rem;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  text-decoration: none;
+  color: inherit;
+  transition: border-color 0.2s;
+}
+
+.card:hover {
+  border-color: var(--color-accent-muted);
+}
+
+.card h3 {
+  font-family: var(--font-serif);
+  font-size: 1.1rem;
+  font-weight: 400;
+  margin: 0 0 0.25rem;
+}
+
+.card p {
+  font-size: 0.85rem;
+  color: var(--color-text-muted);
+  margin: 0;
+}

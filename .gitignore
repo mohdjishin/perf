@@ -1,0 +1,22 @@
+# Dependencies
+node_modules/
+
+# Build / runtime
+frontend/dist/
+backend/perfume-store
+*.exe
+
+# Cache / temp
+.vite/
+*.log
+.DS_Store
+
+# Test / e2e artifacts
+coverage/
+test-results/
+playwright-report/
+*.lcov
+
+# Optional: ignore local config (uncomment if you don't want to commit secrets)
+# backend/config.json
+# frontend/public/config.json

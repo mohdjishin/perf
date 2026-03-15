@@ -1,0 +1,427 @@
+.page {
+  max-width: 480px;
+  margin: 0 auto;
+  padding: var(--space-2xl) var(--space-lg);
+}
+
+.profileHeader {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xl);
+  margin-bottom: var(--space-xl);
+}
+
+.profilePic {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid var(--color-border);
+  box-shadow: var(--shadow-sm);
+}
+
+.profilePicPlaceholder {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  background: var(--color-accent);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2rem;
+  font-weight: 600;
+  box-shadow: var(--shadow-sm);
+}
+
+.profileInfo {
+  flex: 1;
+}
+
+.title {
+  font-family: var(--font-serif);
+  font-size: clamp(1.5rem, 4vw, 2rem);
+  font-weight: 400;
+  margin: 0;
+}
+
+.subtitle {
+  font-size: 0.95rem;
+  color: var(--color-text-muted);
+  margin: 0.25rem 0 0;
+}
+
+.optionsRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-md);
+  margin-bottom: var(--space-xl);
+}
+
+.optionBtn {
+  padding: 0.5rem 0;
+  background: none;
+  border: none;
+  font-size: 0.95rem;
+  color: var(--color-accent);
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  font-family: inherit;
+}
+
+.optionBtn:hover {
+  color: var(--color-accent-hover);
+}
+
+a.optionBtn {
+  display: inline;
+}
+
+.modalOverlay {
+  position: fixed;
+  inset: 0;
+  background: var(--overlay);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1100;
+  padding: var(--space-lg);
+  animation: overlayIn 0.25s var(--ease-out) both;
+}
+
+@keyframes overlayIn {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+.modal {
+  background: var(--color-surface);
+  border-radius: var(--radius-lg);
+  padding: var(--space-2xl);
+  max-width: 400px;
+  width: 100%;
+  box-shadow: var(--shadow-lg);
+  animation: modalIn 0.35s var(--ease-out) both;
+}
+
+@keyframes modalIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95) translateY(10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+.modalHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: var(--space-md);
+}
+
+.modalTitle {
+  font-family: var(--font-serif);
+  font-size: 1.5rem;
+  font-weight: 400;
+  margin: 0 0 var(--space-lg);
+}
+
+.modalHeader .modalTitle {
+  margin: 0;
+}
+
+.modalClose {
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  line-height: 1;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  padding: 0.25rem;
+}
+
+.modalClose:hover {
+  color: var(--color-text);
+}
+
+.modalWide {
+  max-width: 480px;
+  max-height: 85vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.modalScroll {
+  overflow-y: auto;
+  flex: 1;
+  min-height: 0;
+  margin: var(--space-md) 0;
+}
+
+.modalFooter {
+  padding-top: var(--space-md);
+  border-top: 1px solid var(--color-border);
+}
+
+.modalActions {
+  display: flex;
+  gap: var(--space-md);
+  justify-content: flex-end;
+  margin-top: var(--space-md);
+}
+
+.section {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  padding: var(--space-xl);
+}
+
+.section+.section {
+  margin-top: var(--space-xl);
+}
+
+.sectionTitle {
+  font-size: 1rem;
+  font-weight: 500;
+  margin: 0 0 var(--space-md);
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+}
+
+.input {
+  padding: 0.75rem 1rem;
+  font-size: 1rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  background: var(--color-bg);
+}
+
+.input:focus {
+  outline: none;
+  border-color: var(--color-accent);
+}
+
+.error {
+  color: var(--color-error);
+  font-size: 0.9rem;
+  margin: 0;
+}
+
+.success {
+  color: var(--color-success);
+  font-size: 0.9rem;
+  margin: 0;
+}
+
+.btn {
+  padding: 0.75rem 1.25rem;
+  background: var(--color-accent);
+  color: white;
+  border: none;
+  border-radius: var(--radius);
+  font-size: 1rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background var(--transition);
+}
+
+.btn:hover:not(:disabled) {
+  background: var(--color-accent-hover);
+}
+
+.btn:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.hint {
+  font-size: 0.9rem;
+  color: var(--color-text-muted);
+  margin: 0 0 var(--space-md);
+}
+
+.addressCard {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: var(--space-md);
+  padding: var(--space-md);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  margin-bottom: var(--space-md);
+  background: var(--color-bg);
+}
+
+.addressContent {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  font-size: 0.9rem;
+  flex: 1;
+  min-width: 0;
+}
+
+.addressContent>span {
+  word-break: break-word;
+}
+
+.addressLabel {
+  font-weight: 500;
+  color: var(--color-accent);
+}
+
+.addressPhone {
+  font-size: 0.85rem;
+  color: var(--color-text-muted);
+}
+
+.defaultBadge {
+  font-size: 0.75rem;
+  background: var(--color-accent);
+  color: white;
+  padding: 0.15rem 0.5rem;
+  border-radius: var(--radius);
+  width: fit-content;
+}
+
+.addressActions {
+  display: flex;
+  gap: var(--space-xs);
+  flex-shrink: 0;
+  align-self: flex-start;
+}
+
+.smallBtn,
+.smallBtnDanger {
+  padding: 0.35rem 0.6rem;
+  font-size: 0.85rem;
+  border-radius: var(--radius);
+  cursor: pointer;
+  border: 1px solid var(--color-border);
+  background: var(--color-bg);
+}
+
+.smallBtn:hover {
+  background: var(--color-surface-elevated);
+}
+
+.smallBtnDanger {
+  color: var(--color-error);
+  border-color: var(--color-error);
+}
+
+.smallBtnDanger:hover {
+  background: var(--color-error-muted);
+}
+
+.addressSection {
+  margin-bottom: var(--space-lg);
+}
+
+.addressSectionTitle {
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--color-text-muted);
+  margin: 0 0 var(--space-sm);
+  padding-bottom: 0.25rem;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.labelRow {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs);
+  margin-bottom: var(--space-md);
+}
+
+.labelFieldLabel {
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: var(--color-text-muted);
+}
+
+.labelRow .select {
+  padding: 0.6rem 0.75rem;
+  background: var(--color-bg);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  font-size: 0.9rem;
+  color: var(--color-text);
+}
+
+.labelRow .select:focus {
+  outline: none;
+  border-color: var(--color-accent);
+}
+
+.row2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: var(--space-md);
+}
+
+.row2 .input {
+  margin-bottom: 0;
+  width: 100%;
+}
+
+@media (max-width: 400px) {
+  .row2 {
+    grid-template-columns: 1fr;
+  }
+}
+
+.btnRow {
+  display: flex;
+  gap: var(--space-md);
+  align-items: center;
+}
+
+.btnRow .btn {
+  flex: 1;
+}
+
+.btnSecondary {
+  padding: 0.75rem 1.25rem;
+  background: transparent;
+  color: var(--color-text);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  font-size: 1rem;
+  cursor: pointer;
+  transition: all var(--transition);
+}
+
+.btnSecondary:hover {
+  background: var(--color-surface-elevated);
+}
+
+.checkbox {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  font-size: 0.9rem;
+  cursor: pointer;
+}
+
+.addressFormWrap {
+  margin-top: var(--space-md);
+}

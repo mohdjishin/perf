@@ -1,0 +1,329 @@
+.page {
+  max-width: 480px;
+  margin: 0 auto;
+  padding: var(--space-2xl) var(--space-lg);
+  animation: fadeIn 0.5s var(--ease-out) both;
+}
+
+.title {
+  font-family: var(--font-serif);
+  font-size: 1.75rem;
+  font-weight: 400;
+  margin-bottom: var(--space-xl);
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xl);
+}
+
+.section {
+  padding: var(--space-lg);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+}
+
+.sectionTitle {
+  font-size: 0.9rem;
+  font-weight: 500;
+  margin-bottom: var(--space-md);
+  color: var(--color-text-muted);
+}
+
+.addressOptions {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+  margin-bottom: var(--space-lg);
+}
+
+.addressOption {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-md);
+  padding: var(--space-md) var(--space-lg);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  cursor: pointer;
+  background: var(--color-bg);
+  transition: border-color var(--transition), background var(--transition);
+}
+
+.addressOption input[type="radio"] {
+  margin-top: 0.25em;
+  flex-shrink: 0;
+  accent-color: var(--color-accent);
+}
+
+.addressOption > span {
+  flex: 1;
+  min-width: 0;
+}
+
+.addressOption:hover {
+  background: var(--color-surface-elevated);
+}
+
+.addressOption.selected {
+  border-color: var(--color-accent);
+  background: var(--color-accent-muted);
+}
+
+.addressOptionContent {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  font-size: 0.9rem;
+  flex: 1;
+  min-width: 0;
+}
+
+.addressOptionContent .addressText {
+  color: var(--color-text-muted);
+  line-height: 1.5;
+  word-break: break-word;
+}
+
+.addressLabel {
+  font-weight: 500;
+  color: var(--color-accent);
+}
+
+.addressGroup {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+}
+
+.addressGroupLabel {
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--color-text-muted);
+  margin-top: var(--space-sm);
+  margin-bottom: 0.15rem;
+}
+
+.addressGroup:first-child .addressGroupLabel {
+  margin-top: 0;
+}
+
+.saveAddressRow {
+  margin-top: var(--space-md);
+  padding-top: var(--space-md);
+  border-top: 1px solid var(--color-border);
+}
+
+.saveAddressCheckbox {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  font-size: 0.9rem;
+  cursor: pointer;
+  color: var(--color-text);
+}
+
+.saveAddressCheckbox input {
+  accent-color: var(--color-accent);
+}
+
+.saveAddressActions {
+  margin-top: var(--space-sm);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+}
+
+.saveAddressBtn {
+  padding: 0.5rem 1rem;
+  font-size: 0.9rem;
+  font-weight: 500;
+  background: var(--color-surface-elevated);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  color: var(--color-text);
+  cursor: pointer;
+  transition: border-color var(--transition), background var(--transition);
+  align-self: flex-start;
+}
+
+.saveAddressBtn:hover:not(:disabled) {
+  border-color: var(--color-accent);
+  background: var(--color-accent-muted);
+}
+
+.saveAddressBtn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.saveAddressLabelRow {
+  margin-top: 0;
+  margin-bottom: var(--space-xs);
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-sm);
+}
+
+.saveAddressLabelText {
+  font-size: 0.9rem;
+  color: var(--color-text-muted);
+}
+
+.saveAddressSelect {
+  padding: 0.5rem 0.75rem;
+  background: var(--color-bg);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  font-size: 0.9rem;
+  color: var(--color-text);
+}
+
+.saveAddressSelect:focus {
+  outline: none;
+  border-color: var(--color-accent);
+}
+
+.saveAddressCustomInput {
+  flex: 1;
+  min-width: 120px;
+  padding: 0.5rem 0.75rem;
+  background: var(--color-bg);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  font-size: 0.9rem;
+  color: var(--color-text);
+}
+
+.saveAddressCustomInput::placeholder {
+  color: var(--color-text-muted);
+}
+
+.saveAddressCustomInput:focus {
+  outline: none;
+  border-color: var(--color-accent);
+}
+
+.addressForm {
+  margin-top: var(--space-md);
+}
+
+.addressDisplay {
+  margin-top: var(--space-md);
+  padding: var(--space-lg);
+  background: var(--color-bg);
+  border-radius: var(--radius);
+  border: 1px solid var(--color-border);
+}
+
+.deliveryLabel {
+  margin: 0 0 0.5rem;
+  font-size: 0.75rem;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--color-text-muted);
+}
+
+.addressLine {
+  margin: 0;
+  font-size: 0.95rem;
+  line-height: 1.6;
+  color: var(--color-text);
+}
+
+.addressLine + .addressLine {
+  margin-top: 0.25rem;
+}
+
+.input {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  margin-bottom: var(--space-md);
+  background: var(--color-bg);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  color: var(--color-text);
+}
+
+.input:last-of-type {
+  margin-bottom: 0;
+}
+
+.input:focus {
+  outline: none;
+  border-color: var(--color-accent);
+}
+
+.row {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: var(--space-md);
+  margin-bottom: var(--space-md);
+}
+
+.row .input {
+  margin-bottom: 0;
+  width: 100%;
+}
+
+@media (max-width: 400px) {
+  .row {
+    grid-template-columns: 1fr;
+  }
+}
+
+.orderItem {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.9rem;
+  padding: var(--space-xs) 0;
+}
+
+.orderRow {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.9rem;
+  padding: var(--space-xs) 0;
+  color: var(--color-text-muted);
+}
+
+.total {
+  display: flex;
+  justify-content: space-between;
+  margin-top: var(--space-md);
+  padding-top: var(--space-md);
+  border-top: 1px solid var(--color-border);
+  font-weight: 500;
+}
+
+.error {
+  font-size: 0.9rem;
+  color: var(--color-error);
+}
+
+.btn {
+  width: 100%;
+  padding: var(--space-md);
+  background: var(--color-accent);
+  color: var(--color-on-accent);
+  border-radius: var(--radius-lg);
+  font-size: 0.9rem;
+  font-weight: 600;
+  transition: background var(--transition), transform var(--transition-fast), box-shadow var(--transition);
+}
+
+.btn:hover:not(:disabled) {
+  background: var(--color-accent-hover);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(59, 130, 246, 0.35);
+}
+
+.btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}

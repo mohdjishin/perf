@@ -1,0 +1,70 @@
+.stars {
+  display: inline-flex;
+  gap: 0.1em;
+  font-size: 1rem;
+  line-height: 1;
+  color: var(--color-warning, #eab308);
+}
+
+.starFull {
+  color: inherit;
+}
+
+.starHalf {
+  color: inherit;
+  opacity: 0.7;
+}
+
+.starEmpty {
+  color: var(--color-border, #d1d5db);
+}
+
+.stars.editable button {
+  background: none;
+  border: none;
+  padding: 0.15em;
+  cursor: pointer;
+  font-size: inherit;
+  line-height: 1;
+  border-radius: 2px;
+}
+
+.stars.editable button:hover {
+  opacity: 0.9;
+}
+
+.stars.editable button:focus-visible {
+  outline: 2px solid var(--color-accent, #0ea5e9);
+  outline-offset: 2px;
+}
+
+.stars.editable .starEmpty {
+  color: var(--color-border, #d1d5db);
+}
+
+.stars.editable .starEmpty:hover {
+  color: var(--color-text-muted, #94a3b8);
+}
+
+.clearRating {
+  margin-left: 0.5em;
+  font-size: 0.8em;
+  background: none;
+  border: none;
+  color: var(--color-text-muted, #94a3b8);
+  cursor: pointer;
+  padding: 0.2em 0.4em;
+}
+
+.clearRating:hover {
+  color: var(--color-text, #0f172a);
+}
+
+.cardStars {
+  font-size: 0.9rem;
+  margin-top: 0.2rem;
+}
+
+.cardStars .starEmpty {
+  color: var(--color-text-muted, #94a3b8);
+}

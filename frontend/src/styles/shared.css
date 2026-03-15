@@ -1,0 +1,119 @@
+/* Shared — Blue Mist UI (tokens from index.css) */
+
+.page {
+  min-height: 100vh;
+  padding: var(--space-2xl) 0;
+  animation: fadeIn 0.5s var(--ease-out) both;
+}
+
+.pageTitle {
+  font-family: var(--font-serif);
+  font-size: clamp(1.75rem, 4vw, 2.25rem);
+  font-weight: 400;
+  letter-spacing: 0.02em;
+  margin-bottom: var(--space-xs);
+}
+
+.pageSubtitle {
+  font-size: 0.95rem;
+  color: var(--color-text-muted);
+  margin-bottom: var(--space-2xl);
+}
+
+.loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 40vh;
+  color: var(--color-text-muted);
+  font-size: 0.95rem;
+}
+
+.empty {
+  text-align: center;
+  padding: var(--space-3xl);
+  color: var(--color-text-muted);
+  font-size: 0.95rem;
+}
+
+/* Buttons — blue theme with animation */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: var(--touch-min, 44px);
+  padding: 0.7rem 1.35rem;
+  background: var(--color-accent);
+  color: var(--color-on-accent);
+  border-radius: var(--radius-lg);
+  font-size: 0.875rem;
+  font-weight: 500;
+  transition: background var(--transition), color var(--transition), transform var(--transition-fast), box-shadow var(--transition);
+}
+
+.btn:hover {
+  background: var(--color-accent-hover);
+  transform: translateY(-1px);
+  box-shadow: 0 6px 20px rgba(59, 130, 246, 0.35);
+}
+
+.btn:active {
+  transform: translateY(0);
+  opacity: 0.98;
+}
+
+.btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.btn:focus-visible {
+  outline: 2px solid var(--color-text);
+  outline-offset: 2px;
+}
+
+.btnGhost {
+  background: transparent;
+  color: var(--color-text-muted);
+}
+
+.btnGhost:hover {
+  color: var(--color-accent);
+  background: var(--color-accent-muted);
+}
+
+/* Inputs — blue focus ring animation */
+.input {
+  width: 100%;
+  padding: 0.7rem 1rem;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  color: var(--color-text);
+  transition: border-color var(--transition), box-shadow var(--transition), background var(--transition-fast);
+}
+
+.input:focus {
+  outline: none;
+  border-color: var(--color-accent);
+  box-shadow: 0 0 0 3px var(--color-accent-muted);
+  background: var(--color-surface);
+}
+
+.input::placeholder {
+  color: var(--color-text-muted);
+}
+
+/* Cards — blue theme hover lift */
+.card {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  transition: border-color var(--transition), box-shadow var(--transition), transform var(--transition);
+}
+
+.card:hover {
+  border-color: rgba(59, 130, 246, 0.25);
+  box-shadow: var(--shadow-md), 0 8px 24px rgba(59, 130, 246, 0.08);
+  transform: translateY(-2px);
+}
