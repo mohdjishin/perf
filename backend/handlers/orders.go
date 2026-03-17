@@ -563,7 +563,7 @@ func CreateOrder(c *gin.Context) {
 	}
 
 	// Build Stripe Checkout Session line items from order items + fees
-	frontendURL := config.AppConfig.FrontendURL
+	frontendURL := strings.TrimSuffix(config.AppConfig.FrontendURL, "/")
 	successURL := frontendURL + "/checkout/success?session_id={CHECKOUT_SESSION_ID}"
 	cancelURL := frontendURL + "/checkout?cancelled=true"
 

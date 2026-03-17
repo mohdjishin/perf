@@ -70,16 +70,16 @@ function App() {
                   <Route path="store-locator" element={<ShopLocator />} />
                   <Route path="product/:id" element={<Product />} />
                   <Route path="cart" element={
-                    <ProtectedRoute roles={['customer']}><Cart /></ProtectedRoute>
+                    <ProtectedRoute><Cart /></ProtectedRoute>
                   } />
                   <Route path="checkout" element={
-                    <ProtectedRoute roles={['customer']}><Checkout /></ProtectedRoute>
+                    <ProtectedRoute><Checkout /></ProtectedRoute>
                   } />
                   <Route path="checkout/success" element={
-                    <ProtectedRoute roles={['customer']}><CheckoutSuccess /></ProtectedRoute>
+                    <ProtectedRoute><CheckoutSuccess /></ProtectedRoute>
                   } />
                   <Route path="orders" element={
-                    <ProtectedRoute roles={['customer']}>
+                    <ProtectedRoute>
                       <ErrorBoundary><Orders /></ErrorBoundary>
                     </ProtectedRoute>
                   } />
