@@ -165,12 +165,13 @@ export default function Product() {
       <BackButton to="/shop" label={t('nav.shop')} />
       <div className={s.grid}>
         <div className={s.imageWrap}>
-          {(product.newArrival || product.onSale) && (
+          {(product.newArrival || product.onSale || product.stock <= 0) && (
             <div className={s.badges}>
-              {product.newArrival && <span className={s.badgeNew}>{t('product.new')}</span>}
+              {product.newArrival && <span className={product.classNameNew || s.badgeNew}>{t('product.new')}</span>}
               {product.onSale && product.discountPercent > 0 && (
                 <span className={s.badgeSale}>{t('product.percentOff', { percent: product.discountPercent })}</span>
               )}
+              {product.stock <= 0 && <span className={s.badgeStock}>{t('product.outOfStock')}</span>}
             </div>
           )}
           <img

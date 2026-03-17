@@ -46,21 +46,23 @@ type ShippingHistoryEntry struct {
 }
 
 type Order struct {
-	ID              primitive.ObjectID     `bson:"_id,omitempty" json:"id"`
-	OrderNumber     string                 `bson:"order_number" json:"orderNumber"`
-	UserID          primitive.ObjectID     `bson:"user_id" json:"userId"`
-	Items           []OrderItem            `bson:"items" json:"items"`
-	Subtotal        float64                `bson:"subtotal,omitempty" json:"subtotal,omitempty"`          // stored at placement; do not recalculate
-	Fee             float64                `bson:"fee,omitempty" json:"fee,omitempty"`                    // net of all fee/discount lines at placement
-	FeeBreakdown    []FeeBreakdownLine     `bson:"fee_breakdown,omitempty" json:"feeBreakdown,omitempty"` // stored at placement
-	Total           float64                `bson:"total" json:"total"`                                    // stored at placement; do not recalculate
-	Status          OrderStatus            `bson:"status" json:"status"`
-	PaymentStatus   PaymentStatus          `bson:"payment_status,omitempty" json:"paymentStatus,omitempty"`
-	ShippingHistory []ShippingHistoryEntry `bson:"shipping_history,omitempty" json:"shippingHistory,omitempty"`
-	Address         Address                `bson:"address" json:"address"`
-	DeliveredAt     *time.Time             `bson:"delivered_at,omitempty" json:"deliveredAt,omitempty"` // set when status becomes delivered (for return window)
-	CreatedAt       time.Time              `bson:"created_at" json:"createdAt"`
-	UpdatedAt       time.Time              `bson:"updated_at" json:"updatedAt"`
+	ID                primitive.ObjectID     `bson:"_id,omitempty" json:"id"`
+	OrderNumber       string                 `bson:"order_number" json:"orderNumber"`
+	UserID            primitive.ObjectID     `bson:"user_id" json:"userId"`
+	Items             []OrderItem            `bson:"items" json:"items"`
+	Subtotal          float64                `bson:"subtotal,omitempty" json:"subtotal,omitempty"`          // stored at placement; do not recalculate
+	Fee               float64                `bson:"fee,omitempty" json:"fee,omitempty"`                    // net of all fee/discount lines at placement
+	FeeBreakdown      []FeeBreakdownLine     `bson:"fee_breakdown,omitempty" json:"feeBreakdown,omitempty"` // stored at placement
+	Total             float64                `bson:"total" json:"total"`                                    // stored at placement; do not recalculate
+	Status            OrderStatus            `bson:"status" json:"status"`
+	PaymentStatus     PaymentStatus          `bson:"payment_status,omitempty" json:"paymentStatus,omitempty"`
+	PaymentIntentID   string                 `bson:"payment_intent_id,omitempty" json:"paymentIntentId,omitempty"`
+	CheckoutSessionID string                 `bson:"checkout_session_id,omitempty" json:"checkoutSessionId,omitempty"`
+	ShippingHistory   []ShippingHistoryEntry `bson:"shipping_history,omitempty" json:"shippingHistory,omitempty"`
+	Address           Address                `bson:"address" json:"address"`
+	DeliveredAt       *time.Time             `bson:"delivered_at,omitempty" json:"deliveredAt,omitempty"` // set when status becomes delivered (for return window)
+	CreatedAt         time.Time              `bson:"created_at" json:"createdAt"`
+	UpdatedAt         time.Time              `bson:"updated_at" json:"updatedAt"`
 }
 
 type Address struct {

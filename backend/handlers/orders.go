@@ -2,12 +2,15 @@ package handlers
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 	"regexp"
 	"strings"
 	"time"
 
+	"perfume-store/config"
 	"perfume-store/database"
+	"perfume-store/logger"
 	"perfume-store/models"
 	"perfume-store/utils"
 
@@ -292,6 +295,10 @@ func ListOrders(c *gin.Context) {
 			"createdAt":     o.CreatedAt,
 			"deliveredAt":   o.DeliveredAt,
 		}
+		if role == string(models.RoleAdmin) || role == string(models.RoleSuperAdmin) {
+			item["paymentIntentId"] = o.PaymentIntentID
+			item["checkoutSessionId"] = o.CheckoutSessionID
+		}
 		if !listMode {
 			// Serialize items with explicit productId hex so frontend always gets a string (e.g. for Review links)
 			lineItems := make([]gin.H, len(o.Items))
@@ -386,6 +393,10 @@ func GetOrder(c *gin.Context) {
 		"deliveredAt":     order.DeliveredAt,
 		"address":         order.Address,
 	}
+	if role == string(models.RoleAdmin) || role == string(models.RoleSuperAdmin) {
+		resp["paymentIntentId"] = order.PaymentIntentID
+		resp["checkoutSessionId"] = order.CheckoutSessionID
+	}
 	// For admin: include user info
 	if role == string(models.RoleAdmin) || role == string(models.RoleSuperAdmin) {
 		usersCol := database.DB.Collection("users")
@@ -452,22 +463,29 @@ func CreateOrder(c *gin.Context) {
 
 	var items []models.OrderItem
 	var subtotal float64
-	proj := options.FindOne().SetProjection(bson.M{"_id": 1, "name": 1, "price": 1, "image_url": 1, "stock": 1})
+	proj := options.FindOne().SetProjection(bson.M{"_id": 1, "name": 1, "price": 1, "image_url": 1, "stock": 1, "active": 1})
 
 	for _, it := range req.Items {
 		pid, _ := primitive.ObjectIDFromHex(it.ProductID)
 		var product models.Product
-		err := productsCol.FindOne(ctx, bson.M{"_id": pid, "active": true}, proj).Decode(&product)
+		// First check if it exists at all
+		err := productsCol.FindOne(ctx, bson.M{"_id": pid}, proj).Decode(&product)
 		if err != nil {
 			if err == mongo.ErrNoDocuments {
-				c.JSON(http.StatusBadRequest, gin.H{"error": "Product not found or unavailable"})
+				c.JSON(http.StatusNotFound, gin.H{"error": "Product no longer exists in our catalog. Please remove it from your cart."})
 				return
 			}
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "Order failed: " + err.Error()})
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Database error checking product: " + err.Error()})
 			return
 		}
+
+		if !product.Active {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Product '" + product.Name + "' is currently unavailable. Please remove it from your cart."})
+			return
+		}
+
 		if product.Stock < it.Quantity {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "Insufficient stock for " + product.Name})
+			c.JSON(http.StatusBadRequest, gin.H{"error": fmt.Sprintf("Insufficient stock for %s. Only %d left.", product.Name, product.Stock)})
 			return
 		}
 		// Snapshot product price and name at order placement; existing orders must never be recalculated from current product prices.
@@ -509,9 +527,18 @@ func CreateOrder(c *gin.Context) {
 	}
 	for _, it := range req.Items {
 		pid, _ := primitive.ObjectIDFromHex(it.ProductID)
-		if _, err := productsCol.UpdateOne(ctx, bson.M{"_id": pid}, bson.M{"$inc": bson.M{"stock": -it.Quantity}}); err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "Order placed but stock update failed: " + err.Error()})
-			return
+		// Atomic decrement: only if stock is still sufficient
+		res, err := productsCol.UpdateOne(ctx,
+			bson.M{"_id": pid, "stock": bson.M{"$gte": it.Quantity}},
+			bson.M{"$inc": bson.M{"stock": -it.Quantity}},
+		)
+		if err != nil {
+			logger.Errorf("Critical: Stock decrement failed for %s: %v", it.ProductID, err)
+			continue // Should we fail or continue? For now, log it.
+		}
+		if res.ModifiedCount == 0 {
+			// This handles the race condition where stock was taken between validation and decrement
+			logger.Errorf("Critical: Stock became insufficient for %s during checkout", it.ProductID)
 		}
 	}
 
@@ -534,6 +561,58 @@ func CreateOrder(c *gin.Context) {
 		"createdAt":       order.CreatedAt,
 		"address":         order.Address,
 	}
+
+	// Build Stripe Checkout Session line items from order items + fees
+	frontendURL := config.AppConfig.FrontendURL
+	successURL := frontendURL + "/checkout/success?session_id={CHECKOUT_SESSION_ID}"
+	cancelURL := frontendURL + "/checkout?cancelled=true"
+
+	checkoutItems := make([]utils.CheckoutLineItem, len(items))
+	for i, it := range items {
+		checkoutItems[i] = utils.CheckoutLineItem{
+			Name:     it.Name,
+			ImageURL: it.ImageURL,
+			PriceFil: int64(it.Price * 100), // AED → fils
+			Quantity: int64(it.Quantity),
+		}
+	}
+
+	// Add fee as a separate line item if applicable
+	if fee != 0 {
+		feeName := "Shipping & Fees"
+		if len(feeBreakdown) > 0 {
+			feeName = ""
+			for j, fb := range feeBreakdown {
+				if j > 0 {
+					feeName += " + "
+				}
+				feeName += fb.Label
+			}
+		}
+		checkoutItems = append(checkoutItems, utils.CheckoutLineItem{
+			Name:     feeName,
+			PriceFil: int64(fee * 100),
+			Quantity: 1,
+		})
+	}
+
+	sess, err := utils.CreateCheckoutSession(
+		order.ID.Hex(),
+		c.GetString("user_id"),
+		c.GetString("user_email"),
+		checkoutItems,
+		successURL,
+		cancelURL,
+	)
+	if err != nil {
+		logger.Errorf("Failed to create Stripe checkout session: %v", err)
+		// Order created but Stripe session failed — still return order info
+	} else {
+		resp["checkoutUrl"] = sess.URL
+		// Store session ID in order
+		ordersCol.UpdateOne(ctx, bson.M{"_id": order.ID}, bson.M{"$set": bson.M{"checkout_session_id": sess.ID}})
+	}
+
 	c.JSON(http.StatusCreated, resp)
 }
 

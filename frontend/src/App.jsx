@@ -14,6 +14,7 @@ const Shop = lazy(() => import('./pages/Shop'))
 const Product = lazy(() => import('./pages/Product'))
 const Cart = lazy(() => import('./pages/Cart'))
 const Checkout = lazy(() => import('./pages/Checkout'))
+const CheckoutSuccess = lazy(() => import('./pages/CheckoutSuccess'))
 const Login = lazy(() => import('./pages/Login'))
 const Register = lazy(() => import('./pages/Register'))
 const AdminDashboard = lazy(() => import('./pages/admin/Dashboard'))
@@ -72,6 +73,9 @@ function App() {
                   } />
                   <Route path="checkout" element={
                     <ProtectedRoute roles={['customer']}><Checkout /></ProtectedRoute>
+                  } />
+                  <Route path="checkout/success" element={
+                    <ProtectedRoute roles={['customer']}><CheckoutSuccess /></ProtectedRoute>
                   } />
                   <Route path="orders" element={
                     <ProtectedRoute roles={['customer']}>

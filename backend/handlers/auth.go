@@ -215,6 +215,23 @@ func GoogleAuth(c *gin.Context) {
 			return
 		}
 		logger.Infof("Created new user via Google OAuth (Auth Code Flow): %s", googleUser.Email)
+	} else {
+		// Update existing user with latest info from Google
+		update := bson.M{
+			"$set": bson.M{
+				"profile_url": googleUser.Picture,
+				"updated_at":  time.Now(),
+			},
+		}
+		if user.FirstName == "" {
+			update["$set"].(bson.M)["first_name"] = googleUser.FirstName
+		}
+		if user.LastName == "" {
+			update["$set"].(bson.M)["last_name"] = googleUser.LastName
+		}
+		_, _ = col.UpdateOne(context.Background(), bson.M{"_id": user.ID}, update)
+		// Update local user object for token generation
+		user.ProfileURL = googleUser.Picture
 	}
 
 	token, err := utils.GenerateToken(&user)

@@ -241,18 +241,53 @@
   animation: fadeInUp 0.3s var(--ease-out) both;
 }
 
-.table tbody tr:nth-child(1) { animation-delay: 0.02s; }
-.table tbody tr:nth-child(2) { animation-delay: 0.04s; }
-.table tbody tr:nth-child(3) { animation-delay: 0.06s; }
-.table tbody tr:nth-child(4) { animation-delay: 0.08s; }
-.table tbody tr:nth-child(5) { animation-delay: 0.1s; }
-.table tbody tr:nth-child(6) { animation-delay: 0.12s; }
-.table tbody tr:nth-child(7) { animation-delay: 0.14s; }
-.table tbody tr:nth-child(8) { animation-delay: 0.16s; }
-.table tbody tr:nth-child(9) { animation-delay: 0.18s; }
-.table tbody tr:nth-child(10) { animation-delay: 0.2s; }
-.table tbody tr:nth-child(11) { animation-delay: 0.22s; }
-.table tbody tr:nth-child(12) { animation-delay: 0.24s; }
+.table tbody tr:nth-child(1) {
+  animation-delay: 0.02s;
+}
+
+.table tbody tr:nth-child(2) {
+  animation-delay: 0.04s;
+}
+
+.table tbody tr:nth-child(3) {
+  animation-delay: 0.06s;
+}
+
+.table tbody tr:nth-child(4) {
+  animation-delay: 0.08s;
+}
+
+.table tbody tr:nth-child(5) {
+  animation-delay: 0.1s;
+}
+
+.table tbody tr:nth-child(6) {
+  animation-delay: 0.12s;
+}
+
+.table tbody tr:nth-child(7) {
+  animation-delay: 0.14s;
+}
+
+.table tbody tr:nth-child(8) {
+  animation-delay: 0.16s;
+}
+
+.table tbody tr:nth-child(9) {
+  animation-delay: 0.18s;
+}
+
+.table tbody tr:nth-child(10) {
+  animation-delay: 0.2s;
+}
+
+.table tbody tr:nth-child(11) {
+  animation-delay: 0.22s;
+}
+
+.table tbody tr:nth-child(12) {
+  animation-delay: 0.24s;
+}
 
 .table tr:hover td {
   background: var(--color-accent-muted);
@@ -577,8 +612,23 @@
 .orderRowStatusWrap {
   display: flex;
   flex-direction: column;
-  gap: 0.2rem;
+  gap: 0.4rem;
   align-items: flex-start;
+}
+
+.statusBadge {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.statusLabel {
+  font-size: 0.65rem;
+  font-weight: 600;
+  color: var(--color-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  width: 65px;
 }
 
 .orderRowStatus {
@@ -608,26 +658,73 @@
 }
 
 .orderRowTotal {
-  font-weight: 500;
-  font-size: 0.9rem;
+  font-weight: 600;
+  font-size: 0.95rem;
+  text-align: right;
 }
 
-.statusPending { background: var(--color-surface-elevated); color: var(--color-text-muted); }
-.statusPaid { background: var(--color-accent-muted); color: var(--color-accent); }
-.statusShipped { background: var(--color-accent-muted); color: var(--color-accent); }
-.statusDelivered { background: var(--color-success-muted); color: var(--color-success); }
-.statusCancelled { background: var(--color-error-muted); color: var(--color-error); }
+.orderRowTxnId {
+  grid-column: 1 / -1;
+  font-size: 0.75rem;
+  color: var(--color-text-muted);
+  font-family: ui-monospace, monospace;
+  background: var(--color-surface-elevated);
+  padding: 0.2rem 0.5rem;
+  border-radius: 4px;
+  width: fit-content;
+  margin-top: -0.25rem;
+}
+
+.statusPending {
+  background: var(--color-surface-elevated);
+  color: var(--color-text-muted);
+}
+
+.statusPaid {
+  background: var(--color-accent-muted);
+  color: var(--color-accent);
+}
+
+.statusShipped {
+  background: var(--color-accent-muted);
+  color: var(--color-accent);
+}
+
+.statusDelivered {
+  background: var(--color-success-muted);
+  color: var(--color-success);
+}
+
+.statusCancelled {
+  background: var(--color-error-muted);
+  color: var(--color-error);
+}
 
 @media (max-width: 700px) {
   .orderRow {
     grid-template-columns: 1fr 1fr;
     grid-template-rows: auto auto;
   }
-  .orderRowId { grid-column: 1; }
-  .orderRowDate { grid-column: 2; }
-  .orderRowCustomer { grid-column: 1 / -1; }
-  .orderRowStatusWrap { grid-column: 1; }
-  .orderRowTotal { grid-column: 2; }
+
+  .orderRowId {
+    grid-column: 1;
+  }
+
+  .orderRowDate {
+    grid-column: 2;
+  }
+
+  .orderRowCustomer {
+    grid-column: 1 / -1;
+  }
+
+  .orderRowStatusWrap {
+    grid-column: 1;
+  }
+
+  .orderRowTotal {
+    grid-column: 2;
+  }
 }
 
 /* Order detail modal */
@@ -661,8 +758,15 @@
 }
 
 @keyframes modalIn {
-  from { opacity: 0; transform: scale(0.97) translateY(12px); }
-  to { opacity: 1; transform: scale(1) translateY(0); }
+  from {
+    opacity: 0;
+    transform: scale(0.97) translateY(12px);
+  }
+
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
 }
 
 .modalHeader {
@@ -997,6 +1101,37 @@
   margin: 0.5rem 0 0;
 }
 
+.paymentIdRow {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  margin-top: 0.75rem;
+}
+
+.paymentIdRow strong {
+  font-size: 0.7rem;
+  color: var(--color-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.paymentId {
+  font-family: ui-monospace, monospace;
+  font-size: 0.85rem;
+  background: var(--color-bg);
+  padding: 0.35rem 0.6rem;
+  border-radius: var(--radius);
+  border: 1px solid var(--color-border);
+  cursor: pointer;
+  width: fit-content;
+  transition: all var(--transition);
+}
+
+.paymentId:hover {
+  border-color: var(--color-accent);
+  color: var(--color-accent);
+}
+
 .paymentConfirmed {
   display: flex;
   align-items: center;
@@ -1030,6 +1165,25 @@
   padding: 0.5rem 0;
 }
 
+.paymentIdContainer {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+}
+
+.copyLabel {
+  font-size: 0.7rem;
+  color: var(--color-accent);
+  cursor: pointer;
+  opacity: 0.7;
+  transition: opacity var(--transition);
+}
+
+.copyLabel:hover {
+  opacity: 1;
+}
+
 .orderAddressBlock {
   margin: 0;
   padding: 0.75rem 1rem;
@@ -1045,7 +1199,7 @@
   color: var(--color-text);
 }
 
-.orderAddressLine + .orderAddressLine {
+.orderAddressLine+.orderAddressLine {
   margin-top: 0.25rem;
 }
 
@@ -1531,6 +1685,7 @@
   color: var(--color-accent);
   text-decoration: none;
 }
+
 .link:hover {
   text-decoration: underline;
 }
@@ -1555,9 +1710,11 @@
   color: white;
   cursor: pointer;
 }
+
 .btnSuccess:hover:not(:disabled) {
   filter: brightness(1.1);
 }
+
 .btnSuccess:disabled {
   opacity: 0.7;
   cursor: not-allowed;
@@ -1572,9 +1729,11 @@
   color: var(--color-error);
   cursor: pointer;
 }
+
 .btnDanger:hover:not(:disabled) {
   background: var(--color-error-muted);
 }
+
 .btnDanger:disabled {
   opacity: 0.7;
   cursor: not-allowed;

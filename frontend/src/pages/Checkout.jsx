@@ -30,7 +30,7 @@ function groupAddressesByLabel(addresses) {
 export default function Checkout() {
   const { items, total, clearCart } = useCart()
   const navigate = useNavigate()
-  const subtotal = total // cart total = items sum (subtotal before fee)
+  const subtotal = total
   const [feeEstimate, setFeeEstimate] = useState(null)
   const [orderSuccess, setOrderSuccess] = useState(false)
   const [addresses, setAddresses] = useState([])
@@ -44,6 +44,16 @@ export default function Checkout() {
   const [toastMessage, setToastMessage] = useState(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+
+  // Check for cancelled return from Stripe
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search)
+    if (params.get('cancelled') === 'true') {
+      setError('Payment was cancelled. You can try again.')
+      // Clean the URL
+      window.history.replaceState({}, '', '/checkout')
+    }
+  }, [])
 
   useEffect(() => {
     if (subtotal <= 0) {
@@ -107,13 +117,9 @@ export default function Checkout() {
     if (selectedId) setSelectedId(null)
   }
 
-  const canSaveAddress = address.street?.trim() && address.city?.trim() && address.zip?.trim() && address.country?.trim()
-
-  const getLabelToSave = () => (saveAddressLabel === 'Custom' ? saveAddressLabelCustom.trim() : saveAddressLabel)
-
   const saveAddressToAccount = async () => {
-    if (!canSaveAddress) return
-    const labelToSave = getLabelToSave()
+    if (!address.street?.trim() || !address.city?.trim() || !address.zip?.trim() || !address.country?.trim()) return
+    const labelToSave = saveAddressLabel === 'Custom' ? saveAddressLabelCustom.trim() : saveAddressLabel
     if (!labelToSave && saveAddressLabel === 'Custom') {
       setError('Enter a name for this address (e.g. Parents, Villa)')
       return
@@ -154,16 +160,18 @@ export default function Checkout() {
     e.preventDefault()
     setError('')
     setLoading(true)
+
     try {
-      await api('/orders', {
+      // 1. Create order on backend (returns checkoutUrl for Stripe hosted page)
+      const orderResp = await api('/orders', {
         method: 'POST',
         body: JSON.stringify({
           items: items.map((i) => ({ productId: i.id, quantity: i.quantity })),
           address,
         }),
       })
-      clearCart()
-      setOrderSuccess(true)
+
+      // 2. Save address if requested
       if (saveAddressForLater && address.street?.trim() && address.city?.trim() && address.zip?.trim() && address.country?.trim()) {
         const labelToSave = saveAddressLabel === 'Custom' ? saveAddressLabelCustom.trim() : saveAddressLabel
         api('/addresses', {
@@ -176,11 +184,19 @@ export default function Checkout() {
             zip: address.zip.trim(),
             country: address.country.trim(),
           }),
-        }).catch(() => {})
+        }).catch(() => { })
+      }
+
+      // 3. Redirect to Stripe Checkout hosted page
+      if (orderResp.checkoutUrl) {
+        window.location.href = orderResp.checkoutUrl
+      } else {
+        // Fallback: if no checkout URL (e.g. free order), show success
+        clearCart()
+        setOrderSuccess(true)
       }
     } catch (err) {
       setError(err.data?.error || err.message)
-    } finally {
       setLoading(false)
     }
   }
@@ -332,7 +348,7 @@ export default function Checkout() {
                   <button
                     type="button"
                     onClick={saveAddressToAccount}
-                    disabled={!canSaveAddress || saveAddressLoading || (saveAddressLabel === 'Custom' && !saveAddressLabelCustom.trim())}
+                    disabled={!address.street?.trim() || !address.city?.trim() || !address.zip?.trim() || !address.country?.trim() || saveAddressLoading || (saveAddressLabel === 'Custom' && !saveAddressLabelCustom.trim())}
                     className={s.saveAddressBtn}
                   >
                     {saveAddressLoading ? 'Saving…' : 'Save to my addresses'}
@@ -359,8 +375,9 @@ export default function Checkout() {
             </div>
           )}
         </div>
+
         <div className={s.section}>
-          <h3 className={s.sectionTitle}>Order</h3>
+          <h3 className={s.sectionTitle}>Order Summary</h3>
           {items.map((i) => (
             <div key={i.id} className={s.orderItem}>
               <span>{i.name} × {i.quantity}</span>
@@ -388,9 +405,18 @@ export default function Checkout() {
             <span>{formatPrice(feeEstimate != null ? feeEstimate.total : total)}</span>
           </div>
         </div>
+
+        <div className={s.paymentNote}>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+            <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+          </svg>
+          <span>You'll be redirected to Stripe's secure checkout to complete payment</span>
+        </div>
+
         {error && <p className={s.error}>{error}</p>}
         <button type="submit" disabled={loading} className={s.btn}>
-          {loading ? 'Placing order...' : 'Place Order'}
+          {loading ? 'Creating order...' : 'Proceed to Payment'}
         </button>
       </form>
     </div>

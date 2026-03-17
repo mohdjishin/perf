@@ -57,7 +57,7 @@
   accent-color: var(--color-accent);
 }
 
-.addressOption > span {
+.addressOption>span {
   flex: 1;
   min-width: 0;
 }
@@ -236,7 +236,7 @@
   color: var(--color-text);
 }
 
-.addressLine + .addressLine {
+.addressLine+.addressLine {
   margin-top: 0.25rem;
 }
 
@@ -326,4 +326,64 @@
 .btn:disabled {
   opacity: 0.6;
   cursor: not-allowed;
+}
+
+.paymentNote {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  font-size: 0.85rem;
+  color: var(--color-text-muted);
+  padding: var(--space-md) var(--space-lg);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+}
+
+.paymentNote svg {
+  flex-shrink: 0;
+  opacity: 0.6;
+}
+
+.successLoading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-lg);
+  min-height: 40vh;
+  color: var(--color-text-muted);
+  font-size: 1rem;
+}
+
+.spinner {
+  width: 32px;
+  height: 32px;
+  border: 3px solid var(--color-border);
+  border-top-color: var(--color-accent);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.errorContainer {
+  text-align: center;
+  padding: var(--space-2xl) var(--space-lg);
+}
+
+.errorContainer h2 {
+  font-family: var(--font-serif);
+  font-weight: 400;
+  margin-bottom: var(--space-md);
+}
+
+.loading {
+  text-align: center;
+  padding: var(--space-2xl);
+  color: var(--color-text-muted);
 }

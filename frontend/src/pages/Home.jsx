@@ -93,22 +93,24 @@ export default function Home() {
             {products.map((p, i) => {
               const { name, description } = getProductDisplay(p, locale)
               return (
-              <Link key={p.id} to={`/product/${p.id}`} className={s.card} style={{ animationDelay: `${i * 0.06}s` }}>
-                <div className={s.imageWrap}>
-                  <img
-                    src={p.imageUrl || 'https://placehold.co/400x500/e2e8f0/94a3b8?text=·'}
-                    alt={name}
-                    loading="lazy"
-                  />
-                </div>
-                <span className={s.category}>{t(`category.${categoryKey(p.category)}`, { defaultValue: p.category || 'Fragrance' })}</span>
-                <h3 className={s.name}>{name}</h3>
-                {description && (
-                  <p className={s.desc}>{description.length > 80 ? description.slice(0, 80) + '…' : description}</p>
-                )}
-                <p className={s.price}>{formatPrice(p.price)}</p>
-              </Link>
-            )})}
+                <Link key={p.id} to={`/product/${p.id}`} className={s.card} style={{ animationDelay: `${i * 0.06}s` }}>
+                  <div className={s.imageWrap}>
+                    {p.stock <= 0 && <span className={s.badgeStock}>{t('product.outOfStock')}</span>}
+                    <img
+                      src={p.imageUrl || 'https://placehold.co/400x500/e2e8f0/94a3b8?text=·'}
+                      alt={name}
+                      loading="lazy"
+                    />
+                  </div>
+                  <span className={s.category}>{t(`category.${categoryKey(p.category)}`, { defaultValue: p.category || 'Fragrance' })}</span>
+                  <h3 className={s.name}>{name}</h3>
+                  {description && (
+                    <p className={s.desc}>{description.length > 80 ? description.slice(0, 80) + '…' : description}</p>
+                  )}
+                  <p className={s.price}>{formatPrice(p.price)}</p>
+                </Link>
+              )
+            })}
           </div>
         </section>
       )}
@@ -126,23 +128,25 @@ export default function Home() {
             {newArrivals.map((p, i) => {
               const { name, description } = getProductDisplay(p, locale)
               return (
-              <Link key={p.id} to={`/product/${p.id}`} className={s.card} style={{ animationDelay: `${i * 0.06}s` }}>
-                <div className={s.imageWrap}>
-                  <span className={s.badgeNew}>{t('product.new')}</span>
-                  <img
-                    src={p.imageUrl || 'https://placehold.co/400x500/e2e8f0/94a3b8?text=·'}
-                    alt={name}
-                    loading="lazy"
-                  />
-                </div>
-                <span className={s.category}>{t(`category.${categoryKey(p.category)}`, { defaultValue: p.category || 'Fragrance' })}</span>
-                <h3 className={s.name}>{name}</h3>
-                {description && (
-                  <p className={s.desc}>{description.length > 80 ? description.slice(0, 80) + '…' : description}</p>
-                )}
-                <p className={s.price}>{formatPrice(p.price)}</p>
-              </Link>
-            )})}
+                <Link key={p.id} to={`/product/${p.id}`} className={s.card} style={{ animationDelay: `${i * 0.06}s` }}>
+                  <div className={s.imageWrap}>
+                    <span className={s.badgeNew}>{t('product.new')}</span>
+                    {p.stock <= 0 && <span className={s.badgeStock}>{t('product.outOfStock')}</span>}
+                    <img
+                      src={p.imageUrl || 'https://placehold.co/400x500/e2e8f0/94a3b8?text=·'}
+                      alt={name}
+                      loading="lazy"
+                    />
+                  </div>
+                  <span className={s.category}>{t(`category.${categoryKey(p.category)}`, { defaultValue: p.category || 'Fragrance' })}</span>
+                  <h3 className={s.name}>{name}</h3>
+                  {description && (
+                    <p className={s.desc}>{description.length > 80 ? description.slice(0, 80) + '…' : description}</p>
+                  )}
+                  <p className={s.price}>{formatPrice(p.price)}</p>
+                </Link>
+              )
+            })}
           </div>
         </section>
       )}
@@ -160,32 +164,34 @@ export default function Home() {
             {discounted.map((p, i) => {
               const { name, description } = getProductDisplay(p, locale)
               return (
-              <Link key={p.id} to={`/product/${p.id}`} className={s.card} style={{ animationDelay: `${i * 0.06}s` }}>
-                <div className={s.imageWrap}>
-                  {p.discountPercent > 0 && <span className={s.badgeSale}>{t('product.percentOff', { percent: p.discountPercent })}</span>}
-                  <img
-                    src={p.imageUrl || 'https://placehold.co/400x500/e2e8f0/94a3b8?text=·'}
-                    alt={name}
-                    loading="lazy"
-                  />
-                </div>
-                <span className={s.category}>{t(`category.${categoryKey(p.category)}`, { defaultValue: p.category || 'Fragrance' })}</span>
-                <h3 className={s.name}>{name}</h3>
-                {description && (
-                  <p className={s.desc}>{description.length > 80 ? description.slice(0, 80) + '…' : description}</p>
-                )}
-                <p className={s.price}>
-                  {p.onSale && p.discountPercent > 0 && p.price != null ? (
-                    <>
-                      <span className={s.originalPrice}>{formatPrice(p.price)}</span>
-                      <span className={s.salePrice}>{formatPrice(p.price * (1 - (p.discountPercent || 0) / 100))}</span>
-                    </>
-                  ) : (
-                    formatPrice(p.price)
+                <Link key={p.id} to={`/product/${p.id}`} className={s.card} style={{ animationDelay: `${i * 0.06}s` }}>
+                  <div className={s.imageWrap}>
+                    {p.discountPercent > 0 && <span className={s.badgeSale}>{t('product.percentOff', { percent: p.discountPercent })}</span>}
+                    {p.stock <= 0 && <span className={s.badgeStock}>{t('product.outOfStock')}</span>}
+                    <img
+                      src={p.imageUrl || 'https://placehold.co/400x500/e2e8f0/94a3b8?text=·'}
+                      alt={name}
+                      loading="lazy"
+                    />
+                  </div>
+                  <span className={s.category}>{t(`category.${categoryKey(p.category)}`, { defaultValue: p.category || 'Fragrance' })}</span>
+                  <h3 className={s.name}>{name}</h3>
+                  {description && (
+                    <p className={s.desc}>{description.length > 80 ? description.slice(0, 80) + '…' : description}</p>
                   )}
-                </p>
-              </Link>
-            )})}
+                  <p className={s.price}>
+                    {p.onSale && p.discountPercent > 0 && p.price != null ? (
+                      <>
+                        <span className={s.originalPrice}>{formatPrice(p.price)}</span>
+                        <span className={s.salePrice}>{formatPrice(p.price * (1 - (p.discountPercent || 0) / 100))}</span>
+                      </>
+                    ) : (
+                      formatPrice(p.price)
+                    )}
+                  </p>
+                </Link>
+              )
+            })}
           </div>
         </section>
       )}
@@ -197,18 +203,18 @@ export default function Home() {
         const maxDesc = WHY_SECTION_DEFAULTS.maxDescriptionChars
         if (!items || items.length === 0) return null
         return (
-      <section className={s.whySection} aria-labelledby="why-heading">
-        <h2 id="why-heading" className={s.sectionTitle}>{truncate(title, maxTitle * 2)}</h2>
-        <div className={s.featuresGrid}>
-          {items.map((item, i) => (
-            <div key={i} className={s.feature}>
-              <span className={s.featureIcon}>✦</span>
-              <h3>{truncate(item.title ?? item.Title ?? '', maxTitle)}</h3>
-              <p>{truncate(item.description ?? item.Description ?? '', maxDesc)}</p>
+          <section className={s.whySection} aria-labelledby="why-heading">
+            <h2 id="why-heading" className={s.sectionTitle}>{truncate(title, maxTitle * 2)}</h2>
+            <div className={s.featuresGrid}>
+              {items.map((item, i) => (
+                <div key={i} className={s.feature}>
+                  <span className={s.featureIcon}>✦</span>
+                  <h3>{truncate(item.title ?? item.Title ?? '', maxTitle)}</h3>
+                  <p>{truncate(item.description ?? item.Description ?? '', maxDesc)}</p>
+                </div>
+              ))}
             </div>
-          ))}
-        </div>
-      </section>
+          </section>
         )
       })()}
     </div>

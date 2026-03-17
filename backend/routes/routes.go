@@ -33,6 +33,7 @@ func Setup(r *gin.Engine) {
 		api.GET("/banners/seasonal-sale", handlers.GetSeasonalSaleBanner)
 		api.GET("/stores", handlers.ListStores)
 		api.GET("/return-reasons", handlers.GetReturnReasons)
+		api.POST("/stripe/webhook", handlers.StripeWebhook)
 
 		auth := api.Group("")
 		auth.Use(middleware.Auth())
@@ -47,6 +48,7 @@ func Setup(r *gin.Engine) {
 			auth.POST("/orders/:id/return", handlers.CreateReturnRequest)
 			auth.GET("/orders/:id", handlers.GetOrder)
 			auth.POST("/orders", handlers.CreateOrder)
+			auth.GET("/stripe/session-status", handlers.GetCheckoutSessionStatus)
 		}
 
 		// Admin + super_admin: add/edit/delete products (make inactive), orders, categories

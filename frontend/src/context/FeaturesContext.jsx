@@ -11,14 +11,14 @@ const defaultInvoice = {
   phone: '',
   email: '',
 }
-const FeaturesContext = createContext({ i18nEnabled: true, storeLocatorEnabled: true, socialEnabled: false, social: {}, invoice: defaultInvoice, googleClientId: null, signupEnabled: true })
+const FeaturesContext = createContext({ i18nEnabled: true, storeLocatorEnabled: true, socialEnabled: false, social: {}, invoice: defaultInvoice, googleClientId: null, stripePublishableKey: null, signupEnabled: true })
 
 /**
  * Provides app-wide feature flags (e.g. i18n_enabled) from /settings/features.
  * Used by Navbar to show/hide the language switcher.
  */
 export function FeaturesProvider({ children }) {
-  const [features, setFeatures] = useState({ i18nEnabled: true, storeLocatorEnabled: true, socialEnabled: false, social: {}, invoice: defaultInvoice, googleClientId: null, signupEnabled: true })
+  const [features, setFeatures] = useState({ i18nEnabled: true, storeLocatorEnabled: true, socialEnabled: false, social: {}, invoice: defaultInvoice, googleClientId: null, stripePublishableKey: null, signupEnabled: true })
 
   const fetchFeatures = () => {
     api('/settings/features')
@@ -48,6 +48,7 @@ export function FeaturesProvider({ children }) {
             email: (data.invoice_email || '').trim(),
           },
           googleClientId: data.google_client_id,
+          stripePublishableKey: data.stripe_publishable_key,
           signupEnabled: data.signup_enabled !== false,
         })
       })
@@ -71,6 +72,6 @@ export function FeaturesProvider({ children }) {
 }
 
 export function useFeatures() {
-  return useContext(FeaturesContext) || { i18nEnabled: true, storeLocatorEnabled: true, socialEnabled: false, social: {}, invoice: defaultInvoice, googleClientId: null, signupEnabled: true }
+  return useContext(FeaturesContext) || { i18nEnabled: true, storeLocatorEnabled: true, socialEnabled: false, social: {}, invoice: defaultInvoice, googleClientId: null, stripePublishableKey: null, signupEnabled: true }
 }
 

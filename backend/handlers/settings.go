@@ -53,6 +53,7 @@ type FeatureFlags struct {
 	InvoiceTRN                  string           `json:"invoice_trn"`                // Tax Registration Number for invoices
 	ReturnDaysAfterDelivery     int              `json:"return_days_after_delivery"` // 0 = no returns; N = customer can return within N days after delivery
 	GoogleClientID              string           `json:"google_client_id"`
+	StripePublishableKey        string           `json:"stripe_publishable_key"`
 	SignupEnabled               bool             `json:"signup_enabled"`
 }
 
@@ -131,6 +132,7 @@ func GetFeatureFlags(c *gin.Context) {
 			"invoice_trn":                "",
 			"return_days_after_delivery": 0,
 			"google_client_id":           config.AppConfig.GoogleClientID,
+			"stripe_publishable_key":     config.AppConfig.StripePublishableKey,
 			"signup_enabled":             true,
 		})
 		return
@@ -189,6 +191,7 @@ func GetFeatureFlags(c *gin.Context) {
 		"invoice_trn":                     doc.InvoiceTRN,
 		"return_days_after_delivery":      doc.ReturnDaysAfterDelivery,
 		"google_client_id":                config.AppConfig.GoogleClientID,
+		"stripe_publishable_key":          config.AppConfig.StripePublishableKey,
 		"signup_enabled":                  signupEnabled,
 	})
 }
@@ -418,6 +421,7 @@ func UpdateFeatureFlags(c *gin.Context) {
 		"invoice_trn":                     doc.InvoiceTRN,
 		"return_days_after_delivery":      doc.ReturnDaysAfterDelivery,
 		"google_client_id":                config.AppConfig.GoogleClientID,
+		"stripe_publishable_key":          config.AppConfig.StripePublishableKey,
 		"signup_enabled":                  docSignupEnabled(doc.SignupEnabled),
 	})
 }

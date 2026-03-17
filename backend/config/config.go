@@ -9,15 +9,19 @@ import (
 )
 
 type Config struct {
-	Port               string   `json:"port"`
-	Host               string   `json:"host"` // bind address, e.g. "127.0.0.1" or "0.0.0.0" for LAN
-	MongoURI           string   `json:"mongo_uri"`
-	JWTSecret          string   `json:"jwt_secret"`
-	CORSOrigin         string   `json:"cors_origin"`  // single origin (backward compatible)
-	CORSOrigins        []string `json:"cors_origins"` // multiple origins when frontend on different hosts
-	AppEnv             string   `json:"app_env"`      // "production" to disable dev-only behavior (e.g. sample product seeding)
-	GoogleClientID     string   `json:"google_client_id"`
-	GoogleClientSecret string   `json:"google_client_secret"`
+	Port                 string   `json:"port"`
+	Host                 string   `json:"host"` // bind address, e.g. "127.0.0.1" or "0.0.0.0" for LAN
+	MongoURI             string   `json:"mongo_uri"`
+	JWTSecret            string   `json:"jwt_secret"`
+	CORSOrigin           string   `json:"cors_origin"`  // single origin (backward compatible)
+	CORSOrigins          []string `json:"cors_origins"` // multiple origins when frontend on different hosts
+	AppEnv               string   `json:"app_env"`      // "production" to disable dev-only behavior (e.g. sample product seeding)
+	GoogleClientID       string   `json:"google_client_id"`
+	GoogleClientSecret   string   `json:"google_client_secret"`
+	StripeSecretKey      string   `json:"stripe_secret_key"`
+	StripePublishableKey string   `json:"stripe_publishable_key"`
+	StripeWebhookSecret  string   `json:"stripe_webhook_secret"`
+	FrontendURL          string   `json:"frontend_url"`
 }
 
 var AppConfig *Config
@@ -25,14 +29,18 @@ var AppConfig *Config
 func Load(configPath string) {
 	// 1. Set Hardcoded Dummy Defaults
 	AppConfig = &Config{
-		Port:               "8080",
-		Host:               "127.0.0.1",
-		MongoURI:           "mongodb://localhost:27017",
-		JWTSecret:          "dummy-secret-change-me",
-		CORSOrigin:         "http://localhost:5173",
-		AppEnv:             "development",
-		GoogleClientID:     "dummy-client-id",
-		GoogleClientSecret: "dummy-client-secret",
+		Port:                 "8080",
+		Host:                 "127.0.0.1",
+		MongoURI:             "mongodb://localhost:27017",
+		JWTSecret:            "dummy-secret-change-me",
+		CORSOrigin:           "http://localhost:5173",
+		AppEnv:               "development",
+		GoogleClientID:       "dummy-client-id",
+		GoogleClientSecret:   "dummy-client-secret",
+		StripeSecretKey:      "sk_test_dummy",
+		StripePublishableKey: "pk_test_dummy",
+		StripeWebhookSecret:  "whsec_dummy",
+		FrontendURL:          "http://localhost:5173",
 	}
 
 	// 2. Try to load from config.json (if it exists)
@@ -70,6 +78,18 @@ func Load(configPath string) {
 			if jsonConfig.GoogleClientSecret != "" {
 				AppConfig.GoogleClientSecret = jsonConfig.GoogleClientSecret
 			}
+			if jsonConfig.StripeSecretKey != "" {
+				AppConfig.StripeSecretKey = jsonConfig.StripeSecretKey
+			}
+			if jsonConfig.StripePublishableKey != "" {
+				AppConfig.StripePublishableKey = jsonConfig.StripePublishableKey
+			}
+			if jsonConfig.StripeWebhookSecret != "" {
+				AppConfig.StripeWebhookSecret = jsonConfig.StripeWebhookSecret
+			}
+			if jsonConfig.FrontendURL != "" {
+				AppConfig.FrontendURL = jsonConfig.FrontendURL
+			}
 		}
 	}
 
@@ -102,6 +122,18 @@ func Load(configPath string) {
 	}
 	if env := os.Getenv("GOOGLE_CLIENT_SECRET"); env != "" {
 		AppConfig.GoogleClientSecret = env
+	}
+	if env := os.Getenv("STRIPE_SECRET_KEY"); env != "" {
+		AppConfig.StripeSecretKey = env
+	}
+	if env := os.Getenv("STRIPE_PUBLISHABLE_KEY"); env != "" {
+		AppConfig.StripePublishableKey = env
+	}
+	if env := os.Getenv("STRIPE_WEBHOOK_SECRET"); env != "" {
+		AppConfig.StripeWebhookSecret = env
+	}
+	if env := os.Getenv("FRONTEND_URL"); env != "" {
+		AppConfig.FrontendURL = env
 	}
 
 	// Production safety check (Optional, but good practice)

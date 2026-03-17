@@ -25,6 +25,7 @@ import (
 
 func main() {
 	config.Load("")
+	utils.InitStripe()
 	if err := database.Connect(); err != nil {
 		logger.Fatalf("MongoDB connection failed: %v", err)
 	}
@@ -128,7 +129,10 @@ func seedSuperAdmin() {
 
 func seedSampleProducts() {
 	col := database.DB.Collection("products")
-	_, _ = col.DeleteMany(context.Background(), bson.M{})
+	count, _ := col.CountDocuments(context.Background(), bson.M{})
+	if count > 0 {
+		return // Collection already has products, skip seeding to avoid invalidating frontend IDs
+	}
 	now := time.Now()
 	samples := []models.Product{
 		{ID: primitive.NewObjectID(), Name: "Dubai Oud", Description: "Authentic Arabian oud, rich and woody. A signature of UAE luxury. Sourced from premium agarwood and blended with saffron.", Price: 349.00, ImageURL: "https://images.pexels.com/photos/29805437/pexels-photo-29805437.jpeg?auto=compress&cs=tinysrgb&w=400&h=500&fit=crop", Category: "Oud", Audience: "men", NewArrival: true, OnSale: false, Stock: 50, Notes: []string{"Oud", "Agarwood", "Saffron"}, SeasonalFlag: "", Active: true, CreatedAt: now, UpdatedAt: now},

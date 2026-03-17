@@ -145,20 +145,20 @@ export default function Shop() {
           </button>
         </div>
         <label className={s.sortLabel}>
-            <span className={s.sortLabelText}>{t('shop.sortLabel')}</span>
-            <select
-              value={sortBy}
-              onChange={(e) => setSortBy(e.target.value)}
-              className={s.sortSelect}
-              aria-label={t('shop.sortLabel')}
-            >
-              <option value="">{t('shop.sortNewest')}</option>
-              <option value="price_asc">{t('shop.sortPriceAsc')}</option>
-              <option value="price_desc">{t('shop.sortPriceDesc')}</option>
-              <option value="rating_desc">{t('shop.sortRatingDesc')}</option>
-              <option value="rating_asc">{t('shop.sortRatingAsc')}</option>
-            </select>
-          </label>
+          <span className={s.sortLabelText}>{t('shop.sortLabel')}</span>
+          <select
+            value={sortBy}
+            onChange={(e) => setSortBy(e.target.value)}
+            className={s.sortSelect}
+            aria-label={t('shop.sortLabel')}
+          >
+            <option value="">{t('shop.sortNewest')}</option>
+            <option value="price_asc">{t('shop.sortPriceAsc')}</option>
+            <option value="price_desc">{t('shop.sortPriceDesc')}</option>
+            <option value="rating_desc">{t('shop.sortRatingDesc')}</option>
+            <option value="rating_asc">{t('shop.sortRatingAsc')}</option>
+          </select>
+        </label>
         <button
           type="button"
           className={`${s.refineBtn} ${filterOpen ? s.refineBtnActive : ''}`}
@@ -227,23 +227,23 @@ export default function Shop() {
             </div>
           </div>
           {(features.new_arrival_shop_filter_enabled || features.discounted_shop_filter_enabled) && (
-          <div className={s.filterGroup}>
-            <span className={s.filterGroupLabel}>{t('shop.showLabel')}</span>
-            <div className={s.filterRow}>
-              {features.new_arrival_shop_filter_enabled && (
-              <label className={s.filterToggle}>
-                <input type="checkbox" checked={newArrival} onChange={(e) => setNewArrival(e.target.checked)} />
-                <span>{t('shop.newArrival')}</span>
-              </label>
-              )}
-              {features.discounted_shop_filter_enabled && (
-              <label className={s.filterToggle}>
-                <input type="checkbox" checked={onSale} onChange={(e) => setOnSale(e.target.checked)} />
-                <span>{t('shop.onSale')}</span>
-              </label>
-              )}
+            <div className={s.filterGroup}>
+              <span className={s.filterGroupLabel}>{t('shop.showLabel')}</span>
+              <div className={s.filterRow}>
+                {features.new_arrival_shop_filter_enabled && (
+                  <label className={s.filterToggle}>
+                    <input type="checkbox" checked={newArrival} onChange={(e) => setNewArrival(e.target.checked)} />
+                    <span>{t('shop.newArrival')}</span>
+                  </label>
+                )}
+                {features.discounted_shop_filter_enabled && (
+                  <label className={s.filterToggle}>
+                    <input type="checkbox" checked={onSale} onChange={(e) => setOnSale(e.target.checked)} />
+                    <span>{t('shop.onSale')}</span>
+                  </label>
+                )}
+              </div>
             </div>
-          </div>
           )}
         </aside>
 
@@ -271,67 +271,69 @@ export default function Shop() {
           ) : (
             <>
               <div className={s.grid}>
-          {products.map((p, i) => {
-            const { name, description } = getProductDisplay(p, locale)
-            return (
-            <Link
-              key={p.id}
-              to={`/product/${p.id}`}
-              className={s.card}
-              style={{ animationDelay: `${i * 0.05}s` }}
-            >
-              <div className={s.imageWrap}>
-                {(p.newArrival || p.onSale) && (
-                  <div className={s.badges}>
-                    {p.newArrival && <span className={s.badgeNew}>{t('product.new')}</span>}
-                    {p.onSale && p.discountPercent > 0 && (
-                      <span className={s.badgeSale}>{t('product.percentOff', { percent: p.discountPercent })}</span>
-                    )}
-                  </div>
-                )}
-                <img
-                  src={p.imageUrl || 'https://placehold.co/400x500/e2e8f0/94a3b8?text=·'}
-                  alt={name}
-                  loading="lazy"
+                {products.map((p, i) => {
+                  const { name, description } = getProductDisplay(p, locale)
+                  return (
+                    <Link
+                      key={p.id}
+                      to={`/product/${p.id}`}
+                      className={s.card}
+                      style={{ animationDelay: `${i * 0.05}s` }}
+                    >
+                      <div className={s.imageWrap}>
+                        {(p.newArrival || p.onSale || p.stock <= 0) && (
+                          <div className={s.badges}>
+                            {p.newArrival && <span className={s.badgeNew}>{t('product.new')}</span>}
+                            {p.onSale && p.discountPercent > 0 && (
+                              <span className={s.badgeSale}>{t('product.percentOff', { percent: p.discountPercent })}</span>
+                            )}
+                            {p.stock <= 0 && <span className={s.badgeStock}>{t('product.outOfStock')}</span>}
+                          </div>
+                        )}
+                        <img
+                          src={p.imageUrl || 'https://placehold.co/400x500/e2e8f0/94a3b8?text=·'}
+                          alt={name}
+                          loading="lazy"
+                        />
+                      </div>
+                      <div className={s.cardBody}>
+                        <span className={s.category}>{t(`category.${categoryKey(p.category)}`, { defaultValue: p.category || 'Fragrance' })}</span>
+                        {p.audience && (
+                          <span className={s.audience}>
+                            {p.audience === 'men' ? t('product.forHim') : p.audience === 'women' ? t('product.forHer') : t('product.unisex')}
+                          </span>
+                        )}
+                        <h3 className={s.name}>{name}</h3>
+                        {description && (
+                          <p className={s.desc}>{description.length > 100 ? description.slice(0, 100) + '…' : description}</p>
+                        )}
+                        {p.rating > 0 && (
+                          <StarRatingDisplay value={p.rating} className={s.cardRating} />
+                        )}
+                        <p className={s.price}>
+                          {p.onSale && p.discountPercent > 0 && p.price != null ? (
+                            <>
+                              <span className={s.originalPrice}>{formatPrice(p.price)}</span>
+                              <span className={s.salePrice}>{formatPrice(p.price * (1 - (p.discountPercent || 0) / 100))}</span>
+                            </>
+                          ) : (
+                            formatPrice(p.price)
+                          )}
+                        </p>
+                      </div>
+                    </Link>
+                  )
+                })}
+              </div>
+              {pagination?.totalPages > 1 && (
+                <Pagination
+                  page={page}
+                  totalPages={pagination.totalPages}
+                  total={pagination.total}
+                  onPageChange={setPage}
                 />
-              </div>
-              <div className={s.cardBody}>
-                <span className={s.category}>{t(`category.${categoryKey(p.category)}`, { defaultValue: p.category || 'Fragrance' })}</span>
-                {p.audience && (
-                  <span className={s.audience}>
-                    {p.audience === 'men' ? t('product.forHim') : p.audience === 'women' ? t('product.forHer') : t('product.unisex')}
-                  </span>
-                )}
-                <h3 className={s.name}>{name}</h3>
-                {description && (
-                  <p className={s.desc}>{description.length > 100 ? description.slice(0, 100) + '…' : description}</p>
-                )}
-                {p.rating > 0 && (
-                  <StarRatingDisplay value={p.rating} className={s.cardRating} />
-                )}
-                <p className={s.price}>
-                  {p.onSale && p.discountPercent > 0 && p.price != null ? (
-                    <>
-                      <span className={s.originalPrice}>{formatPrice(p.price)}</span>
-                      <span className={s.salePrice}>{formatPrice(p.price * (1 - (p.discountPercent || 0) / 100))}</span>
-                    </>
-                  ) : (
-                    formatPrice(p.price)
-                  )}
-                </p>
-              </div>
-            </Link>
-          )})}
-        </div>
-        {pagination?.totalPages > 1 && (
-          <Pagination
-            page={page}
-            totalPages={pagination.totalPages}
-            total={pagination.total}
-            onPageChange={setPage}
-          />
-        )}
-              </>
+              )}
+            </>
           )}
         </div>
       </div>

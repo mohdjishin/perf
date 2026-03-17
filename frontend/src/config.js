@@ -12,6 +12,9 @@ export async function loadConfig() {
     if (res.ok) {
       const data = await res.json()
       config = { ...config, ...data }
+      // Remove secrets if they accidentally leaked into config.json
+      delete config.google_client_id
+      delete config.stripe_publishable_key
     }
   } catch (_) { }
   return config
@@ -19,4 +22,9 @@ export async function loadConfig() {
 
 export function getApiBaseUrl() {
   return config.apiBaseUrl
+}
+
+export function getStripePublishableKey() {
+  // This will be null initially, components should use useFeatures() instead
+  return config.stripe_publishable_key
 }

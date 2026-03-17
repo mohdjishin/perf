@@ -108,7 +108,7 @@ export default function AdminOrders() {
   useEffect(() => {
     api('/admin/stats')
       .then((data) => setPendingOrdersCount(data.pendingOrdersCount ?? 0))
-      .catch(() => {})
+      .catch(() => { })
   }, [])
 
   // Keep draft in sync with selected order (when modal opens or after update)
@@ -169,7 +169,7 @@ export default function AdminOrders() {
       setOrders((prev) => prev.map((o) => (o.id === orderId ? { ...o, ...updated } : o)))
       if (selectedOrder?.id === orderId) setSelectedOrder((prev) => (prev ? { ...prev, ...updated } : prev))
       setStatusConfirm(null)
-      api('/admin/stats').then((data) => setPendingOrdersCount(data.pendingOrdersCount ?? 0)).catch(() => {})
+      api('/admin/stats').then((data) => setPendingOrdersCount(data.pendingOrdersCount ?? 0)).catch(() => { })
     } catch (err) {
       setToastError(err.data?.error || err.message)
     } finally {
@@ -295,34 +295,45 @@ export default function AdminOrders() {
       </header>
 
       {orders.length > 0 && (
-      <div className={s.orderList}>
-        {orders.map((o, i) => (
-          <div
-            key={o.id}
-            className={s.orderRow}
-            style={{ animationDelay: `${i * 0.03}s` }}
-            onClick={() => openOrderDetail(o)}
-            role="button"
-            tabIndex={0}
-            onKeyDown={(e) => e.key === 'Enter' && openOrderDetail(o)}
-          >
-            <span className={s.orderRowId}>{o.orderNumber}</span>
-            <span className={s.orderRowDate}>{new Date(o.createdAt).toLocaleDateString()}</span>
-            <span className={s.orderRowCustomer}>
-              {o.customer ? `${o.customer.firstName} ${o.customer.lastName}` : '—'}
-            </span>
-            <span className={s.orderRowStatusWrap}>
-              <span className={`${s.orderRowStatus} ${s[`status${o.status?.charAt(0).toUpperCase()}${o.status?.slice(1)}`] || ''}`}>
-                {STATUS_LABELS[o.status] ?? o.status}
+        <div className={s.orderList}>
+          {orders.map((o, i) => (
+            <div
+              key={o.id}
+              className={s.orderRow}
+              style={{ animationDelay: `${i * 0.03}s` }}
+              onClick={() => openOrderDetail(o)}
+              role="button"
+              tabIndex={0}
+              onKeyDown={(e) => e.key === 'Enter' && openOrderDetail(o)}
+            >
+              <span className={s.orderRowId}>{o.orderNumber}</span>
+              <span className={s.orderRowDate}>{new Date(o.createdAt).toLocaleDateString()}</span>
+              <span className={s.orderRowCustomer}>
+                {o.customer ? `${o.customer.firstName} ${o.customer.lastName}` : '—'}
               </span>
-              <span className={`${s.orderRowPayment} ${(o.paymentStatus || '').toLowerCase() === 'paid' ? s.orderRowPaymentPaid : s.orderRowPaymentUnpaid}`}>
-                {PAYMENT_LABELS[o.paymentStatus] ?? (o.paymentStatus || 'Unpaid')}
-              </span>
-            </span>
-            <span className={s.orderRowTotal}>{formatPrice(o.total)}</span>
-          </div>
-        ))}
-      </div>
+              <div className={s.orderRowStatusWrap}>
+                <div className={s.statusBadge}>
+                  <span className={s.statusLabel}>Fulfillment:</span>
+                  <span className={`${s.orderRowStatus} ${s[`status${o.status?.charAt(0).toUpperCase()}${o.status?.slice(1)}`] || ''}`}>
+                    {STATUS_LABELS[o.status] ?? o.status}
+                  </span>
+                </div>
+                <div className={s.statusBadge}>
+                  <span className={s.statusLabel}>Payment:</span>
+                  <span className={`${s.orderRowPayment} ${(o.paymentStatus || '').toLowerCase() === 'paid' ? s.orderRowPaymentPaid : s.orderRowPaymentUnpaid}`}>
+                    {PAYMENT_LABELS[o.paymentStatus] ?? (o.paymentStatus || 'Unpaid')}
+                  </span>
+                </div>
+              </div>
+              <span className={s.orderRowTotal}>{formatPrice(o.total)}</span>
+              {o.paymentIntentId && (
+                <span className={s.orderRowTxnId} title="Payment ID">
+                  {o.paymentIntentId}
+                </span>
+              )}
+            </div>
+          ))}
+        </div>
       )}
 
       {statusConfirm && (
@@ -372,153 +383,164 @@ export default function AdminOrders() {
             {detailLoading ? (
               <div className={s.modalLoading}>Loading order...</div>
             ) : selectedOrder ? (
-            <>
-            <div className={s.modalHeader}>
-              <h2
-                id="order-detail-title"
-                className={s.modalTitle}
-                title="Click to copy"
-                onClick={(e) => { e.stopPropagation(); copyOrderId(selectedOrder.orderNumber); }}
-              >
-                {selectedOrder.orderNumber}
-              </h2>
-              <button
-                type="button"
-                className={s.modalClose}
-                onClick={closeModal}
-                aria-label="Close"
-              >
-                ×
-              </button>
-            </div>
-            <div className={s.modalBody}>
-              <section className={s.orderSection}>
-                <h3 className={s.orderSectionTitle}>Order</h3>
-                <div className={s.orderMeta}>
-                  <span className={s.orderDate}>
-                    {new Date(selectedOrder.createdAt).toLocaleDateString()}
-                  </span>
-                  {selectedOrder.customer && (
-                    <span className={s.orderUser}>
-                      {selectedOrder.customer.firstName} {selectedOrder.customer.lastName} · {selectedOrder.customer.email}
-                    </span>
-                  )}
+              <>
+                <div className={s.modalHeader}>
+                  <h2
+                    id="order-detail-title"
+                    className={s.modalTitle}
+                    title="Click to copy"
+                    onClick={(e) => { e.stopPropagation(); copyOrderId(selectedOrder.orderNumber); }}
+                  >
+                    {selectedOrder.orderNumber}
+                  </h2>
+                  <button
+                    type="button"
+                    className={s.modalClose}
+                    onClick={closeModal}
+                    aria-label="Close"
+                  >
+                    ×
+                  </button>
                 </div>
-              </section>
-
-              <section className={s.orderSection}>
-                <h3 className={s.orderSectionTitle}>Payment</h3>
-                {canUpdateStatus ? (
-                  <div className={s.paymentRow}>
-                    <span className={s.paymentCurrent}>
-                      {PAYMENT_LABELS[selectedOrder.paymentStatus] ?? (selectedOrder.paymentStatus || 'Unpaid')}
-                    </span>
-                    {selectedOrder.paymentStatus !== 'paid' ? (
-                      <button
-                        type="button"
-                        className={s.paymentMarkBtn}
-                        onClick={() => setPaymentStatus(selectedOrder.id, 'paid')}
-                        disabled={statusUpdating}
-                      >
-                        Mark as paid
-                      </button>
-                    ) : (
-                      <button
-                        type="button"
-                        className={s.paymentMarkUnpaidBtn}
-                        onClick={() => setPaymentStatus(selectedOrder.id, 'unpaid')}
-                        disabled={statusUpdating}
-                      >
-                        Mark as unpaid
-                      </button>
-                    )}
-                  </div>
-                ) : (
-                  <p className={s.paymentCurrent}>{PAYMENT_LABELS[selectedOrder.paymentStatus] ?? (selectedOrder.paymentStatus || 'Unpaid')}</p>
-                )}
-                <p className={s.paymentHint}>Payment can be collected on delivery; mark as paid when received.</p>
-              </section>
-
-              <section className={s.orderSection}>
-                <h3 className={s.orderSectionTitle}>Shipping status</h3>
-                {canUpdateStatus ? (
-                  <>
-                    <div className={s.statusFormRow}>
-                      <div className={s.statusRow}>
-                        <label htmlFor="order-status-select">Current</label>
-                        <span className={s.statusCurrentBadge}>{STATUS_LABELS[selectedOrder.status] ?? selectedOrder.status}</span>
-                      </div>
-                      <div className={s.statusRow}>
-                        <label htmlFor="order-status-select">Change to</label>
-                        <select
-                          id="order-status-select"
-                          value={statusDraft ?? selectedOrder.status}
-                          onChange={(e) => setStatusDraft(e.target.value)}
-                          className={s.orderStatusSelect}
-                          disabled={statusUpdating || getNextStatusOptions(selectedOrder.status).length === 0}
-                        >
-                          {[
-                            { value: selectedOrder.status, label: STATUS_LABELS[selectedOrder.status] ?? selectedOrder.status },
-                            ...getNextStatusOptions(selectedOrder.status).filter((o) => o.value !== selectedOrder.status),
-                          ].map((opt) => (
-                            <option key={opt.value} value={opt.value}>{opt.label}</option>
-                          ))}
-                        </select>
-                      </div>
-                      <div className={s.statusSubmitWrap}>
-                        <button
-                          type="button"
-                          className={s.statusSubmitBtn}
-                          onClick={openStatusConfirm}
-                          disabled={!canSubmitStatus || statusUpdating}
-                        >
-                          {statusUpdating ? 'Updating…' : 'Update status'}
-                        </button>
-                      </div>
+                <div className={s.modalBody}>
+                  <section className={s.orderSection}>
+                    <h3 className={s.orderSectionTitle}>Order</h3>
+                    <div className={s.orderMeta}>
+                      <span className={s.orderDate}>
+                        {new Date(selectedOrder.createdAt).toLocaleDateString()}
+                      </span>
+                      {selectedOrder.customer && (
+                        <span className={s.orderUser}>
+                          {selectedOrder.customer.firstName} {selectedOrder.customer.lastName} · {selectedOrder.customer.email}
+                        </span>
+                      )}
                     </div>
-                    {(selectedOrder.status === 'shipped' || selectedOrder.status === 'delivered') && (
-                      <ShippingHistoryForm
-                        shippingHistory={selectedOrder.shippingHistory || []}
-                        onAdd={(msg) => addShippingEntry(selectedOrder.id, msg)}
-                      />
+                  </section>
+
+                  <section className={s.orderSection}>
+                    <h3 className={s.orderSectionTitle}>Payment</h3>
+                    {canUpdateStatus ? (
+                      <div className={s.paymentRow}>
+                        <span className={s.paymentCurrent}>
+                          {PAYMENT_LABELS[selectedOrder.paymentStatus] ?? (selectedOrder.paymentStatus || 'Unpaid')}
+                        </span>
+                        {selectedOrder.paymentStatus !== 'paid' ? (
+                          <button
+                            type="button"
+                            className={s.paymentMarkBtn}
+                            onClick={() => setPaymentStatus(selectedOrder.id, 'paid')}
+                            disabled={statusUpdating}
+                          >
+                            Mark as paid
+                          </button>
+                        ) : (
+                          <button
+                            type="button"
+                            className={s.paymentMarkUnpaidBtn}
+                            onClick={() => setPaymentStatus(selectedOrder.id, 'unpaid')}
+                            disabled={statusUpdating}
+                          >
+                            Mark as unpaid
+                          </button>
+                        )}
+                      </div>
+                    ) : (
+                      <p className={s.paymentCurrent}>{PAYMENT_LABELS[selectedOrder.paymentStatus] ?? (selectedOrder.paymentStatus || 'Unpaid')}</p>
                     )}
-                  </>
-                ) : (
-                  <p className={s.statusRow}><strong>Status:</strong> {STATUS_LABELS[selectedOrder.status] ?? selectedOrder.status}</p>
-                )}
-              </section>
+                    {selectedOrder.paymentIntentId && (
+                      <div className={s.paymentIdRow}>
+                        <strong>Transaction ID:</strong>
+                        <div className={s.paymentIdContainer}>
+                          <code className={s.paymentId} onClick={() => { copyOrderId(selectedOrder.paymentIntentId); }} title="Click to copy">
+                            {selectedOrder.paymentIntentId}
+                          </code>
+                          <span className={s.copyLabel} onClick={() => copyOrderId(selectedOrder.paymentIntentId)}>Copy</span>
+                        </div>
+                      </div>
+                    )}
+                    <p className={s.paymentHint}>Payment can be collected on delivery; mark as paid when received.</p>
+                  </section>
 
-              <section className={s.orderSection}>
-                <h3 className={s.orderSectionTitle}>Items</h3>
-                <div className={s.orderItems}>
-                {selectedOrder.items?.map((item, i) => (
-                  <div key={i} className={s.orderItem}>
-                    <span>{item.name} × {item.quantity}</span>
-                    <span>{formatPrice(item.price * item.quantity)}</span>
-                  </div>
-                ))}
-              </div>
-              <div className={s.orderTotal}>Total: {formatPrice(selectedOrder.total)}</div>
-              </section>
+                  <section className={s.orderSection}>
+                    <h3 className={s.orderSectionTitle}>Shipping status</h3>
+                    {canUpdateStatus ? (
+                      <>
+                        <div className={s.statusFormRow}>
+                          <div className={s.statusRow}>
+                            <label htmlFor="order-status-select">Current</label>
+                            <span className={s.statusCurrentBadge}>{STATUS_LABELS[selectedOrder.status] ?? selectedOrder.status}</span>
+                          </div>
+                          <div className={s.statusRow}>
+                            <label htmlFor="order-status-select">Change to</label>
+                            <select
+                              id="order-status-select"
+                              value={statusDraft ?? selectedOrder.status}
+                              onChange={(e) => setStatusDraft(e.target.value)}
+                              className={s.orderStatusSelect}
+                              disabled={statusUpdating || getNextStatusOptions(selectedOrder.status).length === 0}
+                            >
+                              {[
+                                { value: selectedOrder.status, label: STATUS_LABELS[selectedOrder.status] ?? selectedOrder.status },
+                                ...getNextStatusOptions(selectedOrder.status).filter((o) => o.value !== selectedOrder.status),
+                              ].map((opt) => (
+                                <option key={opt.value} value={opt.value}>{opt.label}</option>
+                              ))}
+                            </select>
+                          </div>
+                          <div className={s.statusSubmitWrap}>
+                            <button
+                              type="button"
+                              className={s.statusSubmitBtn}
+                              onClick={openStatusConfirm}
+                              disabled={!canSubmitStatus || statusUpdating}
+                            >
+                              {statusUpdating ? 'Updating…' : 'Update status'}
+                            </button>
+                          </div>
+                        </div>
+                        {(selectedOrder.status === 'shipped' || selectedOrder.status === 'delivered') && (
+                          <ShippingHistoryForm
+                            shippingHistory={selectedOrder.shippingHistory || []}
+                            onAdd={(msg) => addShippingEntry(selectedOrder.id, msg)}
+                          />
+                        )}
+                      </>
+                    ) : (
+                      <p className={s.statusRow}><strong>Status:</strong> {STATUS_LABELS[selectedOrder.status] ?? selectedOrder.status}</p>
+                    )}
+                  </section>
 
-              <section className={s.orderSection}>
-                <h3 className={s.orderSectionTitle}>Shipping address</h3>
-                <div className={s.orderAddressBlock}>
-                  {selectedOrder.address ? (
-                    <>
-                      <p className={s.orderAddressLine}>{selectedOrder.address.street || '—'}</p>
-                      <p className={s.orderAddressLine}>
-                        {[selectedOrder.address.city, selectedOrder.address.state, selectedOrder.address.zip].filter(Boolean).join(', ') || '—'}
-                      </p>
-                      <p className={s.orderAddressLine}>{selectedOrder.address.country || '—'}</p>
-                    </>
-                  ) : (
-                    <p className={s.orderAddressLine}>—</p>
-                  )}
+                  <section className={s.orderSection}>
+                    <h3 className={s.orderSectionTitle}>Items</h3>
+                    <div className={s.orderItems}>
+                      {selectedOrder.items?.map((item, i) => (
+                        <div key={i} className={s.orderItem}>
+                          <span>{item.name} × {item.quantity}</span>
+                          <span>{formatPrice(item.price * item.quantity)}</span>
+                        </div>
+                      ))}
+                    </div>
+                    <div className={s.orderTotal}>Total: {formatPrice(selectedOrder.total)}</div>
+                  </section>
+
+                  <section className={s.orderSection}>
+                    <h3 className={s.orderSectionTitle}>Shipping address</h3>
+                    <div className={s.orderAddressBlock}>
+                      {selectedOrder.address ? (
+                        <>
+                          <p className={s.orderAddressLine}>{selectedOrder.address.street || '—'}</p>
+                          <p className={s.orderAddressLine}>
+                            {[selectedOrder.address.city, selectedOrder.address.state, selectedOrder.address.zip].filter(Boolean).join(', ') || '—'}
+                          </p>
+                          <p className={s.orderAddressLine}>{selectedOrder.address.country || '—'}</p>
+                        </>
+                      ) : (
+                        <p className={s.orderAddressLine}>—</p>
+                      )}
+                    </div>
+                  </section>
                 </div>
-              </section>
-            </div>
-            </>
+              </>
             ) : null}
           </div>
         </div>
