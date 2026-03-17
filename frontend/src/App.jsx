@@ -39,7 +39,8 @@ const StoreLocations = lazy(() => import('./pages/superadmin/StoreLocations'))
 function ProtectedRoute({ children, roles = [] }) {
   const { user, loading } = useAuth()
   const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null
-  if (loading && token) return <LoadingState message="Checking auth..." />
+  // Wait for auth to finish loading before making any redirect decisions
+  if (loading) return <LoadingState message="Checking auth..." />
   if (!token) return <Navigate to="/login" replace />
   if (roles.length && user && !roles.includes(user.role)) return <Navigate to="/" replace />
   return children
