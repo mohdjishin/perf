@@ -55,6 +55,12 @@ func StripeWebhook(c *gin.Context) {
 	switch event.Type {
 	case "checkout.session.completed":
 		var sess stripe.CheckoutSession
+		if err := json.Unmarshal(event.Data.Raw, &sess); err != nil {
+			logger.Errorf("Stripe webhook: Error unmarshaling session: %v", err)
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Error unmarshaling session"})
+			return
+		}
+
 		// Extract payment intent ID from raw JSON if it's a string (SDK struct might miss it)
 		var piID string
 		var raw map[string]interface{}
