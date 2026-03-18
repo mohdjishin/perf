@@ -567,6 +567,8 @@ func CreateOrder(c *gin.Context) {
 	successURL := frontendURL + "/checkout/success?session_id={CHECKOUT_SESSION_ID}"
 	cancelURL := frontendURL + "/checkout?cancelled=true"
 
+	logger.Infof("Order %v: Generated Stripe SuccessURL: %s", order.ID.Hex(), successURL)
+
 	checkoutItems := make([]utils.CheckoutLineItem, len(items))
 	for i, it := range items {
 		checkoutItems[i] = utils.CheckoutLineItem{
