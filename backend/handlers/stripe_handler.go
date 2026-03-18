@@ -21,6 +21,7 @@ import (
 
 // StripeWebhook handles events from Stripe.
 func StripeWebhook(c *gin.Context) {
+	logger.Infof("Stripe webhook: Received request from %s", c.ClientIP())
 	// Stripe recommend a limit of 512KB for webhook payloads
 	const MaxBodyBytes = int64(524288)
 	c.Request.Body = http.MaxBytesReader(c.Writer, c.Request.Body, MaxBodyBytes)
@@ -52,21 +53,24 @@ func StripeWebhook(c *gin.Context) {
 	switch event.Type {
 	case "checkout.session.completed":
 		var sess stripe.CheckoutSession
-		err := json.Unmarshal(event.Data.Raw, &sess)
-		if err != nil {
-			logger.Errorf("Stripe webhook: Error parsing checkout session JSON: %v", err)
-			c.JSON(http.StatusBadRequest, gin.H{"error": "Error parsing webhook JSON"})
-			return
+		// Extract payment intent ID from raw JSON if it's a string (SDK struct might miss it)
+		var piID string
+		var raw map[string]interface{}
+		if json.Unmarshal(event.Data.Raw, &raw) == nil {
+			if pi, ok := raw["payment_intent"].(string); ok {
+				piID = pi
+			}
 		}
-		processSuccessfulPayment(c.Request.Context(), &sess, "webhook")
+
+		processSuccessfulPayment(c.Request.Context(), &sess, "webhook", piID)
 	default:
-		// Unsupported event type
+		logger.Infof("Stripe webhook: Ignoring unhandled event type %s", event.Type)
 	}
 
 	c.Status(http.StatusOK)
 }
 
-func processSuccessfulPayment(ctx context.Context, sess *stripe.CheckoutSession, source string) {
+func processSuccessfulPayment(ctx context.Context, sess *stripe.CheckoutSession, source string, manualPI string) {
 	orderID, ok := sess.Metadata["order_id"]
 	if !ok {
 		logger.Errorf("Stripe %s: checkout session missing order_id metadata", source)
@@ -87,11 +91,17 @@ func processSuccessfulPayment(ctx context.Context, sess *stripe.CheckoutSession,
 
 	col := database.DB.Collection("orders")
 	now := time.Now()
-	paymentIntentID := ""
-	if sess.PaymentIntent != nil {
-		paymentIntentID = sess.PaymentIntent.ID
-	} else if sess.Metadata["payment_intent_id"] != "" {
-		paymentIntentID = sess.Metadata["payment_intent_id"]
+	paymentIntentID := manualPI
+	if paymentIntentID == "" {
+		if sess.PaymentIntent != nil {
+			paymentIntentID = sess.PaymentIntent.ID
+		} else if sess.Metadata["payment_intent_id"] != "" {
+			paymentIntentID = sess.Metadata["payment_intent_id"]
+		}
+	}
+
+	if paymentIntentID == "" {
+		logger.Warnf("Stripe %s: Could not find PaymentIntent ID in session %s", source, sess.ID)
 	}
 
 	// Fetch current order to check for duplicate history and existing status
@@ -125,7 +135,7 @@ func processSuccessfulPayment(ctx context.Context, sess *stripe.CheckoutSession,
 		return
 	}
 
-	logger.Infof("Stripe %s: order %v marked as paid", source, orderID)
+	logger.Infof("Stripe %s: order %v (%s) successfully marked as paid. PaymentIntent: %s", source, orderID, currentOrder.OrderNumber, paymentIntentID)
 
 	// Log audit
 	utils.Log(ctx, sess.Metadata["user_id"], sess.Metadata["customer_email"], "customer",
@@ -153,7 +163,7 @@ func GetCheckoutSessionStatus(c *gin.Context) {
 
 	// Fallback/Immediate Update: If paid, ensure DB is updated now in case webhook is slow/failed
 	if sess.PaymentStatus == stripe.CheckoutSessionPaymentStatusPaid {
-		processSuccessfulPayment(c.Request.Context(), sess, "status_check")
+		processSuccessfulPayment(c.Request.Context(), sess, "status_check", "")
 	}
 
 	paymentIntentID := ""
