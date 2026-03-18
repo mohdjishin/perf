@@ -33,7 +33,9 @@ func StripeWebhook(c *gin.Context) {
 	}
 
 	sigHeader := c.GetHeader("Stripe-Signature")
-	event, err := webhook.ConstructEvent(payload, sigHeader, config.AppConfig.StripeWebhookSecret)
+	event, err := webhook.ConstructEventWithOptions(payload, sigHeader, config.AppConfig.StripeWebhookSecret, webhook.ConstructEventOptions{
+		IgnoreAPIVersionMismatch: true,
+	})
 	if err != nil {
 		logger.Errorf("Stripe webhook: Signature verification failed: %v", err)
 		// Troubleshooting: log the first few chars of the expected secret (don't log the full secret)
