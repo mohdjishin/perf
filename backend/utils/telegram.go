@@ -54,6 +54,7 @@ func SendTelegramMessage(text string) {
 	tg := GetTelegramConfig()
 
 	if !tg.Enabled || tg.Token == "" || tg.ChatID == "" {
+		fmt.Println("-------------------------ffffffffffffffff")
 		return
 	}
 
@@ -84,7 +85,11 @@ func SendTelegramMessage(text string) {
 		if resp.StatusCode != http.StatusOK {
 			logger.Errorf("Telegram: API returned status %d", resp.StatusCode)
 		} else {
-			logger.Infof("Telegram: Notification sent successfully")
+			snippet := text
+			if len(snippet) > 60 {
+				snippet = snippet[:60] + "..."
+			}
+			logger.Infof("Telegram: Notification sent successfully: %s", snippet)
 		}
 	}()
 }

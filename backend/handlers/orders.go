@@ -553,9 +553,8 @@ func CreateOrder(c *gin.Context) {
 	for _, it := range order.Items {
 		itemsSummary.WriteString(fmt.Sprintf("\n• %s x %d — <i>%.2f AED</i>", it.Name, it.Quantity, it.Price*float64(it.Quantity)))
 	}
-
 	addr := order.Address
-	addressStr := fmt.Sprintf("%s, %s, %s, %s", addr.Street, addr.City, addr.Zip, addr.Country)
+	addressStr := fmt.Sprintf("%s, %s, %s, %s, %s", addr.Street, addr.City, addr.State, addr.Zip, addr.Country)
 
 	msg := fmt.Sprintf("📦 <b>New Order Placed!</b>\n"+
 		"Order Number: <code>%s</code>\n"+

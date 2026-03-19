@@ -117,11 +117,14 @@ func processSuccessfulPayment(ctx context.Context, sess *stripe.CheckoutSession,
 	// Fetch current order to check for duplicate history and existing status
 	var currentOrder models.Order
 	err = col.FindOne(ctx, bson.M{"_id": oid}).Decode(&currentOrder)
-	if err == nil {
-		// If already paid, don't add duplicate history
-		if currentOrder.PaymentStatus == models.PaymentPaid && currentOrder.PaymentIntentID == paymentIntentID {
-			return
-		}
+	if err != nil {
+		logger.Errorf("Stripe %s: failed to find order %v: %v", source, orderID, err)
+		return
+	}
+
+	// If already paid, don't add duplicate history
+	if currentOrder.PaymentStatus == models.PaymentPaid && currentOrder.PaymentIntentID == paymentIntentID {
+		return
 	}
 
 	update := bson.M{
@@ -154,15 +157,16 @@ func processSuccessfulPayment(ctx context.Context, sess *stripe.CheckoutSession,
 	}
 
 	addr := currentOrder.Address
-	addressStr := fmt.Sprintf("%s, %s, %s, %s", addr.Street, addr.City, addr.Zip, addr.Country)
+	addressStr := fmt.Sprintf("%s, %s, %s, %s, %s", addr.Street, addr.City, addr.State, addr.Zip, addr.Country)
 
 	msg := fmt.Sprintf("✅ <b>Payment Confirmed!</b>\n"+
 		"Order Number: <code>%s</code>\n"+
 		"Total: <b>%.2f AED</b>\n"+
+		"Customer: %s\n"+
 		"Stripe Session: <code>%s</code>\n\n"+
 		"<b>Items:</b>%s\n\n"+
 		"<b>Delivery Address:</b>\n<i>%s</i>",
-		currentOrder.OrderNumber, currentOrder.Total, sess.ID, itemsSummary.String(), addressStr)
+		currentOrder.OrderNumber, currentOrder.Total, sess.Metadata["customer_email"], sess.ID, itemsSummary.String(), addressStr)
 
 	utils.SendTelegramMessage(msg)
 
