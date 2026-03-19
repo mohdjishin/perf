@@ -547,6 +547,25 @@ func CreateOrder(c *gin.Context) {
 			"orderNumber": order.OrderNumber,
 			"total":       order.Total,
 		})
+
+	// Telegram Notification
+	var itemsSummary strings.Builder
+	for _, it := range order.Items {
+		itemsSummary.WriteString(fmt.Sprintf("\n• %s x %d — <i>%.2f AED</i>", it.Name, it.Quantity, it.Price*float64(it.Quantity)))
+	}
+
+	addr := order.Address
+	addressStr := fmt.Sprintf("%s, %s, %s, %s", addr.Street, addr.City, addr.Zip, addr.Country)
+
+	msg := fmt.Sprintf("📦 <b>New Order Placed!</b>\n"+
+		"Order Number: <code>%s</code>\n"+
+		"Total: <b>%.2f AED</b>\n"+
+		"Customer: %s\n\n"+
+		"<b>Items:</b>%s\n\n"+
+		"<b>Delivery Address:</b>\n<i>%s</i>",
+		order.OrderNumber, order.Total, c.GetString("user_email"), itemsSummary.String(), addressStr)
+
+	utils.SendTelegramMessage(msg)
 	resp := gin.H{
 		"id":              order.ID.Hex(),
 		"orderNumber":     order.OrderNumber,

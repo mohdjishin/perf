@@ -29,7 +29,7 @@ func Setup(r *gin.Engine) {
 		api.GET("/products/:id/reviews", middleware.OptionalAuth(), handlers.ListProductReviews)
 		api.GET("/categories", handlers.ListCategories)
 		api.GET("/home", middleware.OptionalAuth(), handlers.GetHomePayload)
-		api.GET("/settings/features", handlers.GetFeatureFlags)
+		api.GET("/settings/features", middleware.OptionalAuth(), handlers.GetFeatureFlags)
 		api.GET("/banners/seasonal-sale", handlers.GetSeasonalSaleBanner)
 		api.GET("/stores", handlers.ListStores)
 		api.GET("/return-reasons", handlers.GetReturnReasons)

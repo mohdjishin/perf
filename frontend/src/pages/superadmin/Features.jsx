@@ -32,6 +32,9 @@ export default function SuperAdminFeatures() {
   const [invoiceEmail, setInvoiceEmail] = useState('')
   const [invoiceTrn, setInvoiceTrn] = useState('')
   const [returnDaysAfterDelivery, setReturnDaysAfterDelivery] = useState(0)
+  const [telegramEnabled, setTelegramEnabled] = useState(false)
+  const [telegramBotToken, setTelegramBotToken] = useState('')
+  const [telegramChatId, setTelegramChatId] = useState('')
   const [socialEnabled, setSocialEnabled] = useState(false)
   const [socialFacebook, setSocialFacebook] = useState('')
   const [socialFacebookEnabled, setSocialFacebookEnabled] = useState(true)
@@ -71,6 +74,9 @@ export default function SuperAdminFeatures() {
         setInvoiceEmail(data.invoice_email ?? '')
         setInvoiceTrn(data.invoice_trn ?? '')
         setReturnDaysAfterDelivery(Math.max(0, parseInt(data.return_days_after_delivery, 10) || 0))
+        setTelegramEnabled(data.telegram_enabled === true)
+        setTelegramBotToken(data.telegram_bot_token ?? '')
+        setTelegramChatId(data.telegram_chat_id ?? '')
         setSocialEnabled(data.social_enabled === true)
         setSocialFacebook(data.social_facebook ?? '')
         setSocialFacebookEnabled(data.social_facebook_enabled !== false)
@@ -118,6 +124,9 @@ export default function SuperAdminFeatures() {
           invoice_email: invoiceEmail.trim() || undefined,
           invoice_trn: invoiceTrn.trim() || undefined,
           return_days_after_delivery: Math.max(0, returnDaysAfterDelivery),
+          telegram_enabled: telegramEnabled,
+          telegram_bot_token: telegramBotToken.trim() || undefined,
+          telegram_chat_id: telegramChatId.trim() || undefined,
           social_enabled: socialEnabled,
           social_facebook: socialFacebook.trim() || undefined,
           social_facebook_enabled: socialFacebookEnabled,
@@ -277,6 +286,34 @@ export default function SuperAdminFeatures() {
             placeholder="0"
           />
         </label>
+        <p className={f.groupLabel}>{t('featuresAdmin.telegramBot')}</p>
+        <label className={f.toggle}>
+          <input type="checkbox" checked={telegramEnabled} onChange={(e) => setTelegramEnabled(e.target.checked)} />
+          <span>{t('featuresAdmin.telegramBotEnabled')}</span>
+        </label>
+        <p className={f.hint}>{t('featuresAdmin.telegramHint')}</p>
+        <div className={f.whyFields}>
+          <label className={f.fieldLabel}>
+            {t('featuresAdmin.telegramBotToken')}
+            <input
+              type="text"
+              className={f.input}
+              value={telegramBotToken}
+              onChange={(e) => setTelegramBotToken(e.target.value)}
+              placeholder={t('featuresAdmin.telegramBotTokenPlaceholder')}
+            />
+          </label>
+          <label className={f.fieldLabel}>
+            {t('featuresAdmin.telegramChatId')}
+            <input
+              type="text"
+              className={f.input}
+              value={telegramChatId}
+              onChange={(e) => setTelegramChatId(e.target.value)}
+              placeholder={t('featuresAdmin.telegramChatIdPlaceholder')}
+            />
+          </label>
+        </div>
         <p className={f.groupLabel}>{t('featuresAdmin.socialMedia')}</p>
         <label className={f.toggle}>
           <input type="checkbox" checked={socialEnabled} onChange={(e) => setSocialEnabled(e.target.checked)} />

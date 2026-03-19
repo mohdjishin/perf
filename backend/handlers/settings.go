@@ -6,6 +6,7 @@ import (
 
 	"perfume-store/config"
 	"perfume-store/database"
+	"perfume-store/models"
 
 	"github.com/gin-gonic/gin"
 	"go.mongodb.org/mongo-driver/bson"
@@ -14,85 +15,6 @@ import (
 
 const settingsDocID = "features"
 
-// WhySectionItem is one bullet in the "Why" section on the home page.
-type WhySectionItem struct {
-	Title       string `json:"title" bson:"title"`
-	Description string `json:"description" bson:"description"`
-}
-
-// FeatureFlags is the public response for home and shop toggles (for documentation).
-type FeatureFlags struct {
-	NewArrivalSectionEnabled    bool             `json:"new_arrival_section_enabled"`
-	NewArrivalShopFilterEnabled bool             `json:"new_arrival_shop_filter_enabled"`
-	DiscountedSectionEnabled    bool             `json:"discounted_section_enabled"`
-	DiscountedShopFilterEnabled bool             `json:"discounted_shop_filter_enabled"`
-	FeaturedSectionEnabled      bool             `json:"featured_section_enabled"`
-	SeasonalBannerEnabled       bool             `json:"seasonal_banner_enabled"`
-	WhySectionEnabled           bool             `json:"why_section_enabled"`
-	WhySectionTitle             string           `json:"why_section_title"`
-	WhySectionItems             []WhySectionItem `json:"why_section_items"`
-	I18nEnabled                 bool             `json:"i18n_enabled"`
-	StoreLocatorEnabled         bool             `json:"store_locator_enabled"`
-	SocialEnabled               bool             `json:"social_enabled"`
-	SocialFacebook              string           `json:"social_facebook"`
-	SocialFacebookEnabled       bool             `json:"social_facebook_enabled"`
-	SocialInstagram             string           `json:"social_instagram"`
-	SocialInstagramEnabled      bool             `json:"social_instagram_enabled"`
-	SocialTwitter               string           `json:"social_twitter"`
-	SocialTwitterEnabled        bool             `json:"social_twitter_enabled"`
-	SocialYoutube               string           `json:"social_youtube"`
-	SocialYoutubeEnabled        bool             `json:"social_youtube_enabled"`
-	InvoiceCompanyName          string           `json:"invoice_company_name"`
-	InvoiceStreet               string           `json:"invoice_street"`
-	InvoiceCity                 string           `json:"invoice_city"`
-	InvoiceState                string           `json:"invoice_state"`
-	InvoiceZip                  string           `json:"invoice_zip"`
-	InvoiceCountry              string           `json:"invoice_country"`
-	InvoicePhone                string           `json:"invoice_phone"`
-	InvoiceEmail                string           `json:"invoice_email"`
-	InvoiceTRN                  string           `json:"invoice_trn"`                // Tax Registration Number for invoices
-	ReturnDaysAfterDelivery     int              `json:"return_days_after_delivery"` // 0 = no returns; N = customer can return within N days after delivery
-	GoogleClientID              string           `json:"google_client_id"`
-	StripePublishableKey        string           `json:"stripe_publishable_key"`
-	SignupEnabled               bool             `json:"signup_enabled"`
-}
-
-// featureFlagsDoc is the stored document in MongoDB.
-type featureFlagsDoc struct {
-	ID                          string           `bson:"_id"`
-	NewArrivalSectionEnabled    bool             `bson:"new_arrival_section_enabled"`
-	NewArrivalShopFilterEnabled bool             `bson:"new_arrival_shop_filter_enabled"`
-	DiscountedSectionEnabled    bool             `bson:"discounted_section_enabled"`
-	DiscountedShopFilterEnabled bool             `bson:"discounted_shop_filter_enabled"`
-	FeaturedSectionEnabled      bool             `bson:"featured_section_enabled"`
-	SeasonalBannerEnabled       bool             `bson:"seasonal_banner_enabled"`
-	WhySectionEnabled           bool             `bson:"why_section_enabled"`
-	WhySectionTitle             string           `bson:"why_section_title"`
-	WhySectionItems             []WhySectionItem `bson:"why_section_items"`
-	I18nEnabled                 *bool            `bson:"i18n_enabled,omitempty"` // nil = not set, default true
-	StoreLocatorEnabled         *bool            `bson:"store_locator_enabled,omitempty"`
-	SocialEnabled               *bool            `bson:"social_enabled,omitempty"`
-	SocialFacebook              string           `bson:"social_facebook"`
-	SocialFacebookEnabled       *bool            `bson:"social_facebook_enabled,omitempty"`
-	SocialInstagram             string           `bson:"social_instagram"`
-	SocialInstagramEnabled      *bool            `bson:"social_instagram_enabled,omitempty"`
-	SocialTwitter               string           `bson:"social_twitter"`
-	SocialTwitterEnabled        *bool            `bson:"social_twitter_enabled,omitempty"`
-	SocialYoutube               string           `bson:"social_youtube"`
-	SocialYoutubeEnabled        *bool            `bson:"social_youtube_enabled,omitempty"`
-	InvoiceCompanyName          string           `bson:"invoice_company_name"`
-	InvoiceStreet               string           `bson:"invoice_street"`
-	InvoiceCity                 string           `bson:"invoice_city"`
-	InvoiceState                string           `bson:"invoice_state"`
-	InvoiceZip                  string           `bson:"invoice_zip"`
-	InvoiceCountry              string           `bson:"invoice_country"`
-	InvoicePhone                string           `bson:"invoice_phone"`
-	InvoiceEmail                string           `bson:"invoice_email"`
-	InvoiceTRN                  string           `bson:"invoice_trn"`
-	ReturnDaysAfterDelivery     int              `bson:"return_days_after_delivery"`
-	SignupEnabled               *bool            `bson:"signup_enabled,omitempty"` // nil = not set, default true
-}
-
 // GetFeatureFlags returns feature flags for the home page (public). Defaults to both enabled if no doc exists.
 func GetFeatureFlags(c *gin.Context) {
 	if database.DB == nil {
@@ -100,16 +22,22 @@ func GetFeatureFlags(c *gin.Context) {
 		return
 	}
 	col := database.DB.Collection("features")
-	var doc featureFlagsDoc
+	var doc models.FeatureFlagsDoc
 	err := col.FindOne(context.Background(), bson.M{"_id": settingsDocID}).Decode(&doc)
-	defaultWhyItems := []WhySectionItem{
+	defaultWhyItems := []models.WhySectionItem{
 		{Title: "Authentic Oud", Description: "Premium agarwood sourced from the finest regions"},
 		{Title: "Dubai Crafted", Description: "Hand-blended by master perfumers in the UAE"},
 		{Title: "Arabian Heritage", Description: "Timeless fragrances that honour tradition"},
 	}
+	isSuperAdmin := false
+	role, _ := c.Get("user_role")
+	if r, ok := role.(string); ok && r == "super_admin" {
+		isSuperAdmin = true
+	}
+
 	if err != nil {
 		// No document yet: return defaults (all enabled)
-		c.JSON(http.StatusOK, gin.H{
+		resp := gin.H{
 			"new_arrival_section_enabled":     true,
 			"new_arrival_shop_filter_enabled": true,
 			"discounted_section_enabled":      true,
@@ -134,7 +62,15 @@ func GetFeatureFlags(c *gin.Context) {
 			"google_client_id":           config.AppConfig.GoogleClientID,
 			"stripe_publishable_key":     config.AppConfig.StripePublishableKey,
 			"signup_enabled":             true,
-		})
+			"telegram_enabled":           false,
+		}
+
+		if isSuperAdmin {
+			resp["telegram_bot_token"] = ""
+			resp["telegram_chat_id"] = ""
+		}
+
+		c.JSON(http.StatusOK, resp)
 		return
 	}
 	if doc.WhySectionItems == nil {
@@ -159,7 +95,13 @@ func GetFeatureFlags(c *gin.Context) {
 	if doc.SignupEnabled != nil {
 		signupEnabled = *doc.SignupEnabled
 	}
-	c.JSON(http.StatusOK, gin.H{
+
+	telegramEnabled := false
+	if doc.TelegramEnabled != nil {
+		telegramEnabled = *doc.TelegramEnabled
+	}
+
+	resp := gin.H{
 		"new_arrival_section_enabled":     doc.NewArrivalSectionEnabled,
 		"new_arrival_shop_filter_enabled": doc.NewArrivalShopFilterEnabled,
 		"discounted_section_enabled":      doc.DiscountedSectionEnabled,
@@ -193,42 +135,53 @@ func GetFeatureFlags(c *gin.Context) {
 		"google_client_id":                config.AppConfig.GoogleClientID,
 		"stripe_publishable_key":          config.AppConfig.StripePublishableKey,
 		"signup_enabled":                  signupEnabled,
-	})
+		"telegram_enabled":                telegramEnabled,
+	}
+
+	if isSuperAdmin {
+		resp["telegram_bot_token"] = doc.TelegramBotToken
+		resp["telegram_chat_id"] = doc.TelegramChatID
+	}
+
+	c.JSON(http.StatusOK, resp)
 }
 
 // UpdateFeatureFlagsRequest is the body for updating feature flags (super_admin only).
 type UpdateFeatureFlagsRequest struct {
-	NewArrivalSectionEnabled    *bool             `json:"new_arrival_section_enabled"`
-	NewArrivalShopFilterEnabled *bool             `json:"new_arrival_shop_filter_enabled"`
-	DiscountedSectionEnabled    *bool             `json:"discounted_section_enabled"`
-	DiscountedShopFilterEnabled *bool             `json:"discounted_shop_filter_enabled"`
-	FeaturedSectionEnabled      *bool             `json:"featured_section_enabled"`
-	SeasonalBannerEnabled       *bool             `json:"seasonal_banner_enabled"`
-	WhySectionEnabled           *bool             `json:"why_section_enabled"`
-	WhySectionTitle             *string           `json:"why_section_title"`
-	WhySectionItems             *[]WhySectionItem `json:"why_section_items"`
-	I18nEnabled                 *bool             `json:"i18n_enabled"`
-	StoreLocatorEnabled         *bool             `json:"store_locator_enabled"`
-	SocialEnabled               *bool             `json:"social_enabled"`
-	SocialFacebook              *string           `json:"social_facebook"`
-	SocialFacebookEnabled       *bool             `json:"social_facebook_enabled"`
-	SocialInstagram             *string           `json:"social_instagram"`
-	SocialInstagramEnabled      *bool             `json:"social_instagram_enabled"`
-	SocialTwitter               *string           `json:"social_twitter"`
-	SocialTwitterEnabled        *bool             `json:"social_twitter_enabled"`
-	SocialYoutube               *string           `json:"social_youtube"`
-	SocialYoutubeEnabled        *bool             `json:"social_youtube_enabled"`
-	InvoiceCompanyName          *string           `json:"invoice_company_name"`
-	InvoiceStreet               *string           `json:"invoice_street"`
-	InvoiceCity                 *string           `json:"invoice_city"`
-	InvoiceState                *string           `json:"invoice_state"`
-	InvoiceZip                  *string           `json:"invoice_zip"`
-	InvoiceCountry              *string           `json:"invoice_country"`
-	InvoicePhone                *string           `json:"invoice_phone"`
-	InvoiceEmail                *string           `json:"invoice_email"`
-	InvoiceTRN                  *string           `json:"invoice_trn"`
-	ReturnDaysAfterDelivery     *int              `json:"return_days_after_delivery"`
-	SignupEnabled               *bool             `json:"signup_enabled"`
+	NewArrivalSectionEnabled    *bool                    `json:"new_arrival_section_enabled"`
+	NewArrivalShopFilterEnabled *bool                    `json:"new_arrival_shop_filter_enabled"`
+	DiscountedSectionEnabled    *bool                    `json:"discounted_section_enabled"`
+	DiscountedShopFilterEnabled *bool                    `json:"discounted_shop_filter_enabled"`
+	FeaturedSectionEnabled      *bool                    `json:"featured_section_enabled"`
+	SeasonalBannerEnabled       *bool                    `json:"seasonal_banner_enabled"`
+	WhySectionEnabled           *bool                    `json:"why_section_enabled"`
+	WhySectionTitle             *string                  `json:"why_section_title"`
+	WhySectionItems             *[]models.WhySectionItem `json:"why_section_items"`
+	I18nEnabled                 *bool                    `json:"i18n_enabled"`
+	StoreLocatorEnabled         *bool                    `json:"store_locator_enabled"`
+	SocialEnabled               *bool                    `json:"social_enabled"`
+	SocialFacebook              *string                  `json:"social_facebook"`
+	SocialFacebookEnabled       *bool                    `json:"social_facebook_enabled"`
+	SocialInstagram             *string                  `json:"social_instagram"`
+	SocialInstagramEnabled      *bool                    `json:"social_instagram_enabled"`
+	SocialTwitter               *string                  `json:"social_twitter"`
+	SocialTwitterEnabled        *bool                    `json:"social_twitter_enabled"`
+	SocialYoutube               *string                  `json:"social_youtube"`
+	SocialYoutubeEnabled        *bool                    `json:"social_youtube_enabled"`
+	InvoiceCompanyName          *string                  `json:"invoice_company_name"`
+	InvoiceStreet               *string                  `json:"invoice_street"`
+	InvoiceCity                 *string                  `json:"invoice_city"`
+	InvoiceState                *string                  `json:"invoice_state"`
+	InvoiceZip                  *string                  `json:"invoice_zip"`
+	InvoiceCountry              *string                  `json:"invoice_country"`
+	InvoicePhone                *string                  `json:"invoice_phone"`
+	InvoiceEmail                *string                  `json:"invoice_email"`
+	InvoiceTRN                  *string                  `json:"invoice_trn"`
+	ReturnDaysAfterDelivery     *int                     `json:"return_days_after_delivery"`
+	SignupEnabled               *bool                    `json:"signup_enabled"`
+	TelegramEnabled             *bool                    `json:"telegram_enabled"`
+	TelegramBotToken            *string                  `json:"telegram_bot_token"`
+	TelegramChatID              *string                  `json:"telegram_chat_id"`
 }
 
 // UpdateFeatureFlags updates feature flags. Only super_admin may call this; route is protected by RequireSuperAdmin. Upserts the document in the features collection.
@@ -245,15 +198,15 @@ func UpdateFeatureFlags(c *gin.Context) {
 	col := database.DB.Collection("features")
 
 	// Load existing or use defaults
-	var doc featureFlagsDoc
+	var doc models.FeatureFlagsDoc
 	err := col.FindOne(context.Background(), bson.M{"_id": settingsDocID}).Decode(&doc)
-	defaultWhyItems := []WhySectionItem{
+	defaultWhyItems := []models.WhySectionItem{
 		{Title: "Authentic Oud", Description: "Premium agarwood sourced from the finest regions"},
 		{Title: "Dubai Crafted", Description: "Hand-blended by master perfumers in the UAE"},
 		{Title: "Arabian Heritage", Description: "Timeless fragrances that honour tradition"},
 	}
 	if err != nil {
-		doc = featureFlagsDoc{
+		doc = models.FeatureFlagsDoc{
 			ID:                          settingsDocID,
 			NewArrivalSectionEnabled:    true,
 			NewArrivalShopFilterEnabled: true,
@@ -382,6 +335,16 @@ func UpdateFeatureFlags(c *gin.Context) {
 		v := *req.SignupEnabled
 		doc.SignupEnabled = &v
 	}
+	if req.TelegramEnabled != nil {
+		v := *req.TelegramEnabled
+		doc.TelegramEnabled = &v
+	}
+	if req.TelegramBotToken != nil {
+		doc.TelegramBotToken = *req.TelegramBotToken
+	}
+	if req.TelegramChatID != nil {
+		doc.TelegramChatID = *req.TelegramChatID
+	}
 
 	opts := options.Update().SetUpsert(true)
 	_, err = col.UpdateOne(context.Background(), bson.M{"_id": settingsDocID}, bson.M{"$set": doc}, opts)
@@ -423,6 +386,9 @@ func UpdateFeatureFlags(c *gin.Context) {
 		"google_client_id":                config.AppConfig.GoogleClientID,
 		"stripe_publishable_key":          config.AppConfig.StripePublishableKey,
 		"signup_enabled":                  docSignupEnabled(doc.SignupEnabled),
+		"telegram_enabled":                docTelegramEnabled(doc.TelegramEnabled),
+		"telegram_bot_token":              doc.TelegramBotToken,
+		"telegram_chat_id":                doc.TelegramChatID,
 	})
 }
 
@@ -486,4 +452,11 @@ func IsSignupEnabled() bool {
 		return true
 	}
 	return *doc.SignupEnabled
+}
+
+func docTelegramEnabled(p *bool) bool {
+	if p == nil {
+		return false
+	}
+	return *p
 }

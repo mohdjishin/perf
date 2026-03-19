@@ -3,6 +3,7 @@ package handlers
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"io"
 	"net/http"
 	"perfume-store/config"
@@ -10,6 +11,7 @@ import (
 	"perfume-store/logger"
 	"perfume-store/models"
 	"perfume-store/utils"
+	"strings"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -144,6 +146,25 @@ func processSuccessfulPayment(ctx context.Context, sess *stripe.CheckoutSession,
 	}
 
 	logger.Infof("Stripe %s: order %v (%s) successfully marked as paid. PaymentIntent: %s", source, orderID, currentOrder.OrderNumber, paymentIntentID)
+
+	// Telegram Notification
+	var itemsSummary strings.Builder
+	for _, it := range currentOrder.Items {
+		itemsSummary.WriteString(fmt.Sprintf("\n• %s x %d — <i>%.2f AED</i>", it.Name, it.Quantity, it.Price*float64(it.Quantity)))
+	}
+
+	addr := currentOrder.Address
+	addressStr := fmt.Sprintf("%s, %s, %s, %s", addr.Street, addr.City, addr.Zip, addr.Country)
+
+	msg := fmt.Sprintf("✅ <b>Payment Confirmed!</b>\n"+
+		"Order Number: <code>%s</code>\n"+
+		"Total: <b>%.2f AED</b>\n"+
+		"Stripe Session: <code>%s</code>\n\n"+
+		"<b>Items:</b>%s\n\n"+
+		"<b>Delivery Address:</b>\n<i>%s</i>",
+		currentOrder.OrderNumber, currentOrder.Total, sess.ID, itemsSummary.String(), addressStr)
+
+	utils.SendTelegramMessage(msg)
 
 	// Log audit
 	utils.Log(ctx, sess.Metadata["user_id"], sess.Metadata["customer_email"], "customer",
