@@ -105,7 +105,7 @@ export default function Navbar() {
               )}
               <Link to="/profile" className={s.userLink} onClick={closeMenu}>
                 {user.profileUrl ? (
-                  <img src={user.profileUrl} alt="" className={s.avatar} />
+                  <img src={user.profileUrl} alt="" className={s.avatar} referrerPolicy="no-referrer" />
                 ) : (
                   <div className={s.avatarPlaceholder}>{user.firstName[0]}</div>
                 )}

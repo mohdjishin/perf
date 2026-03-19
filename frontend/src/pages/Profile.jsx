@@ -176,7 +176,7 @@ export default function Profile() {
       <BackButton to="/" label="Home" />
       <div className={s.profileHeader}>
         {user?.profileUrl ? (
-          <img src={user.profileUrl} alt="" className={s.profilePic} />
+          <img src={user.profileUrl} alt="" className={s.profilePic} referrerPolicy="no-referrer" />
         ) : (
           <div className={s.profilePicPlaceholder}>{user?.firstName ? user.firstName[0] : '?'}</div>
         )}

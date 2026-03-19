@@ -77,13 +77,14 @@ func idHex(raw bson.M) string {
 // userResponseFromRaw builds the same JSON shape as toUserResponse from a bson.M (avoids struct decode issues).
 func userResponseFromRaw(raw bson.M) gin.H {
 	return gin.H{
-		"id":        idHex(raw),
-		"email":     stringVal(raw["email"]),
-		"firstName": stringVal(raw["first_name"]),
-		"lastName":  stringVal(raw["last_name"]),
-		"role":      stringVal(raw["role"]),
-		"group":     stringVal(raw["group"]),
-		"active":    boolVal(raw["active"]),
+		"id":         idHex(raw),
+		"email":      stringVal(raw["email"]),
+		"firstName":  stringVal(raw["first_name"]),
+		"lastName":   stringVal(raw["last_name"]),
+		"role":       stringVal(raw["role"]),
+		"group":      stringVal(raw["group"]),
+		"active":     boolVal(raw["active"]),
+		"profileUrl": stringVal(raw["profile_url"]),
 	}
 }
 
@@ -193,13 +194,14 @@ func ListUsers(c *gin.Context) {
 			continue
 		}
 		result = append(result, gin.H{
-			"id":        idStr,
-			"email":     stringVal(raw["email"]),
-			"firstName": stringVal(raw["first_name"]),
-			"lastName":  stringVal(raw["last_name"]),
-			"role":      stringVal(raw["role"]),
-			"group":     stringVal(raw["group"]),
-			"active":    boolVal(raw["active"]),
+			"id":         idStr,
+			"email":      stringVal(raw["email"]),
+			"firstName":  stringVal(raw["first_name"]),
+			"lastName":   stringVal(raw["last_name"]),
+			"role":       stringVal(raw["role"]),
+			"group":      stringVal(raw["group"]),
+			"active":     boolVal(raw["active"]),
+			"profileUrl": stringVal(raw["profile_url"]),
 		})
 	}
 	if err := cursor.Err(); err != nil {
