@@ -26,7 +26,8 @@ i18n
 
 function applyDirAndLang(lng) {
   document.documentElement.lang = lng === 'ar' ? 'ar' : 'en'
-  document.documentElement.dir = lng === 'ar' ? 'rtl' : 'ltr'
+  // Force LTR to prevent layout mirroring as requested
+  document.documentElement.dir = 'ltr'
 }
 
 applyDirAndLang(i18n.language || stored)

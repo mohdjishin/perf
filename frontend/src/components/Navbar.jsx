@@ -33,6 +33,16 @@ export default function Navbar() {
 
   return (
     <nav className={s.nav}>
+      <div className={s.topMarquee}>
+        <div className={s.marqueeTrack}>
+          <span>✦ {t('nav.freeShipping')} ✦</span>
+          <span>✦ {t('nav.premiumOudCollection')} ✦</span>
+          <span>✦ {t('nav.luxuryGifting')} ✦</span>
+          <span>✦ {t('nav.freeShipping')} ✦</span>
+          <span>✦ {t('nav.premiumOudCollection')} ✦</span>
+          <span>✦ {t('nav.luxuryGifting')} ✦</span>
+        </div>
+      </div>
       <div className={s.container}>
         <Link to="/" className={s.logo} onClick={closeMenu}>
           <img src="/images/logo.png" alt={t('common.brandName')} className={s.logoImg} />
@@ -127,6 +137,6 @@ export default function Navbar() {
           )}
         </div>
       </div>
-    </nav>
+    </nav >
   )
 }

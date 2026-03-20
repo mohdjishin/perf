@@ -1,25 +1,40 @@
-/* Base skeleton — shimmer animation */
+/* Skeleton — Egyptian Gold Shimmer */
+
 .skeleton {
-  background: linear-gradient(
-    90deg,
-    var(--color-surface-elevated) 0%,
-    var(--color-border) 50%,
-    var(--color-surface-elevated) 100%
-  );
+  background: linear-gradient(90deg,
+      #f8edd8 0%,
+      #fdf8f0 50%,
+      #f8edd8 100%);
   background-size: 200% 100%;
-  animation: skeletonShimmer 1.2s ease-in-out infinite;
-  border-radius: var(--radius);
+  animation: skeletonShimmer 1.5s var(--ease-in-out) infinite;
+  border-radius: var(--radius-lg);
+  position: relative;
+  overflow: hidden;
 }
 
 @keyframes skeletonShimmer {
-  0% { background-position: 200% 0; }
-  100% { background-position: -200% 0; }
+  0% {
+    background-position: 200% 0;
+  }
+
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+/* Add a gold tint overlay */
+.skeleton::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: rgba(201, 168, 76, 0.03);
+  pointer-events: none;
 }
 
 .line {
   composes: skeleton;
   height: 1em;
-  min-height: 14px;
+  min-height: 12px;
 }
 
 .lineShort {
@@ -39,12 +54,12 @@
 .card {
   composes: rect;
   aspect-ratio: 3 / 4;
-  border-radius: var(--radius-lg);
+  border-radius: var(--radius-xl);
 }
 
 /* Page-level skeleton layout */
 .page {
-  padding: var(--space-xl) 0;
+  padding: var(--space-2xl) 0;
   max-width: var(--max-width);
   margin: 0 auto;
   padding-left: var(--space-md);
@@ -53,24 +68,26 @@
 
 .title {
   composes: skeleton line;
-  width: 40%;
-  max-width: 280px;
-  height: 1.75rem;
+  width: 35%;
+  max-width: 240px;
+  height: 1.5rem;
   margin-bottom: var(--space-lg);
+  border-radius: var(--radius-sm);
 }
 
 .subtitle {
   composes: skeleton line;
-  width: 70%;
-  max-width: 400px;
-  height: 1rem;
-  margin-bottom: var(--space-xl);
+  width: 65%;
+  max-width: 360px;
+  height: 0.85rem;
+  margin-bottom: var(--space-2xl);
+  border-radius: var(--radius-sm);
 }
 
 .grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
-  gap: var(--space-lg);
+  gap: var(--space-xl);
   margin-top: var(--space-xl);
 }
 
@@ -79,7 +96,7 @@
 }
 
 .gridCardFooter {
-  margin-top: var(--space-sm);
+  margin-top: var(--space-md);
   display: flex;
   flex-direction: column;
   gap: var(--space-xs);
@@ -87,7 +104,7 @@
 
 .gridCardLine {
   composes: skeleton line;
-  height: 0.9rem;
+  height: 0.8rem;
 }
 
 .gridCardLineShort {
@@ -98,36 +115,36 @@
 .list {
   display: flex;
   flex-direction: column;
-  gap: var(--space-md);
+  gap: var(--space-lg);
   margin-top: var(--space-lg);
 }
 
 .listItem {
   display: flex;
   align-items: center;
-  gap: var(--space-md);
-  padding: var(--space-md);
+  gap: var(--space-lg);
+  padding: var(--space-xl);
   background: var(--color-surface);
   border: 1px solid var(--color-border);
-  border-radius: var(--radius-lg);
+  border-radius: var(--radius-xl);
 }
 
 .listAvatar {
   composes: skeleton circle;
-  width: 48px;
-  height: 48px;
+  width: 52px;
+  height: 52px;
 }
 
 .listBody {
   flex: 1;
   display: flex;
   flex-direction: column;
-  gap: var(--space-xs);
+  gap: 0.4rem;
 }
 
 .listLine {
   composes: skeleton line;
-  height: 0.85rem;
+  height: 0.75rem;
 }
 
 .listLineShort {
@@ -138,61 +155,62 @@
 .detail {
   max-width: var(--max-width);
   margin: 0 auto;
-  padding: var(--space-xl) var(--space-md);
+  padding: var(--space-2xl) var(--space-md);
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: var(--space-2xl);
+  gap: var(--space-3xl);
   align-items: start;
 }
 
 @media (max-width: 768px) {
   .detail {
     grid-template-columns: 1fr;
+    gap: var(--space-xl);
   }
 }
 
 .detailImage {
   composes: skeleton rect;
   aspect-ratio: 1;
-  border-radius: var(--radius-lg);
+  border-radius: var(--radius-xl);
 }
 
 .detailInfo {
   display: flex;
   flex-direction: column;
-  gap: var(--space-md);
+  gap: var(--space-lg);
 }
 
 .detailTitle {
   composes: skeleton line;
-  height: 1.75rem;
-  width: 80%;
+  height: 1.6rem;
+  width: 85%;
 }
 
 .detailPrice {
   composes: skeleton line;
-  height: 1.5rem;
-  width: 120px;
+  height: 1.4rem;
+  width: 140px;
 }
 
 .detailDesc {
   composes: skeleton line;
-  height: 0.9rem;
+  height: 0.85rem;
   width: 100%;
 }
 
 .detailDesc:nth-of-type(2) {
-  width: 90%;
+  width: 92%;
 }
 
 .detailDesc:nth-of-type(3) {
-  width: 70%;
+  width: 75%;
 }
 
 .detailBtn {
   composes: skeleton rect;
-  height: 48px;
-  width: 160px;
+  height: 52px;
+  width: 180px;
   border-radius: var(--radius-lg);
-  margin-top: var(--space-sm);
+  margin-top: var(--space-md);
 }

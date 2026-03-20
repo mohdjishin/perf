@@ -208,7 +208,7 @@ export default function Shop() {
         <aside className={`${s.sidebar} ${filterOpen ? s.sidebarOpen : ''}`}>
           {uniqueCategories.length > 0 && (
             <div className={s.filterGroup}>
-              <span className={s.filterGroupLabel}>{t('shop.categoryLabel')}</span>
+              <span className={s.filterGroupLabel}>{t('shop.scentNavigator') || 'Scent Navigator'}</span>
               <div className={s.filterRow}>
                 <button className={`${s.filterBtn} ${!category ? s.active : ''}`} onClick={() => setCategory('')}>{t('shop.all')}</button>
                 {uniqueCategories.map((c) => (
@@ -304,6 +304,13 @@ export default function Shop() {
                           </span>
                         )}
                         <h3 className={s.name}>{name}</h3>
+                        {p.notes && p.notes.length > 0 && (
+                          <div className={s.scentNotes}>
+                            {p.notes.slice(0, 3).map((note, idx) => (
+                              <span key={idx} className={s.scentTag}>{note}</span>
+                            ))}
+                          </div>
+                        )}
                         {description && (
                           <p className={s.desc}>{description.length > 100 ? description.slice(0, 100) + '…' : description}</p>
                         )}

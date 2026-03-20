@@ -240,15 +240,50 @@ export default function Product() {
           <p className={s.desc}>
             {display.description || t('product.defaultDescription')}
           </p>
-          {Array.isArray(product.notes) &&
-            product.notes.some((n) => n != null && String(n).trim()) && (
-              <p className={s.notes}>
-                <strong>{t('product.notes')}:</strong>{' '}
-                {product.notes
-                  .filter((n) => n != null && String(n).trim())
-                  .join(', ')}
-              </p>
-            )}
+
+          {/* Scent Profile — MYOP Inspired */}
+          {Array.isArray(product.notes) && product.notes.length > 0 && (
+            <div className={s.scentProfile}>
+              <h3 className={s.subHeading}>{t('product.scentProfile')}</h3>
+              <div className={s.notesGrid}>
+                {product.notes.length >= 3 ? (
+                  <>
+                    <div className={s.noteSection}>
+                      <span className={s.noteLabel}>{t('product.topNote')}</span>
+                      <p className={s.noteValue}>{product.notes[0]}</p>
+                    </div>
+                    <div className={s.noteSection}>
+                      <span className={s.noteLabel}>{t('product.heartNote')}</span>
+                      <p className={s.noteValue}>{product.notes[1]}</p>
+                    </div>
+                    <div className={s.noteSection}>
+                      <span className={s.noteLabel}>{t('product.baseNote')}</span>
+                      <p className={s.noteValue}>{product.notes[2]}</p>
+                    </div>
+                  </>
+                ) : (
+                  <div className={s.noteSection}>
+                    <p className={s.noteValue}>{product.notes.join(', ')}</p>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* Personalization — MYOP Inspired */}
+          {user?.role === 'customer' && (
+            <div className={s.personalization}>
+              <h3 className={s.subHeading}>{t('product.personalize')}</h3>
+              <p className={s.personalizationDesc}>{t('product.engravingDesc') || 'Add a custom engraving to your bottle'}</p>
+              <input
+                type="text"
+                placeholder={t('product.engravingPlaceholder') || 'Enter text to engrave...'}
+                className={s.engravingInput}
+                maxLength={20}
+              />
+            </div>
+          )}
+
           <div className={s.actions}>
             {user?.role === 'customer' ? (
               <>

@@ -64,11 +64,52 @@ export default function Home() {
     <div>
       <SeasonalBanner page="home" initialBanner={banner} />
       <section className={s.hero} aria-label="Welcome">
-        <div className={s.heroContent}>
-          <img src="/images/logo.png" alt="Blue Mist" className={s.heroLogo} />
-          <h1 className={s.heroTitle}>{t('home.heroTitle')}</h1>
-          <p className={s.heroDesc}>{t('home.heroDesc')}</p>
-          <Link to="/shop" className={s.heroBtn}>{t('home.exploreCollection')}</Link>
+        <div className={s.heroFrame}>
+          <div className={s.heroTextSide}>
+            <p className={s.heroEyebrow}>Signature Egyptian Collection</p>
+            <h1 className={s.heroTitle}>{t('home.heroTitle')}</h1>
+            <p className={s.heroDesc}>{t('home.heroDesc')}</p>
+            <div className={s.heroActions}>
+              <Link to="/shop" className={s.heroBtnPrimary}>{t('home.exploreCollection')}</Link>
+            </div>
+          </div>
+          <div className={s.heroImageSide}>
+            <img src="/images/premium-hero.png" alt="Perfume Collection" className={s.heroImg} />
+          </div>
+        </div>
+      </section>
+
+      {/* Marquee strip — as seen on myop top bar/section */}
+      <div className={s.marqueeOuter}>
+        <div className={s.marqueeTrack}>
+          {[...Array(6)].map((_, i) => (
+            <div key={i} className={s.marqueeItem}>
+              <span>✦</span>
+              <span>Long Lasting</span>
+              <span>✦</span>
+              <span>Premium Quality</span>
+              <span>✦</span>
+              <span>Cruelty Free</span>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Category Grid — Shop by Scent (myop style circles/squares) */}
+      <section className={s.categories} aria-labelledby="cat-heading">
+        <div className={s.sectionHeaderCentered}>
+          <p className={s.sectionLabel}>Discover Your Scent</p>
+          <h2 id="cat-heading" className={s.sectionTitleLarge}>Shop by Collection</h2>
+        </div>
+        <div className={s.catGrid}>
+          {['oud', 'floral', 'woody', 'musk'].map((cat) => (
+            <Link key={cat} to={`/shop?category=${cat}`} className={s.catCard}>
+              <div className={s.catImageWrap}>
+                <img src={`/images/cat-${cat}.jpg`} alt={cat} onError={(e) => e.target.src = 'https://placehold.co/300x300/e2e8f0/94a3b8?text=·'} />
+              </div>
+              <span className={s.catName}>{t(`category.${cat}`, { defaultValue: cat })}</span>
+            </Link>
+          ))}
         </div>
       </section>
 
@@ -104,6 +145,13 @@ export default function Home() {
                   </div>
                   <span className={s.category}>{t(`category.${categoryKey(p.category)}`, { defaultValue: p.category || 'Fragrance' })}</span>
                   <h3 className={s.name}>{name}</h3>
+                  {p.notes && p.notes.length > 0 && (
+                    <div className={s.scentNotes}>
+                      {p.notes.slice(0, 3).map((note, idx) => (
+                        <span key={idx} className={s.scentTag}>{note}</span>
+                      ))}
+                    </div>
+                  )}
                   {description && (
                     <p className={s.desc}>{description.length > 80 ? description.slice(0, 80) + '…' : description}</p>
                   )}
@@ -140,6 +188,13 @@ export default function Home() {
                   </div>
                   <span className={s.category}>{t(`category.${categoryKey(p.category)}`, { defaultValue: p.category || 'Fragrance' })}</span>
                   <h3 className={s.name}>{name}</h3>
+                  {p.notes && p.notes.length > 0 && (
+                    <div className={s.scentNotes}>
+                      {p.notes.slice(0, 3).map((note, idx) => (
+                        <span key={idx} className={s.scentTag}>{note}</span>
+                      ))}
+                    </div>
+                  )}
                   {description && (
                     <p className={s.desc}>{description.length > 80 ? description.slice(0, 80) + '…' : description}</p>
                   )}
@@ -176,6 +231,13 @@ export default function Home() {
                   </div>
                   <span className={s.category}>{t(`category.${categoryKey(p.category)}`, { defaultValue: p.category || 'Fragrance' })}</span>
                   <h3 className={s.name}>{name}</h3>
+                  {p.notes && p.notes.length > 0 && (
+                    <div className={s.scentNotes}>
+                      {p.notes.slice(0, 3).map((note, idx) => (
+                        <span key={idx} className={s.scentTag}>{note}</span>
+                      ))}
+                    </div>
+                  )}
                   {description && (
                     <p className={s.desc}>{description.length > 80 ? description.slice(0, 80) + '…' : description}</p>
                   )}

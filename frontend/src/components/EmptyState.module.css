@@ -1,90 +1,63 @@
-.wrapper {
-  min-height: 50vh;
+/* EmptyState — Egyptian Gold */
+
+.wrap {
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: var(--space-2xl);
-  animation: fadeIn var(--transition-slow) both;
-}
-
-.wrapper.fullWidth {
-  grid-column: 1 / -1;
-}
-
-.box {
+  padding: var(--space-3xl) var(--space-lg);
   text-align: center;
-  max-width: 400px;
-  padding: var(--space-2xl);
-  background: var(--color-surface);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-xl);
-  box-shadow: var(--shadow-md), 0 8px 32px rgba(59, 130, 246, 0.06);
-  animation: scaleIn 0.5s var(--ease-out) both;
+  animation: fadeIn 0.5s var(--ease-out) both;
 }
 
-.spinner {
-  width: 32px;
-  height: 32px;
-  margin: 0 auto var(--space-md);
-  border: 2px solid var(--color-border);
-  border-top-color: var(--color-accent);
-  border-radius: 50%;
-  animation: spin 0.8s linear infinite;
-}
-
-@keyframes spin {
-  to { transform: rotate(360deg); }
+.icon {
+  font-size: 3rem;
+  margin-bottom: var(--space-lg);
+  color: var(--color-accent);
+  opacity: 0.5;
+  animation: float 3.5s ease-in-out infinite;
+  will-change: transform;
 }
 
 .title {
-  font-family: var(--font-serif);
-  font-size: 1.25rem;
+  font-family: var(--font-display);
+  font-size: 1.3rem;
   font-weight: 400;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
   margin-bottom: var(--space-sm);
   color: var(--color-text);
 }
 
-.message {
-  font-size: 0.95rem;
+.desc {
+  font-family: var(--font-serif);
+  font-size: 0.97rem;
+  font-style: italic;
   color: var(--color-text-muted);
-  line-height: 1.5;
-  margin-bottom: var(--space-lg);
+  line-height: 1.65;
+  margin-bottom: var(--space-xl);
+  max-width: 340px;
 }
 
-.action {
+.cta {
   display: inline-flex;
   align-items: center;
-  justify-content: center;
-  min-height: var(--touch-min, 44px);
-  padding: var(--space-sm) var(--space-lg);
+  gap: 0.5rem;
+  padding: 0.8rem 1.75rem;
   background: var(--color-accent);
   color: var(--color-on-accent);
-  border: none;
   border-radius: var(--radius-lg);
-  font-size: 0.9rem;
+  font-family: var(--font-sans);
+  font-size: 0.75rem;
   font-weight: 600;
-  font-family: inherit;
-  cursor: pointer;
-  text-decoration: none;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
   transition: background var(--transition), transform var(--transition-fast), box-shadow var(--transition);
+  box-shadow: 0 4px 16px rgba(201, 168, 76, 0.28);
 }
 
-.action:hover {
+.cta:hover {
   background: var(--color-accent-hover);
   transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(59, 130, 246, 0.35);
-}
-
-.actionWrap {
-  margin-top: var(--space-lg);
-}
-
-.actionWrap a {
-  color: var(--color-accent);
-  transition: color var(--transition);
-}
-
-.actionWrap a:hover {
-  color: var(--color-accent-hover);
-  text-decoration: underline;
+  box-shadow: 0 8px 24px rgba(201, 168, 76, 0.38);
 }

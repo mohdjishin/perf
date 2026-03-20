@@ -1,22 +1,64 @@
+/* Navbar — Egyptian Gold */
+
 .nav {
-  position: sticky;
+  position: fixed;
   top: 0;
-  z-index: 100;
-  background: color-mix(in srgb, var(--color-surface) 98%, transparent);
-  backdrop-filter: blur(14px);
-  -webkit-backdrop-filter: blur(14px);
+  left: 0;
+  right: 0;
+  z-index: 1000;
+  background: rgba(255, 255, 255, 0.98);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
   border-bottom: 1px solid var(--color-border);
-  box-shadow: 0 1px 0 rgba(59, 130, 246, 0.06);
-  transition: box-shadow var(--transition);
+  box-shadow: 0 1px 12px rgba(0, 0, 0, 0.05);
+  transition: transform var(--transition);
+}
+
+.topMarquee {
+  background: var(--color-accent);
+  color: var(--color-on-accent);
+  height: 32px;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  font-family: var(--font-sans);
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: var(--tracking-extra);
+  text-transform: uppercase;
+}
+
+.marqueeTrack {
+  display: flex;
+  white-space: nowrap;
+  gap: 4rem;
+  padding-left: 2rem;
+  animation: marqueeTop 30s linear infinite;
+}
+
+.marqueeTrack span {
+  flex-shrink: 0;
+}
+
+@keyframes marqueeTop {
+  0% {
+    transform: translateX(0);
+  }
+
+  100% {
+    transform: translateX(-50%);
+  }
 }
 
 .container {
   max-width: var(--max-width);
   margin: 0 auto;
-  padding: var(--space-md) var(--space-lg);
+  padding: 0.85rem var(--space-lg);
   display: flex;
   justify-content: space-between;
   align-items: center;
+  gap: var(--space-md);
+  position: relative;
 }
 
 .logo {
@@ -25,10 +67,11 @@
   gap: var(--space-sm);
   color: var(--color-text);
   transition: opacity var(--transition);
+  flex-shrink: 0;
 }
 
 .logo:hover {
-  opacity: 0.85;
+  opacity: 0.82;
 }
 
 .logoImg {
@@ -39,18 +82,20 @@
 }
 
 .logoText {
-  font-family: var(--font-serif);
-  font-size: 1.1rem;
-  font-weight: 500;
-  letter-spacing: 0.08em;
-  word-spacing: 0.08em;
-  white-space: nowrap;
+  font-family: var(--font-display);
+  font-size: 1.15rem;
+  font-weight: 400;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--color-text);
+  transition: color var(--transition);
 }
 
+/* Language Switcher */
 .langSwitcher {
   display: flex;
   align-items: center;
-  gap: 0.25rem;
+  gap: 0.2rem;
 }
 
 .langBtn,
@@ -58,7 +103,8 @@
   background: none;
   border: none;
   padding: 0.25rem 0.5rem;
-  font-size: 0.85rem;
+  font-size: 0.8rem;
+  font-family: var(--font-sans);
   color: var(--color-text-muted);
   cursor: pointer;
   border-radius: var(--radius);
@@ -79,6 +125,14 @@
   font-size: 0.8rem;
 }
 
+@media (max-width: 768px) {
+  .langSwitcher {
+    display: none;
+    /* Hide in main bar, move to menu if needed or just simplify */
+  }
+}
+
+/* Hamburger */
 .menuBtn {
   display: none;
   flex-direction: column;
@@ -98,26 +152,14 @@
 .menuIcon {
   display: block;
   width: 22px;
-  height: 2px;
+  height: 1.5px;
   background: var(--color-text);
   border-radius: 1px;
   transition: all var(--transition);
 }
 
-.menuIcon:nth-child(1) {
-  transform-origin: center;
-}
-
-.menuIcon:nth-child(2) {
-  opacity: 1;
-}
-
-.menuIcon:nth-child(3) {
-  transform-origin: center;
-}
-
 .menuBtn[aria-expanded="true"] .menuIcon:nth-child(1) {
-  transform: translateY(7px) rotate(45deg);
+  transform: translateY(6.5px) rotate(45deg);
 }
 
 .menuBtn[aria-expanded="true"] .menuIcon:nth-child(2) {
@@ -125,9 +167,10 @@
 }
 
 .menuBtn[aria-expanded="true"] .menuIcon:nth-child(3) {
-  transform: translateY(-7px) rotate(-45deg);
+  transform: translateY(-6.5px) rotate(-45deg);
 }
 
+/* Nav Links */
 .links {
   display: flex;
   align-items: center;
@@ -135,27 +178,49 @@
 }
 
 .link {
-  font-size: 0.85rem;
+  font-family: var(--font-sans);
+  font-size: 0.82rem;
   font-weight: 500;
-  letter-spacing: 0.06em;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
   color: var(--color-text-muted);
-  transition: color var(--transition), transform var(--transition-fast);
+  transition: all var(--transition);
   padding: var(--space-xs) 0;
   min-height: var(--touch-min, 44px);
   display: inline-flex;
   align-items: center;
+  position: relative;
+}
+
+.link::after {
+  content: '';
+  position: absolute;
+  bottom: 8px;
+  left: 0;
+  right: 0;
+  height: 1.5px;
+  background: var(--color-accent);
+  transform: scaleX(0);
+  transform-origin: center;
+  transition: transform var(--transition) var(--ease-out);
 }
 
 .link:hover {
-  color: var(--color-accent);
+  color: var(--color-text);
 }
 
+.link:hover::after {
+  transform: scaleX(1);
+}
+
+/* User Info */
 .userLink {
   display: flex;
   align-items: center;
   gap: var(--space-sm);
-  font-size: 0.85rem;
+  font-size: 0.82rem;
   font-weight: 500;
+  letter-spacing: 0.06em;
   color: var(--color-text-muted);
   transition: color var(--transition);
   padding: var(--space-xs) 0;
@@ -167,24 +232,30 @@
 }
 
 .avatar {
-  width: 28px;
-  height: 28px;
+  width: 30px;
+  height: 30px;
   border-radius: 50%;
   object-fit: cover;
-  border: 1px solid var(--color-border);
+  border: 1.5px solid var(--color-border);
+  transition: border-color var(--transition);
+}
+
+.userLink:hover .avatar {
+  border-color: var(--color-accent);
 }
 
 .avatarPlaceholder {
-  width: 28px;
-  height: 28px;
+  width: 30px;
+  height: 30px;
   border-radius: 50%;
-  background: var(--color-accent);
-  color: white;
+  background: linear-gradient(135deg, var(--color-accent), var(--color-rose));
+  color: var(--color-on-accent);
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 0.75rem;
+  font-size: 0.72rem;
   font-weight: 600;
+  letter-spacing: 0;
 }
 
 .userName {
@@ -195,36 +266,58 @@
 }
 
 .logoutBtn {
-  font-size: 0.9rem;
+  font-size: 0.8rem;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
   color: var(--color-text-muted);
   padding: var(--space-xs) 0;
   transition: color var(--transition);
 }
 
 .logoutBtn:hover {
-  color: var(--color-accent);
+  color: var(--color-error);
 }
 
+/* Sign Up CTA */
 .signUpBtn {
   min-height: var(--touch-min, 44px);
-  padding: 0.55rem 1.25rem;
+  padding: 0.55rem 1.35rem;
   background: var(--color-accent);
   color: var(--color-on-accent);
   border-radius: var(--radius-lg);
-  font-size: 0.8rem;
+  font-family: var(--font-sans);
+  font-size: 0.75rem;
   font-weight: 600;
-  letter-spacing: 0.06em;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
   transition: background var(--transition), transform var(--transition-fast), box-shadow var(--transition);
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 2px 10px rgba(59, 130, 246, 0.2);
+  box-shadow: 0 2px 12px rgba(201, 168, 76, 0.28);
+  position: relative;
+  overflow: hidden;
+}
+
+.signUpBtn::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(105deg, transparent 40%, rgba(255, 255, 255, 0.3) 50%, transparent 60%);
+  background-size: 200% 100%;
+  background-position: 200% 0;
+  transition: background-position 0.55s var(--ease-out);
 }
 
 .signUpBtn:hover {
   background: var(--color-accent-hover);
   transform: translateY(-1px);
-  box-shadow: 0 4px 16px rgba(59, 130, 246, 0.35);
+  box-shadow: 0 5px 20px rgba(201, 168, 76, 0.4);
+}
+
+.signUpBtn:hover::after {
+  background-position: -200% 0;
 }
 
 .signUpBtn:focus-visible {
@@ -232,7 +325,7 @@
   outline-offset: 2px;
 }
 
-/* Mobile */
+/* ── Mobile ─────────────────────────── */
 @media (max-width: 768px) {
   .menuBtn {
     display: flex;
@@ -245,10 +338,11 @@
     right: 0;
     flex-direction: column;
     align-items: stretch;
-    padding: var(--space-lg);
-    background: var(--color-surface);
+    padding: 0 var(--space-lg);
+    background: rgba(255, 253, 248, 0.98);
+    backdrop-filter: blur(14px);
     border-bottom: 1px solid var(--color-border);
-    box-shadow: var(--shadow-nav);
+    box-shadow: 0 10px 40px rgba(44, 31, 14, 0.1);
     gap: 0;
     max-height: 0;
     overflow: hidden;
@@ -257,12 +351,12 @@
   }
 
   .linksOpen {
-    max-height: 400px;
+    max-height: 480px;
     opacity: 1;
+    padding: var(--space-md) var(--space-lg);
   }
 
   .links .link,
-  .links .user,
   .links .logoutBtn,
   .links .signUpBtn {
     padding: var(--space-md);
@@ -270,19 +364,36 @@
     text-align: center;
   }
 
+  .links .link::after {
+    display: none;
+  }
+
   .links .link:hover,
   .links .logoutBtn:hover {
     background: var(--color-surface-elevated);
+    color: var(--color-accent);
+  }
+
+  .links .userLink {
+    justify-content: center;
+    padding: var(--space-md);
   }
 
   .links .signUpBtn {
     margin-top: var(--space-sm);
+    justify-content: center;
+    margin-bottom: var(--space-md);
+  }
+
+  .logoText {
+    display: none;
+    /* Hide text on very small screens to prevent overflow */
   }
 }
 
 @media (max-width: 480px) {
   .container {
-    padding: var(--space-sm) var(--space-md);
+    padding: 0.65rem var(--space-md);
   }
 
   .logoImg {
@@ -290,9 +401,7 @@
   }
 
   .logoText {
-    font-size: 0.95rem;
-    letter-spacing: 0.05em;
-    word-spacing: 0.05em;
-    white-space: normal;
+    font-size: 0.85rem;
+    letter-spacing: 0.1em;
   }
 }

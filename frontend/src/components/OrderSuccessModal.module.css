@@ -1,52 +1,48 @@
+/* OrderSuccessModal — Egyptian Gold */
+
 .overlay {
   position: fixed;
   inset: 0;
-  background: var(--overlay);
-  backdrop-filter: blur(4px);
+  background: var(--overlay-dark);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
   display: flex;
   align-items: center;
   justify-content: center;
   z-index: 1100;
   padding: var(--space-lg);
-  animation: overlayIn 0.25s var(--ease-out) both;
-}
-
-@keyframes overlayIn {
-  from {
-    opacity: 0;
-  }
-
-  to {
-    opacity: 1;
-  }
+  animation: fadeIn 0.25s var(--ease-out) both;
 }
 
 .modal {
   background: var(--color-surface);
-  border-radius: var(--radius-lg);
+  border-radius: var(--radius-xl);
   padding: var(--space-2xl);
   max-width: 400px;
   width: 100%;
   text-align: center;
-  box-shadow: var(--shadow-lg);
-  animation: modalIn 0.35s var(--ease-out) both;
+  box-shadow: var(--shadow-modal);
+  animation: riseUp 0.38s var(--ease-out) both;
+  position: relative;
+  overflow: hidden;
 }
 
-@keyframes modalIn {
-  from {
-    opacity: 0;
-    transform: scale(0.95) translateY(10px);
-  }
-
-  to {
-    opacity: 1;
-    transform: scale(1) translateY(0);
-  }
+/* Gold shimmer top bar */
+.modal::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, transparent, var(--color-accent), rgba(212, 149, 106, 0.8), var(--color-accent), transparent);
+  animation: shimmerGold 2.5s ease-in-out 0.5s infinite;
+  background-size: 200% 100%;
 }
 
 .icon {
-  width: 64px;
-  height: 64px;
+  width: 68px;
+  height: 68px;
   margin: 0 auto var(--space-lg);
   display: flex;
   align-items: center;
@@ -54,29 +50,34 @@
   background: var(--color-accent-muted);
   color: var(--color-accent);
   font-size: 2rem;
-  font-weight: 600;
   border-radius: 50%;
+  border: 2px solid rgba(201, 168, 76, 0.25);
+  animation: glowGold 2.5s ease-in-out 0.6s infinite;
 }
 
 .title {
-  font-family: var(--font-serif);
-  font-size: 1.75rem;
+  font-family: var(--font-display);
+  font-size: 1.6rem;
   font-weight: 400;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
   margin-bottom: var(--space-sm);
   color: var(--color-text);
 }
 
 .message {
-  font-size: 0.95rem;
+  font-family: var(--font-serif);
+  font-size: 0.97rem;
+  font-style: italic;
   color: var(--color-text-muted);
-  line-height: 1.5;
+  line-height: 1.6;
   margin-bottom: var(--space-lg);
 }
 
 .transactionInfo {
-  background: var(--color-bg);
+  background: var(--color-surface-elevated);
   border: 1px solid var(--color-border);
-  border-radius: var(--radius);
+  border-radius: var(--radius-lg);
   padding: var(--space-md);
   margin-bottom: var(--space-xl);
   display: flex;
@@ -85,16 +86,17 @@
 }
 
 .transactionLabel {
-  font-size: 0.75rem;
+  font-family: var(--font-sans);
+  font-size: 0.68rem;
   text-transform: uppercase;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.18em;
   color: var(--color-text-muted);
-  font-weight: 500;
+  font-weight: 600;
 }
 
 .transactionId {
   font-family: var(--font-mono, monospace);
-  font-size: 0.85rem;
+  font-size: 0.82rem;
   color: var(--color-text);
   word-break: break-all;
 }
@@ -107,31 +109,40 @@
 
 .primaryBtn {
   display: block;
-  padding: var(--space-md);
+  padding: 0.85rem var(--space-md);
   background: var(--color-accent);
   color: var(--color-on-accent);
-  border-radius: var(--radius);
-  font-size: 0.95rem;
-  font-weight: 500;
-  transition: all var(--transition);
+  border-radius: var(--radius-lg);
+  font-family: var(--font-sans);
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  transition: background var(--transition), transform var(--transition-fast), box-shadow var(--transition);
 }
 
 .primaryBtn:hover {
   background: var(--color-accent-hover);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 22px rgba(201, 168, 76, 0.38);
 }
 
 .secondaryBtn {
   display: block;
-  padding: var(--space-md);
+  padding: 0.85rem var(--space-md);
   background: transparent;
   color: var(--color-text-muted);
   border: 1px solid var(--color-border);
-  border-radius: var(--radius);
-  font-size: 0.95rem;
+  border-radius: var(--radius-lg);
+  font-family: var(--font-sans);
+  font-size: 0.78rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
   transition: all var(--transition);
 }
 
 .secondaryBtn:hover {
-  color: var(--color-text);
+  color: var(--color-accent-deep);
   border-color: var(--color-accent);
+  background: var(--color-accent-muted);
 }
