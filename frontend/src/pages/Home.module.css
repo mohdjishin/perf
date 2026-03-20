@@ -222,12 +222,37 @@
 }
 
 .catGrid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-  gap: var(--space-3xl);
+  display: flex;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  gap: var(--space-2xl);
+  padding: var(--space-lg) 0 var(--space-3xl);
+  margin: 0;
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.catGrid::-webkit-scrollbar {
+  display: none;
+}
+
+@media (max-width: 600px) {
+  .catGrid {
+    gap: var(--space-xl);
+  }
+
+  .catCard {
+    flex: 0 0 160px;
+  }
+
+  .catImageWrap {
+    margin-bottom: var(--space-md);
+  }
 }
 
 .catCard {
+  flex: 0 0 300px;
+  scroll-snap-align: center;
   text-align: center;
   transition: transform var(--transition);
 }
@@ -693,5 +718,58 @@
 
   100% {
     transform: translateX(-33.33%);
+  }
+}
+
+/* ── HORIZONTAL SCROLL BUTTONS ───── */
+.catGridWrapper {
+  position: relative;
+  max-width: var(--max-width);
+  margin: 0 auto;
+  padding: 0 var(--space-xl);
+}
+
+.scrollBtn {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  color: var(--color-text);
+  font-size: 1.2rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 10;
+  transition: all var(--transition-fast);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.scrollBtn:hover {
+  background: var(--color-accent);
+  color: #fff;
+  border-color: var(--color-accent);
+  box-shadow: 0 6px 16px rgba(201, 160, 78, 0.2);
+}
+
+.scrollLeft {
+  left: -20px;
+}
+
+.scrollRight {
+  right: -20px;
+}
+
+@media (max-width: 1024px) {
+  .scrollBtn {
+    display: none;
+  }
+
+  .catGridWrapper {
+    padding: 0;
   }
 }

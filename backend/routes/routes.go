@@ -61,6 +61,7 @@ func Setup(r *gin.Engine) {
 			adminGroup.POST("/upload", handlers.UploadImage)
 			adminGroup.PUT("/orders/:id/status", handlers.UpdateOrderStatus)
 			adminGroup.POST("/categories", handlers.CreateCategory)
+			adminGroup.PUT("/categories/:id", handlers.UpdateCategory)
 			adminGroup.DELETE("/categories/by-name/:name", handlers.DeleteCategoryByName)
 			adminGroup.DELETE("/categories/:id", handlers.DeleteCategory)
 			adminGroup.DELETE("/reviews/:id", handlers.DeleteReview)

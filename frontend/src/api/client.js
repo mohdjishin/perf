@@ -82,11 +82,22 @@ export async function uploadFile(file, path = '/upload') {
   const token = localStorage.getItem('token')
   const formData = new FormData()
   formData.append('image', file)
-  const res = await fetch(url, {
-    method: 'POST',
-    headers: token ? { Authorization: `Bearer ${token}` } : {},
-    body: formData,
-  })
+
+  let res
+  try {
+    res = await fetch(url, {
+      method: 'POST',
+      headers: token ? { Authorization: `Bearer ${token}` } : {},
+      body: formData,
+    })
+  } catch (e) {
+    const err = new Error(e.message === 'Failed to fetch'
+      ? getNetworkUnreachableMessage()
+      : e.message)
+    err.status = 0
+    throw err
+  }
+
   const data = await res.json().catch(() => ({}))
   if (!res.ok) {
     const err = new Error(data?.error || getFriendlyErrorMessage(res.status))

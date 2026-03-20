@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { Link } from 'react-router-dom'
 import { api } from '../api/client'
 import { formatPrice } from '../utils/currency'
@@ -24,6 +24,18 @@ export default function Home() {
   const [apiError, setApiError] = useState(null)
   const [loading, setLoading] = useState(true)
   const [banner, setBanner] = useState(null)
+  const [categories, setCategories] = useState([])
+  const catGridRef = useRef(null)
+
+  const scrollCats = (direction) => {
+    if (catGridRef.current) {
+      const scrollAmount = 400
+      catGridRef.current.scrollBy({
+        left: direction === 'left' ? -scrollAmount : scrollAmount,
+        behavior: 'smooth'
+      })
+    }
+  }
 
   useEffect(() => {
     setLoading(true)
@@ -44,6 +56,7 @@ export default function Home() {
         setNewArrivals(data.new_arrivals || [])
         setDiscounted(data.discounted || [])
         setBanner(data.banner || null)
+        setCategories(data.categories || [])
         setApiError(null)
       })
       .catch((err) => {
@@ -55,6 +68,15 @@ export default function Home() {
       })
       .finally(() => setLoading(false))
   }, [])
+
+  // We could also fetch categories directly if they aren't in the home payload
+  useEffect(() => {
+    if (categories.length === 0) {
+      api('/categories')
+        .then(setCategories)
+        .catch(() => { })
+    }
+  }, [categories.length])
 
   if (loading) {
     return <PageSkeletonGrid count={6} />
@@ -101,19 +123,41 @@ export default function Home() {
           <p className={s.sectionLabel}>Discover Your Scent</p>
           <h2 id="cat-heading" className={s.sectionTitleLarge}>Shop by Collection</h2>
         </div>
-        <div className={s.catGrid}>
-          {['oud', 'floral', 'woody', 'musk'].map((cat) => (
-            <Link key={cat} to={`/shop?category=${cat}`} className={s.catCard}>
-              <div className={s.catImageWrap}>
-                <img
-                  src={cat === 'musk' ? 'https://placehold.co/600x600/fdf8f0/caa04e?text=Musk+Collection' : `/images/cat-${cat}.jpg`}
-                  alt={cat}
-                  onError={(e) => e.target.src = 'https://placehold.co/300x300/e2e8f0/94a3b8?text=·'}
-                />
-              </div>
-              <span className={s.catName}>{t(`category.${cat}`, { defaultValue: cat })}</span>
-            </Link>
-          ))}
+        <div className={s.catGridWrapper}>
+          <button
+            type="button"
+            className={`${s.scrollBtn} ${s.scrollLeft}`}
+            onClick={() => scrollCats('left')}
+            aria-label="Scroll left"
+          >
+            ←
+          </button>
+          <div className={s.catGrid} ref={catGridRef}>
+            {categories.map((cat) => (
+              <Link key={cat.id || cat.name} to={`/shop?category=${encodeURIComponent(cat.name)}`} className={s.catCard}>
+                <div className={s.catImageWrap}>
+                  <img
+                    src={cat.imageUrl || `https://placehold.co/600x600/fdf8f0/caa04e?text=${encodeURIComponent(cat.name)}`}
+                    alt={cat.name}
+                    onError={(e) => {
+                      if (!e.target.src.includes('placehold.co')) {
+                        e.target.src = `https://placehold.co/600x600/fdf8f0/caa04e?text=${encodeURIComponent(cat.name)}`;
+                      }
+                    }}
+                  />
+                </div>
+                <span className={s.catName}>{t(`category.${cat.name.toLowerCase()}`, { defaultValue: cat.name })}</span>
+              </Link>
+            ))}
+          </div>
+          <button
+            type="button"
+            className={`${s.scrollBtn} ${s.scrollRight}`}
+            onClick={() => scrollCats('right')}
+            aria-label="Scroll right"
+          >
+            →
+          </button>
         </div>
       </section>
 

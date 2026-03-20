@@ -42,8 +42,9 @@ func GetHomePayload(c *gin.Context) {
 	ctx := context.Background()
 
 	var featured, newArrivals, discounted []gin.H
+	var homeCategories []gin.H
 	var wg sync.WaitGroup
-	wg.Add(3)
+	wg.Add(4)
 
 	go func() {
 		defer wg.Done()
@@ -79,6 +80,29 @@ func GetHomePayload(c *gin.Context) {
 			cursor.Close(ctx)
 		}
 	}()
+	go func() {
+		defer wg.Done()
+		catCol := database.DB.Collection("categories")
+		cursor, err := catCol.Find(ctx, bson.M{}, options.Find().SetSort(bson.D{{Key: "name", Value: 1}}))
+		if err == nil {
+			var cats []struct {
+				ID       primitive.ObjectID `bson:"_id"`
+				Name     string             `bson:"name"`
+				ImageURL string             `bson:"image_url"`
+			}
+			if cursor.All(ctx, &cats) == nil {
+				homeCategories = make([]gin.H, len(cats))
+				for i, cat := range cats {
+					homeCategories[i] = gin.H{
+						"id":       cat.ID.Hex(),
+						"name":     cat.Name,
+						"imageUrl": cat.ImageURL,
+					}
+				}
+			}
+			cursor.Close(ctx)
+		}
+	}()
 	wg.Wait()
 
 	// Include banner so Home can show it without a second request
@@ -87,6 +111,7 @@ func GetHomePayload(c *gin.Context) {
 		"products":     featured,
 		"new_arrivals": newArrivals,
 		"discounted":   discounted,
+		"categories":   homeCategories,
 		"banner":       getSeasonalBannerPayload(ctx),
 	})
 }

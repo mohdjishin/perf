@@ -20,11 +20,19 @@ export default function Shop() {
   const [searchParams, setSearchParams] = useSearchParams()
   const [products, setProducts] = useState([])
   const [loading, setLoading] = useState(true)
-  const [category, setCategory] = useState('')
-  const [audience, setAudience] = useState('')
+  const [category, setCategory] = useState(() => searchParams.get('category') || '')
+  const [audience, setAudience] = useState(() => searchParams.get('audience') || '')
   const [newArrival, setNewArrival] = useState(() => searchParams.get('new_arrival') === '1')
   const [onSale, setOnSale] = useState(() => searchParams.get('on_sale') === '1')
   const [seasonalFlag, setSeasonalFlag] = useState(() => searchParams.get('seasonal') || '')
+
+  const updateParam = (key, value) => {
+    const next = new URLSearchParams(searchParams)
+    if (value) next.set(key, value)
+    else next.delete(key)
+    setSearchParams(next)
+  }
+
   const [search, setSearch] = useState('')
   const [searchQuery, setSearchQuery] = useState('')
   const [sortBy, setSortBy] = useState('')
@@ -178,10 +186,10 @@ export default function Shop() {
 
       {hasActiveFilters && (
         <div className={s.activePills}>
-          {category && <span className={s.pill}>{t(`category.${categoryKey(category)}`, { defaultValue: category })} <button type="button" onClick={() => setCategory('')} aria-label="Remove category">×</button></span>}
-          {audience && <span className={s.pill}>{audience === 'men' ? t('product.forHim') : audience === 'women' ? t('product.forHer') : t('product.unisex')} <button type="button" onClick={() => setAudience('')} aria-label="Remove audience">×</button></span>}
-          {newArrival && <span className={s.pill}>{t('shop.newArrival')} <button type="button" onClick={() => setNewArrival(false)} aria-label="Remove">×</button></span>}
-          {onSale && <span className={s.pill}>{t('shop.onSale')} <button type="button" onClick={() => setOnSale(false)} aria-label="Remove">×</button></span>}
+          {category && <span className={s.pill}>{t(`category.${categoryKey(category)}`, { defaultValue: category })} <button type="button" onClick={() => updateParam('category', '')} aria-label="Remove category">×</button></span>}
+          {audience && <span className={s.pill}>{audience === 'men' ? t('product.forHim') : audience === 'women' ? t('product.forHer') : t('product.unisex')} <button type="button" onClick={() => updateParam('audience', '')} aria-label="Remove audience">×</button></span>}
+          {newArrival && <span className={s.pill}>{t('shop.newArrival')} <button type="button" onClick={() => updateParam('new_arrival', '')} aria-label="Remove">×</button></span>}
+          {onSale && <span className={s.pill}>{t('shop.onSale')} <button type="button" onClick={() => updateParam('on_sale', '')} aria-label="Remove">×</button></span>}
           {seasonalFlag && (
             <span className={s.pill}>
               Seasonal: {seasonalFlag}
@@ -210,9 +218,9 @@ export default function Shop() {
             <div className={s.filterGroup}>
               <span className={s.filterGroupLabel}>{t('shop.scentNavigator') || 'Scent Navigator'}</span>
               <div className={s.filterRow}>
-                <button className={`${s.filterBtn} ${!category ? s.active : ''}`} onClick={() => setCategory('')}>{t('shop.all')}</button>
+                <button className={`${s.filterBtn} ${!category ? s.active : ''}`} onClick={() => updateParam('category', '')}>{t('shop.all')}</button>
                 {uniqueCategories.map((c) => (
-                  <button key={c} className={`${s.filterBtn} ${category === c ? s.active : ''}`} onClick={() => setCategory(c)}>{t(`category.${categoryKey(c)}`, { defaultValue: c })}</button>
+                  <button key={c} className={`${s.filterBtn} ${category === c ? s.active : ''}`} onClick={() => updateParam('category', c)}>{t(`category.${categoryKey(c)}`, { defaultValue: c })}</button>
                 ))}
               </div>
             </div>
@@ -220,10 +228,10 @@ export default function Shop() {
           <div className={s.filterGroup}>
             <span className={s.filterGroupLabel}>{t('shop.forLabel')}</span>
             <div className={s.filterRow}>
-              <button className={`${s.filterBtn} ${!audience ? s.active : ''}`} onClick={() => setAudience('')}>{t('shop.all')}</button>
-              <button className={`${s.filterBtn} ${audience === 'men' ? s.active : ''}`} onClick={() => setAudience('men')}>{t('product.forHim')}</button>
-              <button className={`${s.filterBtn} ${audience === 'women' ? s.active : ''}`} onClick={() => setAudience('women')}>{t('product.forHer')}</button>
-              <button className={`${s.filterBtn} ${audience === 'unisex' ? s.active : ''}`} onClick={() => setAudience('unisex')}>{t('product.unisex')}</button>
+              <button className={`${s.filterBtn} ${!audience ? s.active : ''}`} onClick={() => updateParam('audience', '')}>{t('shop.all')}</button>
+              <button className={`${s.filterBtn} ${audience === 'men' ? s.active : ''}`} onClick={() => updateParam('audience', 'men')}>{t('product.forHim')}</button>
+              <button className={`${s.filterBtn} ${audience === 'women' ? s.active : ''}`} onClick={() => updateParam('audience', 'women')}>{t('product.forHer')}</button>
+              <button className={`${s.filterBtn} ${audience === 'unisex' ? s.active : ''}`} onClick={() => updateParam('audience', 'unisex')}>{t('product.unisex')}</button>
             </div>
           </div>
           {(features.new_arrival_shop_filter_enabled || features.discounted_shop_filter_enabled) && (
@@ -232,13 +240,13 @@ export default function Shop() {
               <div className={s.filterRow}>
                 {features.new_arrival_shop_filter_enabled && (
                   <label className={s.filterToggle}>
-                    <input type="checkbox" checked={newArrival} onChange={(e) => setNewArrival(e.target.checked)} />
+                    <input type="checkbox" checked={newArrival} onChange={(e) => updateParam('new_arrival', e.target.checked ? '1' : '')} />
                     <span>{t('shop.newArrival')}</span>
                   </label>
                 )}
                 {features.discounted_shop_filter_enabled && (
                   <label className={s.filterToggle}>
-                    <input type="checkbox" checked={onSale} onChange={(e) => setOnSale(e.target.checked)} />
+                    <input type="checkbox" checked={onSale} onChange={(e) => updateParam('on_sale', e.target.checked ? '1' : '')} />
                     <span>{t('shop.onSale')}</span>
                   </label>
                 )}

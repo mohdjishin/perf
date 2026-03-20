@@ -1749,3 +1749,32 @@
   opacity: 0.7;
   cursor: not-allowed;
 }
+.modeToggle {
+  display: flex;
+  background: var(--color-surface-elevated);
+  padding: 2px;
+  border-radius: var(--radius);
+  border: 1px solid var(--color-border);
+}
+
+.modeBtn {
+  padding: 0.35rem 0.75rem;
+  font-size: 0.75rem;
+  font-weight: 500;
+  border: none;
+  background: transparent;
+  color: var(--color-text-muted);
+  border-radius: calc(var(--radius) - 2px);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.modeBtn:hover {
+  color: var(--color-text);
+}
+
+.activeMode {
+  background: var(--color-surface);
+  color: var(--color-accent);
+  box-shadow: var(--shadow-sm);
+}

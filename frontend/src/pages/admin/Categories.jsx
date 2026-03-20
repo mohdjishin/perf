@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
-import { api } from '../../api/client'
+import { api, uploadFile } from '../../api/client'
 import { PageSkeletonList } from '../../components/Skeleton'
 import { EmptyState } from '../../components/EmptyState'
 import { Toast } from '../../components/Toast'
@@ -10,11 +10,15 @@ export default function AdminCategories() {
   const [categories, setCategories] = useState([])
   const [loading, setLoading] = useState(true)
   const [newName, setNewName] = useState('')
+  const [newImageUrl, setNewImageUrl] = useState('')
+  const [uploading, setUploading] = useState(false)
+  const [editingCategory, setEditingCategory] = useState(null)
   const [error, setError] = useState('')
   const [deleteState, setDeleteState] = useState(null)
   const [deleteMoveTo, setDeleteMoveTo] = useState('')
   const [deleting, setDeleting] = useState(false)
   const [toastError, setToastError] = useState(null)
+  const [imageMode, setImageMode] = useState('upload') // 'upload' or 'url'
 
   useEffect(() => {
     loadCategories()
@@ -34,6 +38,23 @@ export default function AdminCategories() {
       .finally(() => setLoading(false))
   }
 
+  const handleFileUpload = async (e) => {
+    const file = e.target.files[0]
+    if (!file) return
+    setUploading(true)
+    setError('')
+    const formData = new FormData()
+    formData.append('image', file)
+    try {
+      const url = await uploadFile(file)
+      setNewImageUrl(url)
+    } catch (err) {
+      setError('Upload failed: ' + (err.data?.error || err.message))
+    } finally {
+      setUploading(false)
+    }
+  }
+
   const handleCreate = async (e) => {
     e.preventDefault()
     if (!newName.trim()) return
@@ -41,13 +62,44 @@ export default function AdminCategories() {
     try {
       const created = await api('/categories', {
         method: 'POST',
-        body: JSON.stringify({ name: newName.trim() }),
+        body: JSON.stringify({ name: newName.trim(), imageUrl: newImageUrl }),
       })
       setCategories((prev) => [...prev, created])
       setNewName('')
+      setNewImageUrl('')
     } catch (err) {
       setError(err.data?.error || err.message)
     }
+  }
+
+  const handleUpdate = async (e) => {
+    e.preventDefault()
+    if (!editingCategory || !newName.trim()) return
+    setError('')
+    try {
+      const updated = await api(`/categories/${editingCategory.id}`, {
+        method: 'PUT',
+        body: JSON.stringify({ name: newName.trim(), imageUrl: newImageUrl }),
+      })
+      setCategories((prev) => prev.map((c) => (c.id === updated.id ? updated : c)))
+      cancelEdit()
+    } catch (err) {
+      setError(err.data?.error || err.message)
+    }
+  }
+
+  const startEdit = (cat) => {
+    setEditingCategory(cat)
+    setNewName(cat.name)
+    setNewImageUrl(cat.imageUrl || '')
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+  }
+
+  const cancelEdit = () => {
+    setEditingCategory(null)
+    setNewName('')
+    setNewImageUrl('')
+    setImageMode('upload')
   }
 
   const openDelete = async (cat) => {
@@ -112,50 +164,146 @@ export default function AdminCategories() {
         </div>
       </header>
 
-      <form onSubmit={handleCreate} className={s.form}>
-        <h3>Add Category</h3>
-        <div style={{ display: 'flex', gap: 'var(--space-md)', alignItems: 'flex-end' }}>
-          <input
-            placeholder="Category name"
-            value={newName}
-            onChange={(e) => setNewName(e.target.value)}
-            className={s.input}
-            style={{ marginBottom: 0, flex: 1 }}
-          />
-          <button type="submit" className={s.btn}>
-            Add
-          </button>
+      <form onSubmit={editingCategory ? handleUpdate : handleCreate} className={s.form}>
+        <h3>{editingCategory ? 'Edit Category' : 'Add Category'}</h3>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-md)' }}>
+          <div style={{ display: 'flex', gap: 'var(--space-md)', alignItems: 'flex-start' }}>
+            <div style={{ flex: 1 }}>
+              <label className={s.label}>Category Name</label>
+              <input
+                placeholder="e.g. Woody, Floral..."
+                value={newName}
+                onChange={(e) => setNewName(e.target.value)}
+                className={s.input}
+                style={{ marginBottom: 0 }}
+              />
+            </div>
+
+            <div style={{ flex: 1 }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
+                <label className={s.label} style={{ marginBottom: 0 }}>Category Image</label>
+                <div className={s.modeToggle}>
+                  <button
+                    type="button"
+                    onClick={() => setImageMode('upload')}
+                    className={`${s.modeBtn} ${imageMode === 'upload' ? s.activeMode : ''}`}
+                  >
+                    Upload
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setImageMode('url')}
+                    className={`${s.modeBtn} ${imageMode === 'url' ? s.activeMode : ''}`}
+                  >
+                    Link
+                  </button>
+                </div>
+              </div>
+
+              {imageMode === 'upload' ? (
+                <div className={s.uploadWrap}>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={handleFileUpload}
+                    className={s.fileInput}
+                    id="cat-image-upload"
+                    disabled={uploading}
+                  />
+                  <label htmlFor="cat-image-upload" className={`${s.uploadBtn} ${uploading ? s.uploading : ''}`}>
+                    {uploading ? 'Uploading...' : newImageUrl ? 'Change Picture' : 'Upload Picture'}
+                  </label>
+                </div>
+              ) : (
+                <div style={{ display: 'flex', gap: 'var(--space-xs)' }}>
+                  <input
+                    type="url"
+                    placeholder="https://example.com/image.jpg"
+                    value={newImageUrl}
+                    onChange={(e) => setNewImageUrl(e.target.value)}
+                    className={s.input}
+                    style={{ marginBottom: 0 }}
+                  />
+                </div>
+              )}
+
+              {newImageUrl && (
+                <div className={s.imagePreview} style={{ height: '80px', width: '80px', borderRadius: '50%', marginTop: '0.5rem', position: 'relative', overflow: 'visible' }}>
+                  <div style={{ width: '100%', height: '100%', borderRadius: '50%', overflow: 'hidden', border: '2px solid var(--color-primary)' }}>
+                    <img src={newImageUrl} alt="Preview" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setNewImageUrl('')}
+                    style={{ position: 'absolute', top: -5, right: -5, background: 'var(--color-error)', color: 'white', border: 'none', borderRadius: '50%', width: '20px', height: '20px', fontSize: '10px', cursor: 'pointer', zIndex: 2, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                  >
+                    ×
+                  </button>
+                </div>
+              )}
+            </div>
+          </div>
+
+          <div className={s.formActions}>
+            <button type="submit" className={s.btn} disabled={uploading}>
+              {editingCategory ? 'Update Category' : 'Add Category'}
+            </button>
+            {editingCategory && (
+              <button type="button" onClick={cancelEdit} className={s.btnSecondary}>
+                Cancel
+              </button>
+            )}
+          </div>
         </div>
         {error && <p style={{ color: 'var(--color-error)', fontSize: '0.9rem', marginTop: 'var(--space-sm)' }}>{error}</p>}
       </form>
 
       {categories.length > 0 && (
-      <div className={s.tableWrap}>
-        <table className={s.table}>
-          <thead>
-            <tr>
-              <th>Name</th>
-              <th></th>
-            </tr>
-          </thead>
-          <tbody>
-            {categories.map((c) => (
-              <tr key={c.id || c.name}>
-                <td>{c.name}</td>
-                <td>
-                  <button
-                    type="button"
-                    onClick={() => openDelete(c)}
-                    className={s.smBtnDanger}
-                  >
-                    Delete
-                  </button>
-                </td>
+        <div className={s.tableWrap}>
+          <table className={s.table}>
+            <thead>
+              <tr>
+                <th style={{ width: '80px' }}>Image</th>
+                <th>Name</th>
+                <th style={{ textAlign: 'right' }}>Actions</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+            </thead>
+            <tbody>
+              {categories.map((c) => (
+                <tr key={c.id || c.name}>
+                  <td>
+                    <div style={{ width: '48px', height: '48px', borderRadius: '50%', overflow: 'hidden', background: 'var(--color-surface-elevated)', border: '1px solid var(--color-border)' }}>
+                      {c.imageUrl ? (
+                        <img src={c.imageUrl} alt={c.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                      ) : (
+                        <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '10px', color: 'var(--color-text-light)' }}>No Img</div>
+                      )}
+                    </div>
+                  </td>
+                  <td style={{ fontWeight: 500 }}>{c.name}</td>
+                  <td style={{ textAlign: 'right' }}>
+                    <div style={{ display: 'flex', gap: 'var(--space-sm)', justifyContent: 'flex-end' }}>
+                      <button
+                        type="button"
+                        onClick={() => startEdit(c)}
+                        className={s.smBtn}
+                      >
+                        Edit
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => openDelete(c)}
+                        className={s.smBtnDanger}
+                      >
+                        Delete
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       )}
 
       {deleteState && (

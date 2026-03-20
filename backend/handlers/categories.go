@@ -16,12 +16,14 @@ import (
 )
 
 type Category struct {
-	ID   string `bson:"_id,omitempty" json:"id"`
-	Name string `bson:"name" json:"name"`
+	ID       string `bson:"_id,omitempty" json:"id"`
+	Name     string `bson:"name" json:"name"`
+	ImageURL string `bson:"image_url,omitempty" json:"imageUrl"`
 }
 
 type CreateCategoryRequest struct {
-	Name string `json:"name" binding:"required"`
+	Name     string `json:"name" binding:"required"`
+	ImageURL string `json:"imageUrl"`
 }
 
 // DeleteCategoryRequest is the body for deleting a category; products using it are moved to this category.
@@ -52,8 +54,9 @@ func ListCategories(c *gin.Context) {
 		}
 		defer cursor.Close(ctx)
 		var cats []struct {
-			ID   primitive.ObjectID `bson:"_id"`
-			Name string             `bson:"name"`
+			ID       primitive.ObjectID `bson:"_id"`
+			Name     string             `bson:"name"`
+			ImageURL string             `bson:"image_url"`
 		}
 		if cursor.All(ctx, &cats) != nil {
 			return
@@ -63,7 +66,11 @@ func ListCategories(c *gin.Context) {
 		for _, cat := range cats {
 			if cat.Name != "" && !seen[cat.Name] {
 				seen[cat.Name] = true
-				result = append(result, gin.H{"id": cat.ID.Hex(), "name": cat.Name})
+				result = append(result, gin.H{
+					"id":       cat.ID.Hex(),
+					"name":     cat.Name,
+					"imageUrl": cat.ImageURL,
+				})
 			}
 		}
 	}()
@@ -136,14 +143,76 @@ func CreateCategory(c *gin.Context) {
 		return
 	}
 
-	doc := bson.M{"_id": primitive.NewObjectID(), "name": req.Name}
+	doc := bson.M{
+		"_id":       primitive.NewObjectID(),
+		"name":      req.Name,
+		"image_url": req.ImageURL,
+	}
 	_, err = col.InsertOne(context.Background(), doc)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create category"})
 		return
 	}
 
-	c.JSON(http.StatusCreated, gin.H{"id": doc["_id"].(primitive.ObjectID).Hex(), "name": req.Name})
+	c.JSON(http.StatusCreated, gin.H{
+		"id":       doc["_id"].(primitive.ObjectID).Hex(),
+		"name":     req.Name,
+		"imageUrl": req.ImageURL,
+	})
+}
+
+// UpdateCategory updates an existing category (admin/super_admin)
+func UpdateCategory(c *gin.Context) {
+	id := c.Param("id")
+	var req CreateCategoryRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	oid, err := primitive.ObjectIDFromHex(id)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid category id"})
+		return
+	}
+
+	if database.DB == nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "database not connected"})
+		return
+	}
+	col := database.DB.Collection("categories")
+
+	// Get original category name before update
+	var oldCat Category
+	if err := col.FindOne(context.Background(), bson.M{"_id": oid}).Decode(&oldCat); err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "category not found"})
+		return
+	}
+
+	update := bson.M{
+		"$set": bson.M{
+			"name":      req.Name,
+			"image_url": req.ImageURL,
+		},
+	}
+
+	_, err = col.UpdateOne(context.Background(), bson.M{"_id": oid}, update)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update category"})
+		return
+	}
+
+	// If name changed, update products that use this category name
+	if oldCat.Name != req.Name {
+		productsCol := database.DB.Collection("products")
+		_, _ = productsCol.UpdateMany(context.Background(), bson.M{"category": oldCat.Name}, bson.M{"$set": bson.M{"category": req.Name}})
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"id":       id,
+		"name":     req.Name,
+		"imageUrl": req.ImageURL,
+	})
 }
 
 func deleteCategoryByName(ctx context.Context, categoryName, moveTo string) (needMove bool, hadCategoryDoc bool, err error) {
