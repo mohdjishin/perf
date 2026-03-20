@@ -60,6 +60,10 @@ export default function SuperAdminFeatures() {
   const [heroButtonTextEn, setHeroButtonTextEn] = useState('')
   const [heroButtonTextAr, setHeroButtonTextAr] = useState('')
   const [heroImages, setHeroImages] = useState([])
+  const [categorySectionEnabled, setCategorySectionEnabled] = useState(true)
+  const [marqueeSectionEnabled, setMarqueeSectionEnabled] = useState(true)
+  const [marqueeItemsEn, setMarqueeItemsEn] = useState([])
+  const [marqueeItemsAr, setMarqueeItemsAr] = useState([])
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [message, setMessage] = useState(null)
@@ -116,6 +120,10 @@ export default function SuperAdminFeatures() {
         setHeroButtonTextEn(data.hero_button_text_en ?? '')
         setHeroButtonTextAr(data.hero_button_text_ar ?? '')
         setHeroImages(Array.isArray(data.hero_images) && data.hero_images.length > 0 ? data.hero_images : ['/images/premium-hero.png'])
+        setCategorySectionEnabled(data.category_section_enabled !== false)
+        setMarqueeSectionEnabled(data.marquee_section_enabled !== false)
+        setMarqueeItemsEn(Array.isArray(data.marquee_items_en) ? data.marquee_items_en : [])
+        setMarqueeItemsAr(Array.isArray(data.marquee_items_ar) ? data.marquee_items_ar : [])
       })
       .catch(() => setError(t('featuresAdmin.errorLoad')))
       .finally(() => setLoading(false))
@@ -179,6 +187,10 @@ export default function SuperAdminFeatures() {
           hero_button_text_en: heroButtonTextEn.trim() || undefined,
           hero_button_text_ar: heroButtonTextAr.trim() || undefined,
           hero_images: heroImages.filter(img => img.trim()),
+          category_section_enabled: categorySectionEnabled,
+          marquee_section_enabled: marqueeSectionEnabled,
+          marquee_items_en: marqueeItemsEn.filter(it => it.trim()),
+          marquee_items_ar: marqueeItemsAr.filter(it => it.trim()),
         }),
       })
       setMessage(t('featuresAdmin.settingsSaved'))
@@ -408,6 +420,58 @@ export default function SuperAdminFeatures() {
               <input type="text" className={f.input} value={categorySectionTitle} onChange={(e) => setCategorySectionTitle(e.target.value)} placeholder="e.g. Shop by Collection" />
               <label className={f.fieldLabel}>Section Label</label>
               <input type="text" className={f.input} value={categorySectionLabel} onChange={(e) => setCategorySectionLabel(e.target.value)} placeholder="e.g. Discover Your Scent" />
+              <label className={f.toggle} style={{ marginTop: '0.5rem' }}>
+                <input type="checkbox" checked={categorySectionEnabled} onChange={(e) => setCategorySectionEnabled(e.target.checked)} />
+                <span className={f.toggleLabel}>Enable Section</span>
+              </label>
+
+              <div className={f.divider} />
+
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <p className={f.subLabel} style={{ margin: 0 }}>Marquee Banner (Running Banner)</p>
+                <label className={f.toggle}>
+                  <input type="checkbox" checked={marqueeSectionEnabled} onChange={(e) => setMarqueeSectionEnabled(e.target.checked)} />
+                  <span>Enable</span>
+                </label>
+              </div>
+
+              {marqueeSectionEnabled && (
+                <div className={f.whyEditor}>
+                  <p className={f.hint} style={{ marginBottom: '1rem' }}>Suggest: 'Long Lasting', 'Premium Quality', 'UAE Crafted', 'Authentic Oud', 'Free Shipping AED 200+'</p>
+
+                  <div className={f.row}>
+                    <div style={{ flex: 1 }}>
+                      <p className={f.fieldLabel}>Items (EN)</p>
+                      {marqueeItemsEn.map((it, idx) => (
+                        <div key={idx} className={f.heroImageRow} style={{ marginBottom: '0.5rem' }}>
+                          <input type="text" className={f.input} value={it} onChange={(e) => {
+                            const next = [...marqueeItemsEn]
+                            next[idx] = e.target.value
+                            setMarqueeItemsEn(next)
+                          }} placeholder="e.g. Premium Quality" />
+                          <button type="button" className={f.smBtnDanger} onClick={() => setMarqueeItemsEn(marqueeItemsEn.filter((_, i) => i !== idx))}>✕</button>
+                        </div>
+                      ))}
+                      <button type="button" className={f.addItemBtn} onClick={() => setMarqueeItemsEn([...marqueeItemsEn, ''])}>+ Add Item (EN)</button>
+                    </div>
+
+                    <div style={{ flex: 1 }}>
+                      <p className={f.fieldLabel}>Items (AR)</p>
+                      {marqueeItemsAr.map((it, idx) => (
+                        <div key={idx} className={f.heroImageRow} style={{ marginBottom: '0.5rem' }}>
+                          <input type="text" className={f.input} value={it} dir="rtl" onChange={(e) => {
+                            const next = [...marqueeItemsAr]
+                            next[idx] = e.target.value
+                            setMarqueeItemsAr(next)
+                          }} placeholder="مثلاً: جودة ممتازة" />
+                          <button type="button" className={f.smBtnDanger} onClick={() => setMarqueeItemsAr(marqueeItemsAr.filter((_, i) => i !== idx))}>✕</button>
+                        </div>
+                      ))}
+                      <button type="button" className={f.addItemBtn} onClick={() => setMarqueeItemsAr([...marqueeItemsAr, ''])}>+ Add Item (AR)</button>
+                    </div>
+                  </div>
+                </div>
+              )}
 
               <div className={f.divider} />
 

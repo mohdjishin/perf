@@ -56,6 +56,10 @@ type FeatureFlags struct {
 	HeroButtonTextEn            string           `json:"hero_button_text_en"`
 	HeroButtonTextAr            string           `json:"hero_button_text_ar"`
 	HeroImages                  []string         `json:"hero_images"`
+	CategorySectionEnabled      bool             `json:"category_section_enabled"`
+	MarqueeSectionEnabled       bool             `json:"marquee_section_enabled"`
+	MarqueeItemsEn              []string         `json:"marquee_items_en"`
+	MarqueeItemsAr              []string         `json:"marquee_items_ar"`
 }
 
 // FeatureFlagsDoc is the stored document in MongoDB.
@@ -107,4 +111,8 @@ type FeatureFlagsDoc struct {
 	HeroButtonTextEn            string           `bson:"hero_button_text_en"`
 	HeroButtonTextAr            string           `bson:"hero_button_text_ar"`
 	HeroImages                  []string         `bson:"hero_images"`
+	CategorySectionEnabled      *bool            `bson:"category_section_enabled,omitempty"`
+	MarqueeSectionEnabled       *bool            `bson:"marquee_section_enabled,omitempty"`
+	MarqueeItemsEn              []string         `bson:"marquee_items_en"`
+	MarqueeItemsAr              []string         `bson:"marquee_items_ar"`
 }

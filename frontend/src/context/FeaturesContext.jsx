@@ -11,14 +11,14 @@ const defaultInvoice = {
   phone: '',
   email: '',
 }
-const FeaturesContext = createContext({ i18nEnabled: true, storeLocatorEnabled: true, socialEnabled: false, social: {}, invoice: defaultInvoice, googleClientId: null, stripePublishableKey: null, signupEnabled: true, personalizationEnabled: false })
+const FeaturesContext = createContext({ i18nEnabled: true, storeLocatorEnabled: true, socialEnabled: false, social: {}, invoice: defaultInvoice, googleClientId: null, stripePublishableKey: null, signupEnabled: true, personalizationEnabled: false, categorySectionEnabled: true, marqueeSectionEnabled: true })
 
 /**
  * Provides app-wide feature flags (e.g. i18n_enabled) from /settings/features.
  * Used by Navbar to show/hide the language switcher.
  */
 export function FeaturesProvider({ children }) {
-  const [features, setFeatures] = useState({ i18nEnabled: true, storeLocatorEnabled: true, socialEnabled: false, social: {}, invoice: defaultInvoice, googleClientId: null, stripePublishableKey: null, signupEnabled: true, personalizationEnabled: false })
+  const [features, setFeatures] = useState({ i18nEnabled: true, storeLocatorEnabled: true, socialEnabled: false, social: {}, invoice: defaultInvoice, googleClientId: null, stripePublishableKey: null, signupEnabled: true, personalizationEnabled: false, categorySectionEnabled: true, marqueeSectionEnabled: true })
 
   const fetchFeatures = () => {
     api('/settings/features')
@@ -51,6 +51,8 @@ export function FeaturesProvider({ children }) {
           stripePublishableKey: data.stripe_publishable_key,
           signupEnabled: data.signup_enabled !== false,
           personalizationEnabled: data.personalization_enabled === true,
+          categorySectionEnabled: data.category_section_enabled !== false,
+          marqueeSectionEnabled: data.marquee_section_enabled !== false,
         })
       })
       .catch(() => {
@@ -73,6 +75,6 @@ export function FeaturesProvider({ children }) {
 }
 
 export function useFeatures() {
-  return useContext(FeaturesContext) || { i18nEnabled: true, storeLocatorEnabled: true, socialEnabled: false, social: {}, invoice: defaultInvoice, googleClientId: null, stripePublishableKey: null, signupEnabled: true, personalizationEnabled: false }
+  return useContext(FeaturesContext) || { i18nEnabled: true, storeLocatorEnabled: true, socialEnabled: false, social: {}, invoice: defaultInvoice, googleClientId: null, stripePublishableKey: null, signupEnabled: true, personalizationEnabled: false, categorySectionEnabled: true, marqueeSectionEnabled: true }
 }
 

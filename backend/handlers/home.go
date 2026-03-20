@@ -153,6 +153,10 @@ func getFeaturesPayload(c *gin.Context) gin.H {
 		HeroButtonTextEn            string    `bson:"hero_button_text_en"`
 		HeroButtonTextAr            string    `bson:"hero_button_text_ar"`
 		HeroImages                  []string  `bson:"hero_images"`
+		CategorySectionEnabled      *bool     `bson:"category_section_enabled,omitempty"`
+		MarqueeSectionEnabled       *bool     `bson:"marquee_section_enabled,omitempty"`
+		MarqueeItemsEn              []string  `bson:"marquee_items_en"`
+		MarqueeItemsAr              []string  `bson:"marquee_items_ar"`
 	}
 	defaultWhy := []whyItem{
 		{Title: "Authentic Oud", Description: "Premium agarwood sourced from the finest regions"},
@@ -177,17 +181,21 @@ func getFeaturesPayload(c *gin.Context) gin.H {
 			"social_instagram": "", "social_instagram_enabled": true,
 			"social_twitter": "", "social_twitter_enabled": true,
 			"social_youtube": "", "social_youtube_enabled": true,
-			"category_section_title": "Shop by Collection",
-			"category_section_label": "Discover Your Scent",
-			"hero_subtitle_en":       "Signature Egyptian Collection",
-			"hero_subtitle_ar":       "مجموعة توقيع مصرية",
-			"hero_title_en":          "BLUE MIST PERFUMES",
-			"hero_title_ar":          "بلو ميست للعطور",
-			"hero_description_en":    "Simply put, our perfume is the best. Elevate your presence with our exquisite collection of perfumes and bakhoor.",
-			"hero_description_ar":    "بعبارة بسيطة، عطرنا هو الأفضل. ارفع حضورك مع مجموعتنا الراقية من العطور والبخور.",
-			"hero_button_text_en":    "Explore Collection",
-			"hero_button_text_ar":    "استكشف المجموعة",
-			"hero_images":            []string{"/images/premium-hero.png"},
+			"category_section_title":   "Shop by Collection",
+			"category_section_label":   "Discover Your Scent",
+			"hero_subtitle_en":         "Signature Egyptian Collection",
+			"hero_subtitle_ar":         "مجموعة توقيع مصرية",
+			"hero_title_en":            "BLUE MIST PERFUMES",
+			"hero_title_ar":            "بلو ميست للعطور",
+			"hero_description_en":      "Simply put, our perfume is the best. Elevate your presence with our exquisite collection of perfumes and bakhoor.",
+			"hero_description_ar":      "بعبارة بسيطة، عطرنا هو الأفضل. ارفع حضورك مع مجموعتنا الراقية من العطور والبخور.",
+			"hero_button_text_en":      "Explore Collection",
+			"hero_button_text_ar":      "استكشف المجموعة",
+			"hero_images":              []string{"/images/premium-hero.png"},
+			"category_section_enabled": true,
+			"marquee_section_enabled":  true,
+			"marquee_items_en":         []string{"Long Lasting", "Premium Quality", "Cruelty Free"},
+			"marquee_items_ar":         []string{"يدوم طويلاً", "جودة ممتازة", "خالٍ من القسوة"},
 		}
 	}
 	if doc.WhySectionItems == nil {
@@ -246,7 +254,25 @@ func getFeaturesPayload(c *gin.Context) gin.H {
 		"hero_button_text_en":             doc.HeroButtonTextEn,
 		"hero_button_text_ar":             doc.HeroButtonTextAr,
 		"hero_images":                     doc.HeroImages,
+		"category_section_enabled":        docCategorySectionEnabled(doc.CategorySectionEnabled),
+		"marquee_section_enabled":         docMarqueeSectionEnabled(doc.MarqueeSectionEnabled),
+		"marquee_items_en":                docMarqueeItemsEn(doc.MarqueeItemsEn),
+		"marquee_items_ar":                docMarqueeItemsAr(doc.MarqueeItemsAr),
 	}
+}
+
+func docMarqueeItemsEn(s []string) []string {
+	if len(s) == 0 {
+		return []string{"Long Lasting", "Premium Quality", "Cruelty Free"}
+	}
+	return s
+}
+
+func docMarqueeItemsAr(s []string) []string {
+	if len(s) == 0 {
+		return []string{"يدوم طويلاً", "جودة ممتازة", "خالٍ من القسوة"}
+	}
+	return s
 }
 
 func decodeProductsToItems(cursor *mongo.Cursor) []gin.H {

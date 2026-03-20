@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import { Link } from 'react-router-dom'
 import { api } from '../api/client'
 import { formatPrice } from '../utils/currency'
@@ -20,6 +20,8 @@ export default function Home() {
     discounted_section_enabled: true,
     featured_section_enabled: true,
     why_section_enabled: true,
+    category_section_enabled: true,
+    marquee_section_enabled: true,
   })
   const [apiError, setApiError] = useState(null)
   const [loading, setLoading] = useState(true)
@@ -59,6 +61,9 @@ export default function Home() {
           hero_description: locale === 'ar' ? f.hero_description_ar : f.hero_description_en,
           hero_button_text: locale === 'ar' ? f.hero_button_text_ar : f.hero_button_text_en,
           hero_images: Array.isArray(f.hero_images) && f.hero_images.length > 0 ? f.hero_images : ['/images/premium-hero.png'],
+          category_section_enabled: f.category_section_enabled !== false,
+          marquee_section_enabled: f.marquee_section_enabled !== false,
+          marquee_items: locale === 'ar' ? f.marquee_items_ar : f.marquee_items_en,
         })
         setProducts(data.products || [])
         setNewArrivals(data.new_arrivals || [])
@@ -75,7 +80,7 @@ export default function Home() {
         setApiError(err.message)
       })
       .finally(() => setLoading(false))
-  }, [])
+  }, [locale])
 
   // We could also fetch categories directly if they aren't in the home payload
   useEffect(() => {
@@ -157,64 +162,68 @@ export default function Home() {
       </section>
 
       {/* Marquee strip — as seen on myop top bar/section */}
-      <div className={s.marqueeOuter}>
-        <div className={s.marqueeTrack}>
-          {[...Array(6)].map((_, i) => (
-            <div key={i} className={s.marqueeItem}>
-              <span>✦</span>
-              <span>Long Lasting</span>
-              <span>✦</span>
-              <span>Premium Quality</span>
-              <span>✦</span>
-              <span>Cruelty Free</span>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* Category Grid — Shop by Scent (myop style circles/squares) */}
-      <section className={s.categories} aria-labelledby="cat-heading">
-        <div className={s.sectionHeaderCentered}>
-          <p className={s.sectionLabel}>{features.cat_section_label}</p>
-          <h2 id="cat-heading" className={s.sectionTitleLarge}>{features.cat_section_title}</h2>
-        </div>
-        <div className={s.catGridWrapper}>
-          <button
-            type="button"
-            className={`${s.scrollBtn} ${s.scrollLeft}`}
-            onClick={() => scrollCats('left')}
-            aria-label="Scroll left"
-          >
-            ←
-          </button>
-          <div className={s.catGrid} ref={catGridRef}>
-            {categories.map((cat) => (
-              <Link key={cat.id || cat.name} to={`/shop?category=${encodeURIComponent(cat.name)}`} className={s.catCard}>
-                <div className={s.catImageWrap}>
-                  <img
-                    src={cat.imageUrl || `https://placehold.co/600x600/fdf8f0/caa04e?text=${encodeURIComponent(cat.name)}`}
-                    alt={cat.name}
-                    onError={(e) => {
-                      if (!e.target.src.includes('placehold.co')) {
-                        e.target.src = `https://placehold.co/600x600/fdf8f0/caa04e?text=${encodeURIComponent(cat.name)}`;
-                      }
-                    }}
-                  />
-                </div>
-                <span className={s.catName}>{t(`category.${cat.name.toLowerCase()}`, { defaultValue: cat.name })}</span>
-              </Link>
+      {features.marquee_section_enabled && features.marquee_items && features.marquee_items.length > 0 && (
+        <div className={s.marqueeOuter}>
+          <div className={s.marqueeTrack}>
+            {[...Array(6)].map((_, i) => (
+              <div key={i} className={s.marqueeItem}>
+                {features.marquee_items.map((item, idx) => (
+                  <React.Fragment key={idx}>
+                    <span>✦</span>
+                    <span>{item}</span>
+                  </React.Fragment>
+                ))}
+              </div>
             ))}
           </div>
-          <button
-            type="button"
-            className={`${s.scrollBtn} ${s.scrollRight}`}
-            onClick={() => scrollCats('right')}
-            aria-label="Scroll right"
-          >
-            →
-          </button>
         </div>
-      </section>
+      )}
+
+      {/* Category Grid — Shop by Scent (myop style circles/squares) */}
+      {features.category_section_enabled && (
+        <section className={s.categories} aria-labelledby="cat-heading">
+          <div className={s.sectionHeaderCentered}>
+            <p className={s.sectionLabel}>{features.cat_section_label}</p>
+            <h2 id="cat-heading" className={s.sectionTitleLarge}>{features.cat_section_title}</h2>
+          </div>
+          <div className={s.catGridWrapper}>
+            <button
+              type="button"
+              className={`${s.scrollBtn} ${s.scrollLeft}`}
+              onClick={() => scrollCats('left')}
+              aria-label="Scroll left"
+            >
+              ←
+            </button>
+            <div className={s.catGrid} ref={catGridRef}>
+              {categories.map((cat) => (
+                <Link key={cat.id || cat.name} to={`/shop?category=${encodeURIComponent(cat.name)}`} className={s.catCard}>
+                  <div className={s.catImageWrap}>
+                    <img
+                      src={cat.imageUrl || `https://placehold.co/600x600/fdf8f0/caa04e?text=${encodeURIComponent(cat.name)}`}
+                      alt={cat.name}
+                      onError={(e) => {
+                        if (!e.target.src.includes('placehold.co')) {
+                          e.target.src = `https://placehold.co/600x600/fdf8f0/caa04e?text=${encodeURIComponent(cat.name)}`;
+                        }
+                      }}
+                    />
+                  </div>
+                  <span className={s.catName}>{t(`category.${cat.name.toLowerCase()}`, { defaultValue: cat.name })}</span>
+                </Link>
+              ))}
+            </div>
+            <button
+              type="button"
+              className={`${s.scrollBtn} ${s.scrollRight}`}
+              onClick={() => scrollCats('right')}
+              aria-label="Scroll right"
+            >
+              →
+            </button>
+          </div>
+        </section>
+      )}
 
       {apiError && (
         <section className={s.errorBanner} role="alert" aria-live="assertive">

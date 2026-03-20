@@ -76,6 +76,10 @@ func GetFeatureFlags(c *gin.Context) {
 			"hero_button_text_en":        "Explore Collection",
 			"hero_button_text_ar":        "استكشف المجموعة",
 			"hero_images":                []string{"/images/premium-hero.png"},
+			"category_section_enabled":   true,
+			"marquee_section_enabled":    true,
+			"marquee_items_en":           []string{"Long Lasting", "Premium Quality", "Cruelty Free"},
+			"marquee_items_ar":           []string{"يدوم طويلاً", "جودة ممتازة", "خالٍ من القسوة"},
 		}
 
 		if isSuperAdmin {
@@ -152,6 +156,22 @@ func GetFeatureFlags(c *gin.Context) {
 	if doc.TelegramEnabled != nil {
 		telegramEnabled = *doc.TelegramEnabled
 	}
+	categorySectionEnabled := true
+	if doc.CategorySectionEnabled != nil {
+		categorySectionEnabled = *doc.CategorySectionEnabled
+	}
+	marqueeSectionEnabled := true
+	if doc.MarqueeSectionEnabled != nil {
+		marqueeSectionEnabled = *doc.MarqueeSectionEnabled
+	}
+	marqueeItemsEn := doc.MarqueeItemsEn
+	if len(marqueeItemsEn) == 0 {
+		marqueeItemsEn = []string{"Long Lasting", "Premium Quality", "Cruelty Free"}
+	}
+	marqueeItemsAr := doc.MarqueeItemsAr
+	if len(marqueeItemsAr) == 0 {
+		marqueeItemsAr = []string{"يدوم طويلاً", "جودة ممتازة", "خالٍ من القسوة"}
+	}
 
 	resp := gin.H{
 		"new_arrival_section_enabled":     doc.NewArrivalSectionEnabled,
@@ -200,6 +220,10 @@ func GetFeatureFlags(c *gin.Context) {
 		"hero_button_text_en":             doc.HeroButtonTextEn,
 		"hero_button_text_ar":             doc.HeroButtonTextAr,
 		"hero_images":                     doc.HeroImages,
+		"category_section_enabled":        categorySectionEnabled,
+		"marquee_section_enabled":         marqueeSectionEnabled,
+		"marquee_items_en":                marqueeItemsEn,
+		"marquee_items_ar":                marqueeItemsAr,
 	}
 
 	if isSuperAdmin {
@@ -258,6 +282,10 @@ type UpdateFeatureFlagsRequest struct {
 	HeroButtonTextEn            *string                  `json:"hero_button_text_en"`
 	HeroButtonTextAr            *string                  `json:"hero_button_text_ar"`
 	HeroImages                  *[]string                `json:"hero_images"`
+	CategorySectionEnabled      *bool                    `json:"category_section_enabled"`
+	MarqueeSectionEnabled       *bool                    `json:"marquee_section_enabled"`
+	MarqueeItemsEn              *[]string                `json:"marquee_items_en"`
+	MarqueeItemsAr              *[]string                `json:"marquee_items_ar"`
 }
 
 // UpdateFeatureFlags updates feature flags. Only super_admin may call this; route is protected by RequireSuperAdmin. Upserts the document in the features collection.
@@ -458,6 +486,20 @@ func UpdateFeatureFlags(c *gin.Context) {
 	if req.HeroImages != nil {
 		doc.HeroImages = *req.HeroImages
 	}
+	if req.CategorySectionEnabled != nil {
+		v := *req.CategorySectionEnabled
+		doc.CategorySectionEnabled = &v
+	}
+	if req.MarqueeSectionEnabled != nil {
+		v := *req.MarqueeSectionEnabled
+		doc.MarqueeSectionEnabled = &v
+	}
+	if req.MarqueeItemsEn != nil {
+		doc.MarqueeItemsEn = *req.MarqueeItemsEn
+	}
+	if req.MarqueeItemsAr != nil {
+		doc.MarqueeItemsAr = *req.MarqueeItemsAr
+	}
 
 	// Apply robust defaults for any remaining empty fields before saving
 	if doc.WhySectionTitle == "" {
@@ -552,7 +594,25 @@ func UpdateFeatureFlags(c *gin.Context) {
 		"hero_button_text_en":             doc.HeroButtonTextEn,
 		"hero_button_text_ar":             doc.HeroButtonTextAr,
 		"hero_images":                     doc.HeroImages,
+		"category_section_enabled":        docCategorySectionEnabled(doc.CategorySectionEnabled),
+		"marquee_section_enabled":         docMarqueeSectionEnabled(doc.MarqueeSectionEnabled),
+		"marquee_items_en":                doc.MarqueeItemsEn,
+		"marquee_items_ar":                doc.MarqueeItemsAr,
 	})
+}
+
+func docCategorySectionEnabled(p *bool) bool {
+	if p == nil {
+		return true
+	}
+	return *p
+}
+
+func docMarqueeSectionEnabled(p *bool) bool {
+	if p == nil {
+		return true
+	}
+	return *p
 }
 
 func docSocialEnabled(p *bool) bool {
