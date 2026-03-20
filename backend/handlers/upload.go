@@ -18,20 +18,24 @@ const maxUploadSize = 5 << 20 // 5MB
 const uploadDir = "uploads"
 
 var allowedTypes = map[string]bool{
-	"image/jpeg": true,
-	"image/jpg":  true,
-	"image/png":  true,
-	"image/gif":  true,
-	"image/webp": true,
+	"image/jpeg":          true,
+	"image/jpg":           true,
+	"image/pjpeg":         true,
+	"image/x-citrix-jpeg": true,
+	"image/png":           true,
+	"image/gif":           true,
+	"image/webp":          true,
 }
 
 // magic bytes (prefix) for allowed image types
 var magicSignatures = map[string][]byte{
-	"image/jpeg": {0xFF, 0xD8, 0xFF},
-	"image/jpg":  {0xFF, 0xD8, 0xFF},
-	"image/png":  {0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A},
-	"image/gif":  []byte("GIF87a"),
-	"image/webp": nil, // set in init: RIFF....WEBP
+	"image/jpeg":          {0xFF, 0xD8, 0xFF},
+	"image/jpg":           {0xFF, 0xD8, 0xFF},
+	"image/pjpeg":         {0xFF, 0xD8, 0xFF},
+	"image/x-citrix-jpeg": {0xFF, 0xD8, 0xFF},
+	"image/png":           {0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A},
+	"image/gif":           []byte("GIF87a"),
+	"image/webp":          nil, // set in init: RIFF....WEBP
 }
 
 func init() {
@@ -55,7 +59,14 @@ func UploadImage(c *gin.Context) {
 	}
 
 	contentType := file.Header.Get("Content-Type")
+	// Normalize jpg and other variants to jpeg
+	if contentType == "image/jpg" || contentType == "image/pjpeg" || contentType == "image/x-citrix-jpeg" {
+		contentType = "image/jpeg"
+	}
+
 	if !allowedTypes[contentType] {
+		// Log the actual rejected content type
+		fmt.Printf("Upload rejected: Invalid Content-Type '%s' for file '%s'\n", contentType, file.Filename)
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid file type. Use JPEG, PNG, GIF, or WebP"})
 		return
 	}
@@ -71,6 +82,8 @@ func UploadImage(c *gin.Context) {
 	n, _ := io.ReadAtLeast(src, header, 12)
 	header = header[:n]
 	if !validateMagicBytes(contentType, header) {
+		// Log the failure for debugging
+		fmt.Printf("Upload rejected: Magic bytes mismatch for type '%s'. First bytes: %X\n", contentType, header)
 		c.JSON(http.StatusBadRequest, gin.H{"error": "File content does not match declared type. Use a valid JPEG, PNG, GIF, or WebP image."})
 		return
 	}

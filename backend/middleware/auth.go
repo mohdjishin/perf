@@ -4,9 +4,14 @@ import (
 	"net/http"
 	"strings"
 
+	"perfume-store/database"
+	"perfume-store/logger"
 	"perfume-store/utils"
 
 	"github.com/gin-gonic/gin"
+	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
+	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
 // OptionalAuth parses the JWT if present and sets user claims in context; never aborts.
@@ -57,6 +62,32 @@ func Auth() gin.HandlerFunc {
 		claims, err := utils.ParseToken(parts[1])
 		if err != nil {
 			c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid or expired token"})
+			c.Abort()
+			return
+		}
+
+		// Security: verify user is still Active in database
+		uid, errOid := primitive.ObjectIDFromHex(claims.UserID)
+		if errOid != nil {
+			logger.Warnf("Auth check failed (invalid ID hex): email=%s id=%s err=%v", claims.Email, claims.UserID, errOid)
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid user identification"})
+			c.Abort()
+			return
+		}
+
+		col := database.DB.Collection("users")
+		var user struct {
+			Active bool `bson:"active"`
+		}
+		if err := col.FindOne(c.Request.Context(), bson.M{"_id": uid}, options.FindOne().SetProjection(bson.M{"active": 1})).Decode(&user); err != nil {
+			logger.Warnf("Auth check failed (user not found): email=%s id=%s err=%v", claims.Email, claims.UserID, err)
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "User account no longer valid"})
+			c.Abort()
+			return
+		}
+		if !user.Active {
+			logger.Warnf("Auth check failed (deactivated): email=%s id=%s", claims.Email, claims.UserID)
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "Account deactivated"})
 			c.Abort()
 			return
 		}

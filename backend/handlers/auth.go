@@ -196,7 +196,7 @@ func GoogleAuth(c *gin.Context) {
 	var user models.User
 	err = col.FindOne(context.Background(), bson.M{"email": strings.ToLower(googleUser.Email)}).Decode(&user)
 	if err != nil {
-		// Create new user
+		// User not found: create new
 		now := time.Now()
 		user = models.User{
 			ID:         primitive.NewObjectID(),
@@ -214,8 +214,15 @@ func GoogleAuth(c *gin.Context) {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create user"})
 			return
 		}
-		logger.Infof("Created new user via Google OAuth (Auth Code Flow): %s", googleUser.Email)
+		logger.Infof("Created new user via Google OAuth: %s", googleUser.Email)
 	} else {
+		// Existing user: check if Active
+		if !user.Active {
+			logger.Warnf("Google login failed: account deactivated (email=%s)", user.Email)
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "Account is deactivated"})
+			return
+		}
+
 		// Update existing user with latest info from Google
 		update := bson.M{
 			"$set": bson.M{
@@ -230,7 +237,6 @@ func GoogleAuth(c *gin.Context) {
 			update["$set"].(bson.M)["last_name"] = googleUser.LastName
 		}
 		_, _ = col.UpdateOne(context.Background(), bson.M{"_id": user.ID}, update)
-		// Update local user object for token generation
 		user.ProfileURL = googleUser.Picture
 	}
 

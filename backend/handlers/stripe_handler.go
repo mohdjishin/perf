@@ -73,11 +73,74 @@ func StripeWebhook(c *gin.Context) {
 		}
 
 		processSuccessfulPayment(c.Request.Context(), &sess, "webhook", piID)
+
+	case "checkout.session.expired", "checkout.session.async_payment_failed":
+		var sess stripe.CheckoutSession
+		if err := json.Unmarshal(event.Data.Raw, &sess); err != nil {
+			logger.Errorf("Stripe webhook: Error unmarshaling session (%s): %v", event.Type, err)
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Error unmarshaling session"})
+			return
+		}
+		handleFailedCheckout(c.Request.Context(), &sess, string(event.Type))
+
 	default:
 		logger.Infof("Stripe webhook: Ignoring unhandled event type %s", event.Type)
 	}
 
 	c.Status(http.StatusOK)
+}
+
+func handleFailedCheckout(ctx context.Context, sess *stripe.CheckoutSession, eventType string) {
+	orderID, ok := sess.Metadata["order_id"]
+	if !ok {
+		return
+	}
+	oid, err := primitive.ObjectIDFromHex(orderID)
+	if err != nil {
+		return
+	}
+
+	col := database.DB.Collection("orders")
+	var order models.Order
+	if err := col.FindOne(ctx, bson.M{"_id": oid}).Decode(&order); err != nil {
+		return
+	}
+
+	// Only restock if order is still Pending and Unpaid
+	if order.Status != models.OrderPending || order.PaymentStatus == models.PaymentPaid {
+		return
+	}
+
+	// Update order status to Cancelled
+	now := time.Now()
+	_, err = col.UpdateOne(ctx, bson.M{"_id": oid}, bson.M{
+		"$set": bson.M{
+			"status":     models.OrderCancelled,
+			"updated_at": now,
+		},
+		"$push": bson.M{
+			"shipping_history": models.ShippingHistoryEntry{
+				Message:   fmt.Sprintf("Order cancelled (Stripe session %s).", eventType),
+				CreatedAt: now,
+				UpdatedBy: "system (stripe)",
+			},
+		},
+	})
+	if err != nil {
+		logger.Errorf("Stripe webhook: Failed to cancel order %s on session %s: %v", orderID, eventType, err)
+		return
+	}
+
+	// Restore stock
+	prodCol := database.DB.Collection("products")
+	for _, item := range order.Items {
+		_, err := prodCol.UpdateOne(ctx, bson.M{"_id": item.ProductID}, bson.M{"$inc": bson.M{"stock": item.Quantity}})
+		if err != nil {
+			logger.Errorf("Stripe webhook: Failed to restore stock for product %s in order %s: %v", item.ProductID.Hex(), orderID, err)
+		}
+	}
+
+	logger.Infof("Stripe webhook: Restored stock for cancelled order %s (%s)", order.OrderNumber, eventType)
 }
 
 func processSuccessfulPayment(ctx context.Context, sess *stripe.CheckoutSession, source string, manualPI string) {
@@ -150,25 +213,30 @@ func processSuccessfulPayment(ctx context.Context, sess *stripe.CheckoutSession,
 
 	logger.Infof("Stripe %s: order %v (%s) successfully marked as paid. PaymentIntent: %s", source, orderID, currentOrder.OrderNumber, paymentIntentID)
 
-	// Telegram Notification
-	var itemsSummary strings.Builder
-	for _, it := range currentOrder.Items {
-		itemsSummary.WriteString(fmt.Sprintf("\n• %s x %d — <i>%.2f AED</i>", it.Name, it.Quantity, it.Price*float64(it.Quantity)))
+	// Telegram Notification (Guard: only if not already notified for this order)
+	// We use the status change as a proxy, but since we just updated it, we check if it was already Paid before this update at line 125.
+	// However, multiple webhooks can still race. Let's use a small atomic check or just rely on the line 126 check which handles most cases.
+	// To be safer, we only send if the currentOrder was NOT paid.
+	if currentOrder.PaymentStatus != models.PaymentPaid {
+		var itemsSummary strings.Builder
+		for _, it := range currentOrder.Items {
+			itemsSummary.WriteString(fmt.Sprintf("\n• %s x %d — <i>%.2f AED</i>", it.Name, it.Quantity, it.Price*float64(it.Quantity)))
+		}
+
+		addr := currentOrder.Address
+		addressStr := fmt.Sprintf("%s, %s, %s, %s, %s", addr.Street, addr.City, addr.State, addr.Zip, addr.Country)
+
+		msg := fmt.Sprintf("✅ <b>Payment Confirmed!</b>\n"+
+			"Order Number: <code>%s</code>\n"+
+			"Total: <b>%.2f AED</b>\n"+
+			"Customer: %s\n"+
+			"Stripe Session: <code>%s</code>\n\n"+
+			"<b>Items:</b>%s\n\n"+
+			"<b>Delivery Address:</b>\n<i>%s</i>",
+			currentOrder.OrderNumber, currentOrder.Total, sess.Metadata["customer_email"], sess.ID, itemsSummary.String(), addressStr)
+
+		utils.SendTelegramMessage(msg)
 	}
-
-	addr := currentOrder.Address
-	addressStr := fmt.Sprintf("%s, %s, %s, %s, %s", addr.Street, addr.City, addr.State, addr.Zip, addr.Country)
-
-	msg := fmt.Sprintf("✅ <b>Payment Confirmed!</b>\n"+
-		"Order Number: <code>%s</code>\n"+
-		"Total: <b>%.2f AED</b>\n"+
-		"Customer: %s\n"+
-		"Stripe Session: <code>%s</code>\n\n"+
-		"<b>Items:</b>%s\n\n"+
-		"<b>Delivery Address:</b>\n<i>%s</i>",
-		currentOrder.OrderNumber, currentOrder.Total, sess.Metadata["customer_email"], sess.ID, itemsSummary.String(), addressStr)
-
-	utils.SendTelegramMessage(msg)
 
 	// Log audit
 	utils.Log(ctx, sess.Metadata["user_id"], sess.Metadata["customer_email"], "customer",

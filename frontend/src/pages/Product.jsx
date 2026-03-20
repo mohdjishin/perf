@@ -5,12 +5,14 @@ import { api } from '../api/client'
 import { useCart } from '../context/CartContext'
 import { useAuth } from '../context/AuthContext'
 import { formatPrice } from '../utils/currency'
+import { useFeatures } from '../context/FeaturesContext'
 import { getProductDisplay, categoryKey } from '../utils/productI18n'
 import { PageSkeletonProduct } from '../components/Skeleton'
 import { ErrorState } from '../components/EmptyState'
 import { Toast } from '../components/Toast'
 import { BackButton } from '../components/BackButton'
 import { StarRatingDisplay } from '../components/StarRating'
+import SeasonalBanner from '../components/SeasonalBanner'
 import s from './Product.module.css'
 
 export default function Product() {
@@ -27,6 +29,7 @@ export default function Product() {
   const [qty, setQty] = useState(1)
   const [showAddedToast, setShowAddedToast] = useState(false)
   const { addToCart, items } = useCart()
+  const { personalizationEnabled } = useFeatures()
   const inCart = items.some((i) => i.id === product?.id)
   const display = product ? getProductDisplay(product, locale) : { name: '', description: '' }
   const images = (product?.imageUrls?.length > 0 ? product.imageUrls : product?.imageUrl ? [product.imageUrl] : []) || []
@@ -161,270 +164,276 @@ export default function Product() {
   }
 
   return (
-    <div className={s.page}>
-      <BackButton to="/shop" label={t('nav.shop')} />
-      <div className={s.grid}>
-        <div className={s.imageWrap}>
-          {(product.newArrival || product.onSale || product.stock <= 0) && (
-            <div className={s.badges}>
-              {product.newArrival && <span className={product.classNameNew || s.badgeNew}>{t('product.new')}</span>}
-              {product.onSale && product.discountPercent > 0 && (
-                <span className={s.badgeSale}>{t('product.percentOff', { percent: product.discountPercent })}</span>
-              )}
-              {product.stock <= 0 && <span className={s.badgeStock}>{t('product.outOfStock')}</span>}
-            </div>
-          )}
-          <img
-            src={mainImage || 'https://placehold.co/600x750/e2e8f0/94a3b8?text=·'}
-            alt={display.name}
-          />
-          {images.length > 1 && (
-            <>
-              <button
-                type="button"
-                className={s.navPrev}
-                onClick={() => setSelectedImageIndex((i) => (i === 0 ? images.length - 1 : i - 1))}
-                aria-label={t('product.prevImage')}
-              >
-                ‹
-              </button>
-              <button
-                type="button"
-                className={s.navNext}
-                onClick={() => setSelectedImageIndex((i) => (i === images.length - 1 ? 0 : i + 1))}
-                aria-label={t('product.nextImage')}
-              >
-                ›
-              </button>
-            </>
-          )}
-          {images.length > 1 && (
-            <div className={s.thumbnails}>
-              {images.map((url, idx) => (
-                <button
-                  key={`${url}-${idx}`}
-                  type="button"
-                  className={`${s.thumb} ${selectedImageIndex === idx ? s.thumbActive : ''}`}
-                  onClick={() => setSelectedImageIndex(idx)}
-                  aria-label={t('product.imageNumber', { current: idx + 1, total: images.length })}
-                >
-                  <img src={url} alt="" />
-                </button>
-              ))}
-            </div>
-          )}
-        </div>
-        <div className={s.details}>
-          <span className={s.category}>{t(`category.${categoryKey(product.category)}`, { defaultValue: product.category || 'Fragrance' })}</span>
-          {product.audience && (
-            <span className={s.audience}>
-              {product.audience === 'men' ? t('product.forHim') : product.audience === 'women' ? t('product.forHer') : t('product.unisex')}
-            </span>
-          )}
-          <h1 className={s.title}>{display.name}</h1>
-          {product.rating > 0 && (
-            <p className={s.storeRating}>
-              {t('product.ratingLabel')}: <StarRatingDisplay value={product.rating} />
-            </p>
-          )}
-          <p className={s.price}>
-            {product.onSale && product.discountPercent > 0 && product.price != null ? (
-              <>
-                <span className={s.originalPrice}>{formatPrice(product.price)}</span>
-                <span className={s.salePrice}>{formatPrice(product.price * (1 - (product.discountPercent || 0) / 100))}</span>
-              </>
-            ) : (
-              formatPrice(product.price)
-            )}
-          </p>
-          <p className={s.desc}>
-            {display.description || t('product.defaultDescription')}
-          </p>
-
-          {/* Scent Profile — MYOP Inspired */}
-          {Array.isArray(product.notes) && product.notes.length > 0 && (
-            <div className={s.scentProfile}>
-              <h3 className={s.subHeading}>{t('product.scentProfile')}</h3>
-              <div className={s.notesGrid}>
-                {product.notes.length >= 3 ? (
-                  <>
-                    <div className={s.noteSection}>
-                      <span className={s.noteLabel}>{t('product.topNote')}</span>
-                      <p className={s.noteValue}>{product.notes[0]}</p>
-                    </div>
-                    <div className={s.noteSection}>
-                      <span className={s.noteLabel}>{t('product.heartNote')}</span>
-                      <p className={s.noteValue}>{product.notes[1]}</p>
-                    </div>
-                    <div className={s.noteSection}>
-                      <span className={s.noteLabel}>{t('product.baseNote')}</span>
-                      <p className={s.noteValue}>{product.notes[2]}</p>
-                    </div>
-                  </>
-                ) : (
-                  <div className={s.noteSection}>
-                    <p className={s.noteValue}>{product.notes.join(', ')}</p>
-                  </div>
+    <div>
+      <SeasonalBanner page="shop" />
+      <div className={s.page}>
+        <BackButton to="/shop" label={t('nav.shop')} />
+        <div className={s.grid}>
+          <div className={s.imageWrap}>
+            {(product.newArrival || product.onSale || product.stock <= 0) && (
+              <div className={s.badges}>
+                {product.newArrival && <span className={product.classNameNew || s.badgeNew}>{t('product.new')}</span>}
+                {product.onSale && product.discountPercent > 0 && (
+                  <span className={s.badgeSale}>{t('product.percentOff', { percent: product.discountPercent })}</span>
                 )}
+                {product.stock <= 0 && <span className={s.badgeStock}>{t('product.outOfStock')}</span>}
               </div>
-            </div>
-          )}
-
-          {/* Personalization — MYOP Inspired */}
-          {user?.role === 'customer' && (
-            <div className={s.personalization}>
-              <h3 className={s.subHeading}>{t('product.personalize')}</h3>
-              <p className={s.personalizationDesc}>{t('product.engravingDesc') || 'Add a custom engraving to your bottle'}</p>
-              <input
-                type="text"
-                placeholder={t('product.engravingPlaceholder') || 'Enter text to engrave...'}
-                className={s.engravingInput}
-                maxLength={20}
-              />
-            </div>
-          )}
-
-          <div className={s.actions}>
-            {user?.role === 'customer' ? (
+            )}
+            <img
+              src={mainImage || 'https://placehold.co/600x750/e2e8f0/94a3b8?text=·'}
+              alt={display.name}
+            />
+            {images.length > 1 && (
               <>
-                <div className={s.qtyWrap}>
-                  <button
-                    onClick={() => setQty((q) => Math.max(1, q - 1))}
-                    className={s.qtyBtn}
-                  >
-                    −
-                  </button>
-                  <span className={s.qty}>{qty}</span>
-                  <button
-                    onClick={() => setQty((q) => Math.min(product.stock ?? 0, q + 1))}
-                    className={s.qtyBtn}
-                  >
-                    +
-                  </button>
-                </div>
                 <button
-                  onClick={handleAdd}
-                  disabled={(product.stock ?? 0) < 1}
-                  className={`${s.addBtn} ${(product.stock ?? 0) < 1 ? s.disabled : ''}`}
+                  type="button"
+                  className={s.navPrev}
+                  onClick={() => setSelectedImageIndex((i) => (i === 0 ? images.length - 1 : i - 1))}
+                  aria-label={t('product.prevImage')}
                 >
-                  {t('product.addToCart')}
+                  ‹
                 </button>
-                {inCart && (
-                  <Link to="/cart" className={s.viewCart}>
-                    {t('product.viewCart')} →
-                  </Link>
-                )}
+                <button
+                  type="button"
+                  className={s.navNext}
+                  onClick={() => setSelectedImageIndex((i) => (i === images.length - 1 ? 0 : i + 1))}
+                  aria-label={t('product.nextImage')}
+                >
+                  ›
+                </button>
               </>
-            ) : !user ? (
-              <Link to="/login" className={s.addBtn}>
-                {t('product.loginToAdd')}
-              </Link>
-            ) : null}
-          </div>
-          {(product.stock ?? 0) < 5 && (product.stock ?? 0) > 0 && (
-            <p className={s.stock}>{t('product.onlyLeft', { count: product.stock })}</p>
-          )}
-        </div>
-      </div>
-
-      <section id="reviews" className={s.reviewsSection} aria-labelledby="reviews-heading">
-        <h2 id="reviews-heading" className={s.reviewsTitle}>{t('product.reviews')}</h2>
-        {reviewsError ? (
-          <p className={s.reviewsMuted}>{t('product.noReviews')}</p>
-        ) : (
-          <>
-            <div className={s.reviewsSummary}>
-              <div className={s.starsWrap} aria-label={t('product.yourRating')}>
-                {[1, 2, 3, 4, 5].map((star) => (
-                  <span key={star} className={`${s.starIcon} ${reviews.average >= star ? s.starIconFilled : ''}`}>★</span>
+            )}
+            {images.length > 1 && (
+              <div className={s.thumbnails}>
+                {images.map((url, idx) => (
+                  <button
+                    key={`${url}-${idx}`}
+                    type="button"
+                    className={`${s.thumb} ${selectedImageIndex === idx ? s.thumbActive : ''}`}
+                    onClick={() => setSelectedImageIndex(idx)}
+                    aria-label={t('product.imageNumber', { current: idx + 1, total: images.length })}
+                  >
+                    <img src={url} alt="" />
+                  </button>
                 ))}
               </div>
-              <span className={s.reviewsAverage}>{reviews.average > 0 ? reviews.average.toFixed(1) : '—'}</span>
-              <span className={s.reviewsCount}>
-                {reviews.total === 0 ? t('product.noReviews') : t('product.reviewsCount', { count: reviews.total })}
+            )}
+          </div>
+          <div className={s.details}>
+            <span className={s.category}>{t(`category.${categoryKey(product.category)}`, { defaultValue: product.category || 'Fragrance' })}</span>
+            {product.audience && (
+              <span className={s.audience}>
+                {product.audience === 'men' ? t('product.forHim') : product.audience === 'women' ? t('product.forHer') : t('product.unisex')}
               </span>
-            </div>
+            )}
+            <h1 className={s.title}>{display.name}</h1>
+            {product.rating > 0 && (
+              <p className={s.storeRating}>
+                {t('product.ratingLabel')}: <StarRatingDisplay value={product.rating} />
+              </p>
+            )}
+            <p className={s.price}>
+              {product.onSale && product.discountPercent > 0 && product.price != null ? (
+                <>
+                  <span className={s.originalPrice}>{formatPrice(product.price)}</span>
+                  <span className={s.salePrice}>{formatPrice(product.price * (1 - (product.discountPercent || 0) / 100))}</span>
+                </>
+              ) : (
+                formatPrice(product.price)
+              )}
+            </p>
+            <p className={s.desc}>
+              {display.description || t('product.defaultDescription')}
+            </p>
 
-            {reviewError && <p className={s.reviewError} role="alert">{reviewError}</p>}
-            {reviews.canReview && !reviewSubmitted && user?.role === 'customer' && (
-              <form onSubmit={handleSubmitReview} className={s.reviewForm}>
-                <p className={s.reviewFormLabel}>{t('product.yourRating')}</p>
-                <div className={s.starsInput}>
-                  {[1, 2, 3, 4, 5].map((star) => (
+            {/* Scent Profile — MYOP Inspired */}
+            {(product.topNote || product.heartNote || product.baseNote || (Array.isArray(product.notes) && product.notes.length > 0)) && (
+              <div className={s.scentProfile}>
+                <h3 className={s.subHeading}>{t('product.scentProfile')}</h3>
+                <div className={s.notesGrid}>
+                  {product.topNote && (
+                    <div className={s.noteSection}>
+                      <span className={s.noteLabel}>{t('product.topNote')}</span>
+                      <p className={s.noteValue}>{product.topNote}</p>
+                    </div>
+                  )}
+                  {product.heartNote && (
+                    <div className={s.noteSection}>
+                      <span className={s.noteLabel}>{t('product.heartNote')}</span>
+                      <p className={s.noteValue}>{product.heartNote}</p>
+                    </div>
+                  )}
+                  {product.baseNote && (
+                    <div className={s.noteSection}>
+                      <span className={s.noteLabel}>{t('product.baseNote')}</span>
+                      <p className={s.noteValue}>{product.baseNote}</p>
+                    </div>
+                  )}
+                  {(!product.topNote && !product.heartNote && !product.baseNote && Array.isArray(product.notes) && product.notes.length > 0) && (
+                    <div className={s.noteSection}>
+                      <p className={s.noteValue}>{product.notes.join(', ')}</p>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* Personalization — MYOP Inspired */}
+            {user?.role === 'customer' && personalizationEnabled && (
+              <div className={s.personalization}>
+                <h3 className={s.subHeading}>{t('product.personalize')}</h3>
+                <p className={s.personalizationDesc}>{t('product.engravingDesc') || 'Add a custom engraving to your bottle'}</p>
+                <input
+                  type="text"
+                  placeholder={t('product.engravingPlaceholder') || 'Enter text to engrave...'}
+                  className={s.engravingInput}
+                  maxLength={20}
+                />
+              </div>
+            )}
+
+            <div className={s.actions}>
+              {user?.role === 'customer' ? (
+                <>
+                  <div className={s.qtyWrap}>
                     <button
-                      key={star}
-                      type="button"
-                      className={`${s.starBtn} ${reviewRating >= star ? s.starBtnFilled : ''}`}
-                      onClick={() => setReviewRating(star)}
-                      onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') e.preventDefault(); }}
-                      aria-label={`${star} ${star === 1 ? 'star' : 'stars'}`}
-                      aria-pressed={reviewRating >= star}
+                      onClick={() => setQty((q) => Math.max(1, q - 1))}
+                      className={s.qtyBtn}
                     >
-                      {reviewRating >= star ? '★' : '★'}
+                      −
                     </button>
+                    <span className={s.qty}>{qty}</span>
+                    <button
+                      onClick={() => setQty((q) => Math.min(product.stock ?? 0, q + 1))}
+                      className={s.qtyBtn}
+                    >
+                      +
+                    </button>
+                  </div>
+                  <button
+                    onClick={handleAdd}
+                    disabled={(product.stock ?? 0) < 1}
+                    className={`${s.addBtn} ${(product.stock ?? 0) < 1 ? s.disabled : ''}`}
+                  >
+                    {t('product.addToCart')}
+                  </button>
+                  {inCart && (
+                    <Link to="/cart" className={s.viewCart}>
+                      {t('product.viewCart')} →
+                    </Link>
+                  )}
+                </>
+              ) : !user ? (
+                <Link to="/login" className={s.addBtn}>
+                  {t('product.loginToAdd')}
+                </Link>
+              ) : null}
+            </div>
+            {(product.stock ?? 0) < 5 && (product.stock ?? 0) > 0 && (
+              <p className={s.stock}>{t('product.onlyLeft', { count: product.stock })}</p>
+            )}
+          </div>
+        </div>
+
+        <section id="reviews" className={s.reviewsSection} aria-labelledby="reviews-heading">
+          <h2 id="reviews-heading" className={s.reviewsTitle}>{t('product.reviews')}</h2>
+          {reviewsError ? (
+            <p className={s.reviewsMuted}>{t('product.noReviews')}</p>
+          ) : (
+            <>
+              <div className={s.reviewsSummary}>
+                <div className={s.starsWrap} aria-label={t('product.yourRating')}>
+                  {[1, 2, 3, 4, 5].map((star) => (
+                    <span key={star} className={`${s.starIcon} ${reviews.average >= star ? s.starIconFilled : ''}`}>★</span>
                   ))}
                 </div>
-                <label className={s.reviewFormLabel} htmlFor="review-comment">{t('product.yourComment')}</label>
-                <textarea
-                  id="review-comment"
-                  className={s.reviewTextarea}
-                  value={reviewComment}
-                  onChange={(e) => setReviewComment(e.target.value)}
-                  rows={3}
-                />
-                <button type="submit" className={s.reviewSubmitBtn} disabled={reviewSubmitting || reviewRating < 1}>
-                  {reviewSubmitting ? '...' : t('product.submitReview')}
-                </button>
-              </form>
-            )}
-            {reviews.canReview === false && user?.role === 'customer' && (
-              <p className={s.reviewsMuted}>{t('product.onlyDeliveredReview')}</p>
-            )}
+                <span className={s.reviewsAverage}>{reviews.average > 0 ? reviews.average.toFixed(1) : '—'}</span>
+                <span className={s.reviewsCount}>
+                  {reviews.total === 0 ? t('product.noReviews') : t('product.reviewsCount', { count: reviews.total })}
+                </span>
+              </div>
 
-            <ul className={s.reviewList}>
-              {reviews.items.map((r) => (
-                <li key={r.id} className={s.reviewItem}>
-                  <div className={s.reviewItemHeader}>
-                    <div className={s.starsWrap} aria-hidden>
-                      {[1, 2, 3, 4, 5].map((starVal) => (
-                        <span key={starVal} className={`${s.starIcon} ${r.rating >= starVal ? s.starIconFilled : ''}`}>★</span>
-                      ))}
-                    </div>
-                    {r.verified && <span className={s.verifiedBadge}>{t('product.verifiedPurchase')}</span>}
-                    <span className={s.reviewDate}>{new Date(r.createdAt).toLocaleDateString()}</span>
-                    {canDeleteReviews && (
+              {reviewError && <p className={s.reviewError} role="alert">{reviewError}</p>}
+              {reviews.canReview && !reviewSubmitted && user?.role === 'customer' && (
+                <form onSubmit={handleSubmitReview} className={s.reviewForm}>
+                  <p className={s.reviewFormLabel}>{t('product.yourRating')}</p>
+                  <div className={s.starsInput}>
+                    {[1, 2, 3, 4, 5].map((star) => (
                       <button
+                        key={star}
                         type="button"
-                        onClick={() => handleDeleteReview(r.id)}
-                        className={s.reviewDeleteBtn}
-                        aria-label={t('product.removeReview')}
+                        className={`${s.starBtn} ${reviewRating >= star ? s.starBtnFilled : ''}`}
+                        onClick={() => setReviewRating(star)}
+                        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') e.preventDefault(); }}
+                        aria-label={`${star} ${star === 1 ? 'star' : 'stars'}`}
+                        aria-pressed={reviewRating >= star}
                       >
-                        ×
+                        {reviewRating >= star ? '★' : '★'}
                       </button>
-                    )}
+                    ))}
                   </div>
-                  {r.comment && <p className={s.reviewComment}>{r.comment}</p>}
-                </li>
-              ))}
-            </ul>
-          </>
-        )}
-      </section>
+                  <label className={s.reviewFormLabel} htmlFor="review-comment">{t('product.yourComment')}</label>
+                  <textarea
+                    id="review-comment"
+                    className={s.reviewTextarea}
+                    value={reviewComment}
+                    onChange={(e) => setReviewComment(e.target.value)}
+                    rows={3}
+                  />
+                  <button type="submit" className={s.reviewSubmitBtn} disabled={reviewSubmitting || reviewRating < 1}>
+                    {reviewSubmitting ? '...' : t('product.submitReview')}
+                  </button>
+                </form>
+              )}
+              {reviews.canReview === false && user?.role === 'customer' && (
+                <p className={s.reviewsMuted}>{t('product.onlyDeliveredReview')}</p>
+              )}
 
-      <Toast
-        message={t('product.addedToCart')}
-        actionLabel={t('product.viewCart')}
-        actionTo="/cart"
-        visible={showAddedToast}
-        onClose={() => setShowAddedToast(false)}
-        autoHideMs={5000}
-      />
-      <Toast
-        message={t('product.submitReviewSuccess')}
-        visible={reviewSuccessToast}
-        onClose={() => setReviewSuccessToast(false)}
-        autoHideMs={4000}
-      />
+              <ul className={s.reviewList}>
+                {reviews.items.map((r) => (
+                  <li key={r.id} className={s.reviewItem}>
+                    <div className={s.reviewItemHeader}>
+                      <div className={s.starsWrap} aria-hidden>
+                        {[1, 2, 3, 4, 5].map((starVal) => (
+                          <span key={starVal} className={`${s.starIcon} ${r.rating >= starVal ? s.starIconFilled : ''}`}>★</span>
+                        ))}
+                      </div>
+                      {r.verified && <span className={s.verifiedBadge}>{t('product.verifiedPurchase')}</span>}
+                      <span className={s.reviewDate}>{new Date(r.createdAt).toLocaleDateString()}</span>
+                      {canDeleteReviews && (
+                        <button
+                          type="button"
+                          onClick={() => handleDeleteReview(r.id)}
+                          className={s.reviewDeleteBtn}
+                          aria-label={t('product.removeReview')}
+                        >
+                          ×
+                        </button>
+                      )}
+                    </div>
+                    {r.comment && <p className={s.reviewComment}>{r.comment}</p>}
+                  </li>
+                ))}
+              </ul>
+            </>
+          )}
+        </section>
+
+        <Toast
+          message={t('product.addedToCart')}
+          actionLabel={t('product.viewCart')}
+          actionTo="/cart"
+          visible={showAddedToast}
+          onClose={() => setShowAddedToast(false)}
+          autoHideMs={5000}
+        />
+        <Toast
+          message={t('product.submitReviewSuccess')}
+          visible={reviewSuccessToast}
+          onClose={() => setReviewSuccessToast(false)}
+          autoHideMs={4000}
+        />
+      </div>
     </div>
   )
 }

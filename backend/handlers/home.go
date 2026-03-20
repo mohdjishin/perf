@@ -142,6 +142,17 @@ func getFeaturesPayload(c *gin.Context) gin.H {
 		SocialTwitterEnabled        *bool     `bson:"social_twitter_enabled,omitempty"`
 		SocialYoutube               string    `bson:"social_youtube"`
 		SocialYoutubeEnabled        *bool     `bson:"social_youtube_enabled,omitempty"`
+		CategorySectionTitle        string    `bson:"category_section_title"`
+		CategorySectionLabel        string    `bson:"category_section_label"`
+		HeroSubtitleEn              string    `bson:"hero_subtitle_en"`
+		HeroSubtitleAr              string    `bson:"hero_subtitle_ar"`
+		HeroTitleEn                 string    `bson:"hero_title_en"`
+		HeroTitleAr                 string    `bson:"hero_title_ar"`
+		HeroDescriptionEn           string    `bson:"hero_description_en"`
+		HeroDescriptionAr           string    `bson:"hero_description_ar"`
+		HeroButtonTextEn            string    `bson:"hero_button_text_en"`
+		HeroButtonTextAr            string    `bson:"hero_button_text_ar"`
+		HeroImages                  []string  `bson:"hero_images"`
 	}
 	defaultWhy := []whyItem{
 		{Title: "Authentic Oud", Description: "Premium agarwood sourced from the finest regions"},
@@ -166,6 +177,17 @@ func getFeaturesPayload(c *gin.Context) gin.H {
 			"social_instagram": "", "social_instagram_enabled": true,
 			"social_twitter": "", "social_twitter_enabled": true,
 			"social_youtube": "", "social_youtube_enabled": true,
+			"category_section_title": "Shop by Collection",
+			"category_section_label": "Discover Your Scent",
+			"hero_subtitle_en":       "Signature Egyptian Collection",
+			"hero_subtitle_ar":       "مجموعة توقيع مصرية",
+			"hero_title_en":          "BLUE MIST PERFUMES",
+			"hero_title_ar":          "بلو ميست للعطور",
+			"hero_description_en":    "Simply put, our perfume is the best. Elevate your presence with our exquisite collection of perfumes and bakhoor.",
+			"hero_description_ar":    "بعبارة بسيطة، عطرنا هو الأفضل. ارفع حضورك مع مجموعتنا الراقية من العطور والبخور.",
+			"hero_button_text_en":    "Explore Collection",
+			"hero_button_text_ar":    "استكشف المجموعة",
+			"hero_images":            []string{"/images/premium-hero.png"},
 		}
 	}
 	if doc.WhySectionItems == nil {
@@ -213,6 +235,17 @@ func getFeaturesPayload(c *gin.Context) gin.H {
 		"social_twitter_enabled":          socialPlatformEnabled(doc.SocialTwitterEnabled),
 		"social_youtube":                  doc.SocialYoutube,
 		"social_youtube_enabled":          socialPlatformEnabled(doc.SocialYoutubeEnabled),
+		"category_section_title":          doc.CategorySectionTitle,
+		"category_section_label":          doc.CategorySectionLabel,
+		"hero_subtitle_en":                doc.HeroSubtitleEn,
+		"hero_subtitle_ar":                doc.HeroSubtitleAr,
+		"hero_title_en":                   doc.HeroTitleEn,
+		"hero_title_ar":                   doc.HeroTitleAr,
+		"hero_description_en":             doc.HeroDescriptionEn,
+		"hero_description_ar":             doc.HeroDescriptionAr,
+		"hero_button_text_en":             doc.HeroButtonTextEn,
+		"hero_button_text_ar":             doc.HeroButtonTextAr,
+		"hero_images":                     doc.HeroImages,
 	}
 }
 

@@ -46,6 +46,9 @@ export default function AdminProducts() {
     stock: '',
     featured: false,
     notes: '',
+    topNote: '',
+    heartNote: '',
+    baseNote: '',
     seasonalFlag: '',
     rating: 0,
   })
@@ -97,7 +100,7 @@ export default function AdminProducts() {
     const urls = [...(form.imageUrls || [])]
     const next = index + (direction === 'up' ? -1 : 1)
     if (next < 0 || next >= urls.length) return
-    ;[urls[index], urls[next]] = [urls[next], urls[index]]
+      ;[urls[index], urls[next]] = [urls[next], urls[index]]
     setForm((f) => ({ ...f, imageUrls: urls, imageUrl: urls[0] || '' }))
   }
   const removeImage = (index) => {
@@ -185,6 +188,9 @@ export default function AdminProducts() {
       stock: '',
       featured: false,
       notes: '',
+      topNote: '',
+      heartNote: '',
+      baseNote: '',
       seasonalFlag: '',
       rating: 0,
     })
@@ -202,8 +208,8 @@ export default function AdminProducts() {
         const id = product?.id ?? product?._id ?? listId
         setEditing(id)
         const urls = Array.isArray(product.imageUrls) && product.imageUrls.length > 0
-            ? product.imageUrls
-            : product.imageUrl ? [product.imageUrl] : []
+          ? product.imageUrls
+          : product.imageUrl ? [product.imageUrl] : []
         setForm({
           name: product.name,
           nameAr: product.nameAr || '',
@@ -220,6 +226,9 @@ export default function AdminProducts() {
           stock: product.stock,
           featured: product.featured === true,
           notes: Array.isArray(product.notes) ? product.notes.join(', ') : (product.notes || ''),
+          topNote: product.topNote || '',
+          heartNote: product.heartNote || '',
+          baseNote: product.baseNote || '',
           seasonalFlag: product.seasonalFlag || '',
           rating: product.rating != null ? product.rating : 0,
         })
@@ -277,6 +286,9 @@ export default function AdminProducts() {
             stock: parseInt(form.stock) || 0,
             featured: form.featured === true,
             notes: form.notes.trim() ? form.notes.split(',').map((s) => s.trim()).filter(Boolean) : [],
+            topNote: form.topNote?.trim(),
+            heartNote: form.heartNote?.trim(),
+            baseNote: form.baseNote?.trim(),
             seasonalFlag: form.seasonalFlag?.trim() || undefined,
             rating: form.rating >= 1 && form.rating <= 5 ? form.rating : 0,
           }),
@@ -306,6 +318,9 @@ export default function AdminProducts() {
             stock: parseInt(form.stock) || 0,
             featured: form.featured === true,
             notes: form.notes.trim() ? form.notes.split(',').map((s) => s.trim()).filter(Boolean) : [],
+            topNote: form.topNote?.trim(),
+            heartNote: form.heartNote?.trim(),
+            baseNote: form.baseNote?.trim(),
             seasonalFlag: form.seasonalFlag?.trim() || undefined,
             rating: form.rating >= 0 && form.rating <= 5 ? form.rating : undefined,
           }),
@@ -436,297 +451,320 @@ export default function AdminProducts() {
                   <p className={s.loadingText}>{t('adminProducts.loadingProduct')}</p>
                 ) : (
                   <>
-                <div className={s.modalFieldGroup}>
-                  <label className={s.label} htmlFor="product-name">{t('adminProducts.productNameEnglish')}</label>
-                  <input
-                    id="product-name"
-                    placeholder={t('adminProducts.productNamePlaceholder')}
-                    value={form.name}
-                    onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
-                    required
-                    className={s.input}
-                  />
-                </div>
-                <div className={s.modalFieldGroup}>
-                  <label className={s.label} htmlFor="product-description">{t('adminProducts.descriptionEnglish')}</label>
-                  <textarea
-                    id="product-description"
-                    placeholder={t('adminProducts.descriptionPlaceholder')}
-                    value={form.description}
-                    onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))}
-                    required
-                    className={s.input}
-                    rows={3}
-                  />
-                </div>
-                {i18nEnabled && (
-                  <>
                     <div className={s.modalFieldGroup}>
-                      <label className={s.label} htmlFor="product-name-ar">{t('adminProducts.nameArabic')}</label>
+                      <label className={s.label} htmlFor="product-name">{t('adminProducts.productNameEnglish')}</label>
                       <input
-                        id="product-name-ar"
-                        placeholder={t('adminProducts.nameArabicPlaceholder')}
-                        value={form.nameAr}
-                        onChange={(e) => setForm((f) => ({ ...f, nameAr: e.target.value }))}
+                        id="product-name"
+                        placeholder={t('adminProducts.productNamePlaceholder')}
+                        value={form.name}
+                        onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
+                        required
                         className={s.input}
-                        dir="rtl"
                       />
                     </div>
                     <div className={s.modalFieldGroup}>
-                      <label className={s.label} htmlFor="product-description-ar">{t('adminProducts.descriptionArabic')}</label>
+                      <label className={s.label} htmlFor="product-description">{t('adminProducts.descriptionEnglish')}</label>
                       <textarea
-                        id="product-description-ar"
-                        placeholder={t('adminProducts.descriptionArabicPlaceholder')}
-                        value={form.descriptionAr}
-                        onChange={(e) => setForm((f) => ({ ...f, descriptionAr: e.target.value }))}
+                        id="product-description"
+                        placeholder={t('adminProducts.descriptionPlaceholder')}
+                        value={form.description}
+                        onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))}
+                        required
                         className={s.input}
                         rows={3}
-                        dir="rtl"
                       />
                     </div>
-                  </>
-                )}
-                <div className={s.modalFormRow}>
-                  <div className={s.modalFieldGroup}>
-                    <label className={s.label} htmlFor="product-price">{t('adminProducts.price')}</label>
-                    <input
-                      id="product-price"
-                      type="number"
-                      step="0.01"
-                      min="0"
-                      placeholder="0.00"
-                      value={form.price}
-                      onChange={(e) => setForm((f) => ({ ...f, price: e.target.value }))}
-                      required
-                      className={s.input}
-                    />
-                  </div>
-                  <div className={s.modalFieldGroup}>
-                    <label className={s.label} htmlFor="product-stock">{t('adminProducts.stock')}</label>
-                    <input
-                      id="product-stock"
-                      type="number"
-                      min="0"
-                      placeholder="0"
-                      value={form.stock}
-                      onChange={(e) => setForm((f) => ({ ...f, stock: e.target.value }))}
-                      className={s.input}
-                    />
-                  </div>
-                </div>
-                <div className={s.imageSection}>
-                  <label className={s.label}>{t('adminProducts.image')}</label>
-                  <div className={s.imageOptions}>
-                    <div className={s.uploadWrap}>
-                      <input
-                        type="file"
-                        accept="image/jpeg,image/png,image/gif,image/webp"
-                        multiple
-                        onChange={handleImageUpload}
-                        disabled={uploading}
-                        className={s.fileInput}
-                        id="product-image-upload"
-                      />
-                      <label htmlFor="product-image-upload" className={`${s.uploadBtn} ${uploading ? s.uploading : ''}`}>
-                        {uploading ? t('adminProducts.uploading') : t('adminProducts.upload')}
-                      </label>
+                    {i18nEnabled && (
+                      <>
+                        <div className={s.modalFieldGroup}>
+                          <label className={s.label} htmlFor="product-name-ar">{t('adminProducts.nameArabic')}</label>
+                          <input
+                            id="product-name-ar"
+                            placeholder={t('adminProducts.nameArabicPlaceholder')}
+                            value={form.nameAr}
+                            onChange={(e) => setForm((f) => ({ ...f, nameAr: e.target.value }))}
+                            className={s.input}
+                            dir="rtl"
+                          />
+                        </div>
+                        <div className={s.modalFieldGroup}>
+                          <label className={s.label} htmlFor="product-description-ar">{t('adminProducts.descriptionArabic')}</label>
+                          <textarea
+                            id="product-description-ar"
+                            placeholder={t('adminProducts.descriptionArabicPlaceholder')}
+                            value={form.descriptionAr}
+                            onChange={(e) => setForm((f) => ({ ...f, descriptionAr: e.target.value }))}
+                            className={s.input}
+                            rows={3}
+                            dir="rtl"
+                          />
+                        </div>
+                      </>
+                    )}
+                    <div className={s.modalFormRow}>
+                      <div className={s.modalFieldGroup}>
+                        <label className={s.label} htmlFor="product-price">{t('adminProducts.price')}</label>
+                        <input
+                          id="product-price"
+                          type="number"
+                          step="0.01"
+                          min="0"
+                          placeholder="0.00"
+                          value={form.price}
+                          onChange={(e) => setForm((f) => ({ ...f, price: e.target.value }))}
+                          required
+                          className={s.input}
+                        />
+                      </div>
+                      <div className={s.modalFieldGroup}>
+                        <label className={s.label} htmlFor="product-stock">{t('adminProducts.stock')}</label>
+                        <input
+                          id="product-stock"
+                          type="number"
+                          min="0"
+                          placeholder="0"
+                          value={form.stock}
+                          onChange={(e) => setForm((f) => ({ ...f, stock: e.target.value }))}
+                          className={s.input}
+                        />
+                      </div>
                     </div>
-                    <span className={s.or}>{t('adminProducts.orUrl')}</span>
-                    <input
-                      type="url"
-                      placeholder={t('adminProducts.imageUrlPlaceholder')}
-                      value={imageUrlInput}
-                      onChange={(e) => setImageUrlInput(e.target.value)}
-                      onKeyDown={(e) => {
-                        if (e.key === 'Enter') {
-                          e.preventDefault()
-                          addImageUrl(imageUrlInput)
-                        }
-                      }}
-                      className={s.input}
-                      style={{ marginBottom: 0, flex: 1, minWidth: 0 }}
-                      aria-label={t('adminProducts.imageUrlAria')}
-                    />
-                    <button
-                      type="button"
-                      onClick={() => addImageUrl(imageUrlInput)}
-                      className={s.insertUrlBtn}
-                      disabled={!imageUrlInput?.trim()}
-                    >
-                      {t('adminProducts.insertUrl')}
-                    </button>
-                  </div>
-                  {(form.imageUrls?.length > 0) ? (
-                    <div className={s.imageThumbnails}>
-                      {(form.imageUrls || []).map((url, idx) => (
-                        <div
-                          key={`${url}-${idx}`}
-                          className={`${s.thumbWrap} ${draggedIndex === idx ? s.thumbDragging : ''} ${dragOverIndex === idx ? s.thumbDragOver : ''}`}
-                          draggable
-                          onDragStart={(e) => handleDragStart(e, idx)}
-                          onDragOver={(e) => handleDragOver(e, idx)}
-                          onDragLeave={handleDragLeave}
-                          onDragEnd={handleDragEnd}
-                          onDrop={(e) => handleDrop(e, idx)}
+                    <div className={s.imageSection}>
+                      <label className={s.label}>{t('adminProducts.image')}</label>
+                      <div className={s.imageOptions}>
+                        <div className={s.uploadWrap}>
+                          <input
+                            type="file"
+                            accept="image/jpeg,image/png,image/gif,image/webp"
+                            multiple
+                            onChange={handleImageUpload}
+                            disabled={uploading}
+                            className={s.fileInput}
+                            id="product-image-upload"
+                          />
+                          <label htmlFor="product-image-upload" className={`${s.uploadBtn} ${uploading ? s.uploading : ''}`}>
+                            {uploading ? t('adminProducts.uploading') : t('adminProducts.upload')}
+                          </label>
+                        </div>
+                        <span className={s.or}>{t('adminProducts.orUrl')}</span>
+                        <input
+                          type="url"
+                          placeholder={t('adminProducts.imageUrlPlaceholder')}
+                          value={imageUrlInput}
+                          onChange={(e) => setImageUrlInput(e.target.value)}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter') {
+                              e.preventDefault()
+                              addImageUrl(imageUrlInput)
+                            }
+                          }}
+                          className={s.input}
+                          style={{ marginBottom: 0, flex: 1, minWidth: 0 }}
+                          aria-label={t('adminProducts.imageUrlAria')}
+                        />
+                        <button
+                          type="button"
+                          onClick={() => addImageUrl(imageUrlInput)}
+                          className={s.insertUrlBtn}
+                          disabled={!imageUrlInput?.trim()}
                         >
-                          <span className={s.thumbGrip} aria-hidden>⋮⋮</span>
+                          {t('adminProducts.insertUrl')}
+                        </button>
+                      </div>
+                      {(form.imageUrls?.length > 0) ? (
+                        <div className={s.imageThumbnails}>
+                          {(form.imageUrls || []).map((url, idx) => (
+                            <div
+                              key={`${url}-${idx}`}
+                              className={`${s.thumbWrap} ${draggedIndex === idx ? s.thumbDragging : ''} ${dragOverIndex === idx ? s.thumbDragOver : ''}`}
+                              draggable
+                              onDragStart={(e) => handleDragStart(e, idx)}
+                              onDragOver={(e) => handleDragOver(e, idx)}
+                              onDragLeave={handleDragLeave}
+                              onDragEnd={handleDragEnd}
+                              onDrop={(e) => handleDrop(e, idx)}
+                            >
+                              <span className={s.thumbGrip} aria-hidden>⋮⋮</span>
+                              <img
+                                src={url}
+                                alt={t('adminProducts.preview')}
+                                onError={(e) => { e.target.style.display = 'none' }}
+                                className={s.thumbImg}
+                                draggable={false}
+                              />
+                              <div className={s.thumbActions}>
+                                <button
+                                  type="button"
+                                  onClick={() => removeImage(idx)}
+                                  className={s.thumbRemove}
+                                  aria-label={t('common.delete')}
+                                >
+                                  ×
+                                </button>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      ) : form.imageUrl ? (
+                        <div className={s.imagePreview}>
                           <img
-                            src={url}
+                            src={form.imageUrl}
                             alt={t('adminProducts.preview')}
                             onError={(e) => { e.target.style.display = 'none' }}
-                            className={s.thumbImg}
-                            draggable={false}
                           />
-                          <div className={s.thumbActions}>
-                            <button
-                              type="button"
-                              onClick={() => removeImage(idx)}
-                              className={s.thumbRemove}
-                              aria-label={t('common.delete')}
-                            >
-                              ×
-                            </button>
-                          </div>
                         </div>
-                      ))}
+                      ) : null}
                     </div>
-                  ) : form.imageUrl ? (
-                    <div className={s.imagePreview}>
-                      <img
-                        src={form.imageUrl}
-                        alt={t('adminProducts.preview')}
-                        onError={(e) => { e.target.style.display = 'none' }}
+                    <div className={s.categorySection}>
+                      <label className={s.label} htmlFor="product-category">{t('adminProducts.category')}</label>
+                      <div className={s.categoryRow}>
+                        <select
+                          id="product-category"
+                          value={form.category}
+                          onChange={(e) => setForm((f) => ({ ...f, category: e.target.value }))}
+                          className={s.input}
+                          style={{ marginBottom: 0 }}
+                        >
+                          <option value="">{t('adminProducts.selectCategory')}</option>
+                          {uniqueCategories.map((c) => (
+                            <option key={c} value={c}>{c}</option>
+                          ))}
+                        </select>
+                        <span className={s.or}>{t('adminProducts.orNew')}</span>
+                        <input
+                          placeholder={t('adminProducts.newCategoryPlaceholder')}
+                          value={newCategory}
+                          onChange={(e) => setNewCategory(e.target.value)}
+                          className={s.input}
+                          style={{ marginBottom: 0, flex: 1 }}
+                          aria-label={t('adminProducts.newCategoryAria')}
+                        />
+                        <button
+                          type="button"
+                          onClick={handleCreateCategory}
+                          disabled={!newCategory.trim()}
+                          className={s.btn}
+                        >
+                          {t('adminProducts.add')}
+                        </button>
+                      </div>
+                      <Link to="/admin/categories" className={s.categoryLink}>{t('adminProducts.manageCategories')}</Link>
+                    </div>
+                    <div className={s.modalFieldGroup}>
+                      <label className={s.label} htmlFor="product-audience">{t('adminProducts.audience')}</label>
+                      <select
+                        id="product-audience"
+                        value={form.audience}
+                        onChange={(e) => setForm((f) => ({ ...f, audience: e.target.value }))}
+                        className={s.input}
+                      >
+                        <option value="">{t('adminProducts.any')}</option>
+                        <option value="men">{t('product.forHim')}</option>
+                        <option value="women">{t('product.forHer')}</option>
+                        <option value="unisex">{t('adminProducts.unisex')}</option>
+                      </select>
+                    </div>
+                    <div className={s.modalFieldGroup}>
+                      <label className={s.label} htmlFor="product-seasonal-flag">{t('adminProducts.seasonalFlag')}</label>
+                      <input
+                        id="product-seasonal-flag"
+                        type="text"
+                        placeholder={t('adminProducts.seasonalFlagPlaceholder')}
+                        value={form.seasonalFlag}
+                        onChange={(e) => setForm((f) => ({ ...f, seasonalFlag: e.target.value }))}
+                        className={s.input}
+                        aria-label={t('adminProducts.seasonalFlagAria')}
                       />
                     </div>
-                  ) : null}
-                </div>
-                <div className={s.categorySection}>
-                  <label className={s.label} htmlFor="product-category">{t('adminProducts.category')}</label>
-                  <div className={s.categoryRow}>
-                    <select
-                      id="product-category"
-                      value={form.category}
-                      onChange={(e) => setForm((f) => ({ ...f, category: e.target.value }))}
-                      className={s.input}
-                      style={{ marginBottom: 0 }}
-                    >
-                      <option value="">{t('adminProducts.selectCategory')}</option>
-                      {uniqueCategories.map((c) => (
-                        <option key={c} value={c}>{c}</option>
-                      ))}
-                    </select>
-                    <span className={s.or}>{t('adminProducts.orNew')}</span>
-                    <input
-                      placeholder={t('adminProducts.newCategoryPlaceholder')}
-                      value={newCategory}
-                      onChange={(e) => setNewCategory(e.target.value)}
-                      className={s.input}
-                      style={{ marginBottom: 0, flex: 1 }}
-                      aria-label={t('adminProducts.newCategoryAria')}
-                    />
-                    <button
-                      type="button"
-                      onClick={handleCreateCategory}
-                      disabled={!newCategory.trim()}
-                      className={s.btn}
-                    >
-                      {t('adminProducts.add')}
-                    </button>
-                  </div>
-                  <Link to="/admin/categories" className={s.categoryLink}>{t('adminProducts.manageCategories')}</Link>
-                </div>
-                <div className={s.modalFieldGroup}>
-                  <label className={s.label} htmlFor="product-audience">{t('adminProducts.audience')}</label>
-                  <select
-                    id="product-audience"
-                    value={form.audience}
-                    onChange={(e) => setForm((f) => ({ ...f, audience: e.target.value }))}
-                    className={s.input}
-                  >
-                    <option value="">{t('adminProducts.any')}</option>
-                    <option value="men">{t('product.forHim')}</option>
-                    <option value="women">{t('product.forHer')}</option>
-                    <option value="unisex">{t('adminProducts.unisex')}</option>
-                  </select>
-                </div>
-                <div className={s.modalFieldGroup}>
-                  <label className={s.label} htmlFor="product-seasonal-flag">{t('adminProducts.seasonalFlag')}</label>
-                  <input
-                    id="product-seasonal-flag"
-                    type="text"
-                    placeholder={t('adminProducts.seasonalFlagPlaceholder')}
-                    value={form.seasonalFlag}
-                    onChange={(e) => setForm((f) => ({ ...f, seasonalFlag: e.target.value }))}
-                    className={s.input}
-                    aria-label={t('adminProducts.seasonalFlagAria')}
-                  />
-                </div>
-                <div className={s.modalFieldGroup}>
-                  <label className={s.label} htmlFor="product-notes">{t('adminProducts.notes')}</label>
-                  <input
-                    id="product-notes"
-                    type="text"
-                    placeholder={t('adminProducts.notesPlaceholder')}
-                    value={form.notes}
-                    onChange={(e) => setForm((f) => ({ ...f, notes: e.target.value }))}
-                    className={s.input}
-                    aria-label={t('adminProducts.notesAria')}
-                  />
-                </div>
-                <div className={s.modalFormRow}>
-                  <div className={s.modalFieldGroup}>
-                    <label className={s.checkLabel}>
+                    <div className={s.modalFieldGroup}>
+                      <label className={s.label}>{t('adminProducts.scentProfile') || 'Scent Profile'}</label>
+                      <div className={s.scentNotesGrid}>
+                        <input
+                          placeholder={t('adminProducts.topNotePlaceholder')}
+                          value={form.topNote}
+                          onChange={(e) => setForm((f) => ({ ...f, topNote: e.target.value }))}
+                          className={s.input}
+                        />
+                        <input
+                          placeholder={t('adminProducts.heartNotePlaceholder')}
+                          value={form.heartNote}
+                          onChange={(e) => setForm((f) => ({ ...f, heartNote: e.target.value }))}
+                          className={s.input}
+                        />
+                        <input
+                          placeholder={t('adminProducts.baseNotePlaceholder')}
+                          value={form.baseNote}
+                          onChange={(e) => setForm((f) => ({ ...f, baseNote: e.target.value }))}
+                          className={s.input}
+                        />
+                      </div>
+                    </div>
+                    <div className={s.modalFieldGroup}>
+                      <label className={s.label} htmlFor="product-notes">{t('adminProducts.notes')}</label>
                       <input
-                        type="checkbox"
-                        checked={form.newArrival === true}
-                        onChange={(e) => setForm((f) => ({ ...f, newArrival: e.target.checked }))}
+                        id="product-notes"
+                        type="text"
+                        placeholder={t('adminProducts.notesPlaceholder')}
+                        value={form.notes}
+                        onChange={(e) => setForm((f) => ({ ...f, notes: e.target.value }))}
+                        className={s.input}
+                        aria-label={t('adminProducts.notesAria')}
                       />
-                      <span>{t('adminProducts.newArrival')}</span>
-                    </label>
-                  </div>
-                  <div className={s.modalFieldGroup}>
-                    <label className={s.checkLabel}>
-                      <input
-                        type="checkbox"
-                        checked={form.onSale === true}
-                        onChange={(e) => setForm((f) => ({ ...f, onSale: e.target.checked }))}
+                    </div>
+                    <div className={s.modalFormRow}>
+                      <div className={s.modalFieldGroup}>
+                        <label className={s.checkLabel}>
+                          <input
+                            type="checkbox"
+                            checked={form.newArrival === true}
+                            onChange={(e) => setForm((f) => ({ ...f, newArrival: e.target.checked }))}
+                          />
+                          <span>{t('adminProducts.newArrival')}</span>
+                        </label>
+                      </div>
+                      <div className={s.modalFieldGroup}>
+                        <label className={s.checkLabel}>
+                          <input
+                            type="checkbox"
+                            checked={form.onSale === true}
+                            onChange={(e) => setForm((f) => ({ ...f, onSale: e.target.checked }))}
+                          />
+                          <span>{t('adminProducts.onSale')}</span>
+                        </label>
+                      </div>
+                    </div>
+                    {form.onSale && (
+                      <div className={s.modalFieldGroup}>
+                        <label className={s.label} htmlFor="product-discount">{t('adminProducts.discountPercent')}</label>
+                        <input
+                          id="product-discount"
+                          type="number"
+                          min="0"
+                          max="100"
+                          placeholder={t('adminProducts.discountPlaceholder')}
+                          value={form.discountPercent}
+                          onChange={(e) => setForm((f) => ({ ...f, discountPercent: e.target.value }))}
+                          className={s.input}
+                        />
+                      </div>
+                    )}
+                    <div className={s.modalFieldGroup}>
+                      <label className={s.checkLabel}>
+                        <input
+                          type="checkbox"
+                          checked={form.featured === true}
+                          onChange={(e) => setForm((f) => ({ ...f, featured: e.target.checked }))}
+                        />
+                        <span>{t('adminProducts.featuredOnHome')}</span>
+                      </label>
+                    </div>
+                    <div className={s.modalFieldGroup}>
+                      <label className={s.label}>{t('adminProducts.ratingLabel')}</label>
+                      <StarRatingEdit
+                        value={form.rating}
+                        onChange={(v) => setForm((f) => ({ ...f, rating: v }))}
                       />
-                      <span>{t('adminProducts.onSale')}</span>
-                    </label>
-                  </div>
-                </div>
-                {form.onSale && (
-                  <div className={s.modalFieldGroup}>
-                    <label className={s.label} htmlFor="product-discount">{t('adminProducts.discountPercent')}</label>
-                    <input
-                      id="product-discount"
-                      type="number"
-                      min="0"
-                      max="100"
-                      placeholder={t('adminProducts.discountPlaceholder')}
-                      value={form.discountPercent}
-                      onChange={(e) => setForm((f) => ({ ...f, discountPercent: e.target.value }))}
-                      className={s.input}
-                    />
-                  </div>
-                )}
-                <div className={s.modalFieldGroup}>
-                  <label className={s.checkLabel}>
-                    <input
-                      type="checkbox"
-                      checked={form.featured === true}
-                      onChange={(e) => setForm((f) => ({ ...f, featured: e.target.checked }))}
-                    />
-                    <span>{t('adminProducts.featuredOnHome')}</span>
-                  </label>
-                </div>
-                <div className={s.modalFieldGroup}>
-                  <label className={s.label}>{t('adminProducts.ratingLabel')}</label>
-                  <StarRatingEdit
-                    value={form.rating}
-                    onChange={(v) => setForm((f) => ({ ...f, rating: v }))}
-                  />
-                </div>
+                    </div>
                   </>
                 )}
               </div>

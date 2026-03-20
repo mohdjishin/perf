@@ -13,10 +13,13 @@ type FeatureFlags struct {
 	DiscountedSectionEnabled    bool             `json:"discounted_section_enabled"`
 	DiscountedShopFilterEnabled bool             `json:"discounted_shop_filter_enabled"`
 	FeaturedSectionEnabled      bool             `json:"featured_section_enabled"`
+	PersonalizationEnabled      bool             `json:"personalization_enabled"`
 	SeasonalBannerEnabled       bool             `json:"seasonal_banner_enabled"`
 	WhySectionEnabled           bool             `json:"why_section_enabled"`
 	WhySectionTitle             string           `json:"why_section_title"`
 	WhySectionItems             []WhySectionItem `json:"why_section_items"`
+	CategorySectionTitle        string           `json:"category_section_title"`
+	CategorySectionLabel        string           `json:"category_section_label"`
 	I18nEnabled                 bool             `json:"i18n_enabled"`
 	StoreLocatorEnabled         bool             `json:"store_locator_enabled"`
 	SocialEnabled               bool             `json:"social_enabled"`
@@ -44,6 +47,15 @@ type FeatureFlags struct {
 	TelegramEnabled             bool             `json:"telegram_enabled"`
 	TelegramBotToken            string           `json:"telegram_bot_token"`
 	TelegramChatID              string           `json:"telegram_chat_id"`
+	HeroSubtitleEn              string           `json:"hero_subtitle_en"`
+	HeroSubtitleAr              string           `json:"hero_subtitle_ar"`
+	HeroTitleEn                 string           `json:"hero_title_en"`
+	HeroTitleAr                 string           `json:"hero_title_ar"`
+	HeroDescriptionEn           string           `json:"hero_description_en"`
+	HeroDescriptionAr           string           `json:"hero_description_ar"`
+	HeroButtonTextEn            string           `json:"hero_button_text_en"`
+	HeroButtonTextAr            string           `json:"hero_button_text_ar"`
+	HeroImages                  []string         `json:"hero_images"`
 }
 
 // FeatureFlagsDoc is the stored document in MongoDB.
@@ -54,10 +66,13 @@ type FeatureFlagsDoc struct {
 	DiscountedSectionEnabled    bool             `bson:"discounted_section_enabled"`
 	DiscountedShopFilterEnabled bool             `bson:"discounted_shop_filter_enabled"`
 	FeaturedSectionEnabled      bool             `bson:"featured_section_enabled"`
+	PersonalizationEnabled      *bool            `bson:"personalization_enabled,omitempty"`
 	SeasonalBannerEnabled       bool             `bson:"seasonal_banner_enabled"`
 	WhySectionEnabled           bool             `bson:"why_section_enabled"`
 	WhySectionTitle             string           `bson:"why_section_title"`
 	WhySectionItems             []WhySectionItem `bson:"why_section_items"`
+	CategorySectionTitle        string           `bson:"category_section_title"`
+	CategorySectionLabel        string           `bson:"category_section_label"`
 	I18nEnabled                 *bool            `bson:"i18n_enabled,omitempty"`
 	StoreLocatorEnabled         *bool            `bson:"store_locator_enabled,omitempty"`
 	SocialEnabled               *bool            `bson:"social_enabled,omitempty"`
@@ -83,4 +98,13 @@ type FeatureFlagsDoc struct {
 	TelegramEnabled             *bool            `bson:"telegram_enabled,omitempty"`
 	TelegramBotToken            string           `bson:"telegram_bot_token"`
 	TelegramChatID              string           `bson:"telegram_chat_id"`
+	HeroSubtitleEn              string           `bson:"hero_subtitle_en"`
+	HeroSubtitleAr              string           `bson:"hero_subtitle_ar"`
+	HeroTitleEn                 string           `bson:"hero_title_en"`
+	HeroTitleAr                 string           `bson:"hero_title_ar"`
+	HeroDescriptionEn           string           `bson:"hero_description_en"`
+	HeroDescriptionAr           string           `bson:"hero_description_ar"`
+	HeroButtonTextEn            string           `bson:"hero_button_text_en"`
+	HeroButtonTextAr            string           `bson:"hero_button_text_ar"`
+	HeroImages                  []string         `bson:"hero_images"`
 }

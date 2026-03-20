@@ -22,6 +22,9 @@ type Product struct {
 	DiscountPercent int                `bson:"discount_percent" json:"discountPercent"` // e.g. 20 for "20% off"
 	Stock           int                `bson:"stock" json:"stock"`
 	Notes           []string           `bson:"notes" json:"notes"`
+	TopNote         string             `bson:"top_note" json:"topNote"`
+	HeartNote       string             `bson:"heart_note" json:"heartNote"`
+	BaseNote        string             `bson:"base_note" json:"baseNote"`
 	SeasonalFlag    string             `bson:"seasonal_flag" json:"seasonalFlag"` // e.g. "christmas" — filter via ?seasonal=
 	Active          bool               `bson:"active" json:"active"`
 	Rating          int                `bson:"rating" json:"rating"` // 0 = not set, 1-5 = admin star rating

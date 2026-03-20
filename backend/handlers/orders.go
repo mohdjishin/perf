@@ -532,13 +532,12 @@ func CreateOrder(c *gin.Context) {
 			bson.M{"_id": pid, "stock": bson.M{"$gte": it.Quantity}},
 			bson.M{"$inc": bson.M{"stock": -it.Quantity}},
 		)
-		if err != nil {
-			logger.Errorf("Critical: Stock decrement failed for %s: %v", it.ProductID, err)
-			continue // Should we fail or continue? For now, log it.
-		}
-		if res.ModifiedCount == 0 {
-			// This handles the race condition where stock was taken between validation and decrement
-			logger.Errorf("Critical: Stock became insufficient for %s during checkout", it.ProductID)
+		if err != nil || res.ModifiedCount == 0 {
+			logger.Errorf("CRITICAL: Failed to decrement stock for product %s in order %s (insufficient stock or DB error): %v", it.ProductID, order.ID.Hex(), err)
+			// Mark order as cancelled
+			_, _ = ordersCol.UpdateOne(ctx, bson.M{"_id": order.ID}, bson.M{"$set": bson.M{"status": models.OrderCancelled, "updated_at": time.Now()}})
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Some items are out of stock. Please check your cart."})
+			return
 		}
 	}
 

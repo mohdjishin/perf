@@ -33,6 +33,9 @@ type CreateProductRequest struct {
 	DiscountPercent int      `json:"discountPercent"`
 	Stock           int      `json:"stock"`
 	Notes           []string `json:"notes"`
+	TopNote         string   `json:"topNote"`
+	HeartNote       string   `json:"heartNote"`
+	BaseNote        string   `json:"baseNote"`
 	SeasonalFlag    string   `json:"seasonalFlag"`
 	Rating          *int     `json:"rating"` // 0-5, optional
 }
@@ -52,6 +55,9 @@ type UpdateProductRequest struct {
 	DiscountPercent *int      `json:"discountPercent"`
 	Stock           *int      `json:"stock"`
 	Notes           *[]string `json:"notes"`
+	TopNote         *string   `json:"topNote"`
+	HeartNote       *string   `json:"heartNote"`
+	BaseNote        *string   `json:"baseNote"`
 	SeasonalFlag    *string   `json:"seasonalFlag"`
 	Active          *bool     `json:"active"`
 	Rating          *int      `json:"rating"` // 0-5, optional
@@ -158,6 +164,9 @@ func ListProducts(c *gin.Context) {
 			"seasonalFlag":    p.SeasonalFlag,
 			"active":          p.Active,
 			"notes":           p.Notes,
+			"topNote":         p.TopNote,
+			"heartNote":       p.HeartNote,
+			"baseNote":        p.BaseNote,
 			"rating":          p.Rating,
 		}
 	}
@@ -319,6 +328,9 @@ func CreateProduct(c *gin.Context) {
 		DiscountPercent: req.DiscountPercent,
 		Stock:           req.Stock,
 		Notes:           req.Notes,
+		TopNote:         strings.TrimSpace(req.TopNote),
+		HeartNote:       strings.TrimSpace(req.HeartNote),
+		BaseNote:        strings.TrimSpace(req.BaseNote),
 		SeasonalFlag:    strings.TrimSpace(req.SeasonalFlag),
 		Active:          true,
 		CreatedAt:       now,
@@ -460,6 +472,15 @@ func UpdateProduct(c *gin.Context) {
 	}
 	if req.Notes != nil {
 		updates["notes"] = *req.Notes
+	}
+	if req.TopNote != nil {
+		updates["top_note"] = strings.TrimSpace(*req.TopNote)
+	}
+	if req.HeartNote != nil {
+		updates["heart_note"] = strings.TrimSpace(*req.HeartNote)
+	}
+	if req.BaseNote != nil {
+		updates["base_note"] = strings.TrimSpace(*req.BaseNote)
 	}
 	if req.SeasonalFlag != nil {
 		updates["seasonal_flag"] = strings.TrimSpace(*req.SeasonalFlag)

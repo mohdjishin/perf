@@ -24,11 +24,13 @@ func GetFeatureFlags(c *gin.Context) {
 	col := database.DB.Collection("features")
 	var doc models.FeatureFlagsDoc
 	err := col.FindOne(context.Background(), bson.M{"_id": settingsDocID}).Decode(&doc)
+
 	defaultWhyItems := []models.WhySectionItem{
 		{Title: "Authentic Oud", Description: "Premium agarwood sourced from the finest regions"},
 		{Title: "Dubai Crafted", Description: "Hand-blended by master perfumers in the UAE"},
 		{Title: "Arabian Heritage", Description: "Timeless fragrances that honour tradition"},
 	}
+
 	isSuperAdmin := false
 	role, _ := c.Get("user_role")
 	if r, ok := role.(string); ok && r == "super_admin" {
@@ -43,6 +45,7 @@ func GetFeatureFlags(c *gin.Context) {
 			"discounted_section_enabled":      true,
 			"discounted_shop_filter_enabled":  true,
 			"featured_section_enabled":        true,
+			"personalization_enabled":         false,
 			"seasonal_banner_enabled":         true,
 			"why_section_enabled":             true,
 			"why_section_title":               "Why Blue Mist Perfumes",
@@ -62,7 +65,17 @@ func GetFeatureFlags(c *gin.Context) {
 			"google_client_id":           config.AppConfig.GoogleClientID,
 			"stripe_publishable_key":     config.AppConfig.StripePublishableKey,
 			"signup_enabled":             true,
-			"telegram_enabled":           false,
+			"category_section_title":     "Shop by Collection",
+			"category_section_label":     "Discover Your Scent",
+			"hero_subtitle_en":           "Signature Egyptian Collection",
+			"hero_subtitle_ar":           "مجموعة توقيع مصرية",
+			"hero_title_en":              "BLUE MIST PERFUMES",
+			"hero_title_ar":              "بلو ميست للعطور",
+			"hero_description_en":        "Simply put, our perfume is the best. Elevate your presence with our exquisite collection of perfumes and bakhoor.",
+			"hero_description_ar":        "بعبارة بسيطة، عطرنا هو الأفضل. ارفع حضورك مع مجموعتنا الراقية من العطور والبخور.",
+			"hero_button_text_en":        "Explore Collection",
+			"hero_button_text_ar":        "استكشف المجموعة",
+			"hero_images":                []string{"/images/premium-hero.png"},
 		}
 
 		if isSuperAdmin {
@@ -73,12 +86,48 @@ func GetFeatureFlags(c *gin.Context) {
 		c.JSON(http.StatusOK, resp)
 		return
 	}
+
+	// Falls backs for existing document with empty values
 	if doc.WhySectionItems == nil {
 		doc.WhySectionItems = defaultWhyItems
 	}
 	if doc.WhySectionTitle == "" {
 		doc.WhySectionTitle = "Why Blue Mist Perfumes"
 	}
+	if doc.CategorySectionTitle == "" {
+		doc.CategorySectionTitle = "Shop by Collection"
+	}
+	if doc.CategorySectionLabel == "" {
+		doc.CategorySectionLabel = "Discover Your Scent"
+	}
+	if doc.HeroSubtitleEn == "" {
+		doc.HeroSubtitleEn = "Signature Egyptian Collection"
+	}
+	if doc.HeroSubtitleAr == "" {
+		doc.HeroSubtitleAr = "مجموعة توقيع مصرية"
+	}
+	if doc.HeroTitleEn == "" {
+		doc.HeroTitleEn = "BLUE MIST PERFUMES"
+	}
+	if doc.HeroTitleAr == "" {
+		doc.HeroTitleAr = "بلو ميست للعطور"
+	}
+	if doc.HeroDescriptionEn == "" {
+		doc.HeroDescriptionEn = "Simply put, our perfume is the best. Elevate your presence with our exquisite collection of perfumes and bakhoor."
+	}
+	if doc.HeroDescriptionAr == "" {
+		doc.HeroDescriptionAr = "بعبارة بسيطة، عطرنا هو الأفضل. ارفع حضورك مع مجموعتنا الراقية من العطور والبخور."
+	}
+	if doc.HeroButtonTextEn == "" {
+		doc.HeroButtonTextEn = "Explore Collection"
+	}
+	if doc.HeroButtonTextAr == "" {
+		doc.HeroButtonTextAr = "استكشف المجموعة"
+	}
+	if len(doc.HeroImages) == 0 {
+		doc.HeroImages = []string{"/images/premium-hero.png"}
+	}
+
 	i18nEnabled := true
 	if doc.I18nEnabled != nil {
 		i18nEnabled = *doc.I18nEnabled
@@ -95,7 +144,10 @@ func GetFeatureFlags(c *gin.Context) {
 	if doc.SignupEnabled != nil {
 		signupEnabled = *doc.SignupEnabled
 	}
-
+	personalizationEnabled := false
+	if doc.PersonalizationEnabled != nil {
+		personalizationEnabled = *doc.PersonalizationEnabled
+	}
 	telegramEnabled := false
 	if doc.TelegramEnabled != nil {
 		telegramEnabled = *doc.TelegramEnabled
@@ -135,7 +187,19 @@ func GetFeatureFlags(c *gin.Context) {
 		"google_client_id":                config.AppConfig.GoogleClientID,
 		"stripe_publishable_key":          config.AppConfig.StripePublishableKey,
 		"signup_enabled":                  signupEnabled,
+		"personalization_enabled":         personalizationEnabled,
 		"telegram_enabled":                telegramEnabled,
+		"category_section_title":          doc.CategorySectionTitle,
+		"category_section_label":          doc.CategorySectionLabel,
+		"hero_subtitle_en":                doc.HeroSubtitleEn,
+		"hero_subtitle_ar":                doc.HeroSubtitleAr,
+		"hero_title_en":                   doc.HeroTitleEn,
+		"hero_title_ar":                   doc.HeroTitleAr,
+		"hero_description_en":             doc.HeroDescriptionEn,
+		"hero_description_ar":             doc.HeroDescriptionAr,
+		"hero_button_text_en":             doc.HeroButtonTextEn,
+		"hero_button_text_ar":             doc.HeroButtonTextAr,
+		"hero_images":                     doc.HeroImages,
 	}
 
 	if isSuperAdmin {
@@ -153,6 +217,7 @@ type UpdateFeatureFlagsRequest struct {
 	DiscountedSectionEnabled    *bool                    `json:"discounted_section_enabled"`
 	DiscountedShopFilterEnabled *bool                    `json:"discounted_shop_filter_enabled"`
 	FeaturedSectionEnabled      *bool                    `json:"featured_section_enabled"`
+	PersonalizationEnabled      *bool                    `json:"personalization_enabled"`
 	SeasonalBannerEnabled       *bool                    `json:"seasonal_banner_enabled"`
 	WhySectionEnabled           *bool                    `json:"why_section_enabled"`
 	WhySectionTitle             *string                  `json:"why_section_title"`
@@ -182,6 +247,17 @@ type UpdateFeatureFlagsRequest struct {
 	TelegramEnabled             *bool                    `json:"telegram_enabled"`
 	TelegramBotToken            *string                  `json:"telegram_bot_token"`
 	TelegramChatID              *string                  `json:"telegram_chat_id"`
+	CategorySectionTitle        *string                  `json:"category_section_title"`
+	CategorySectionLabel        *string                  `json:"category_section_label"`
+	HeroSubtitleEn              *string                  `json:"hero_subtitle_en"`
+	HeroSubtitleAr              *string                  `json:"hero_subtitle_ar"`
+	HeroTitleEn                 *string                  `json:"hero_title_en"`
+	HeroTitleAr                 *string                  `json:"hero_title_ar"`
+	HeroDescriptionEn           *string                  `json:"hero_description_en"`
+	HeroDescriptionAr           *string                  `json:"hero_description_ar"`
+	HeroButtonTextEn            *string                  `json:"hero_button_text_en"`
+	HeroButtonTextAr            *string                  `json:"hero_button_text_ar"`
+	HeroImages                  *[]string                `json:"hero_images"`
 }
 
 // UpdateFeatureFlags updates feature flags. Only super_admin may call this; route is protected by RequireSuperAdmin. Upserts the document in the features collection.
@@ -244,6 +320,10 @@ func UpdateFeatureFlags(c *gin.Context) {
 	}
 	if req.FeaturedSectionEnabled != nil {
 		doc.FeaturedSectionEnabled = *req.FeaturedSectionEnabled
+	}
+	if req.PersonalizationEnabled != nil {
+		v := *req.PersonalizationEnabled
+		doc.PersonalizationEnabled = &v
 	}
 	if req.SeasonalBannerEnabled != nil {
 		doc.SeasonalBannerEnabled = *req.SeasonalBannerEnabled
@@ -345,6 +425,77 @@ func UpdateFeatureFlags(c *gin.Context) {
 	if req.TelegramChatID != nil {
 		doc.TelegramChatID = *req.TelegramChatID
 	}
+	if req.CategorySectionTitle != nil {
+		doc.CategorySectionTitle = *req.CategorySectionTitle
+	}
+	if req.CategorySectionLabel != nil {
+		doc.CategorySectionLabel = *req.CategorySectionLabel
+	}
+	if req.HeroSubtitleEn != nil {
+		doc.HeroSubtitleEn = *req.HeroSubtitleEn
+	}
+	if req.HeroSubtitleAr != nil {
+		doc.HeroSubtitleAr = *req.HeroSubtitleAr
+	}
+	if req.HeroTitleEn != nil {
+		doc.HeroTitleEn = *req.HeroTitleEn
+	}
+	if req.HeroTitleAr != nil {
+		doc.HeroTitleAr = *req.HeroTitleAr
+	}
+	if req.HeroDescriptionEn != nil {
+		doc.HeroDescriptionEn = *req.HeroDescriptionEn
+	}
+	if req.HeroDescriptionAr != nil {
+		doc.HeroDescriptionAr = *req.HeroDescriptionAr
+	}
+	if req.HeroButtonTextEn != nil {
+		doc.HeroButtonTextEn = *req.HeroButtonTextEn
+	}
+	if req.HeroButtonTextAr != nil {
+		doc.HeroButtonTextAr = *req.HeroButtonTextAr
+	}
+	if req.HeroImages != nil {
+		doc.HeroImages = *req.HeroImages
+	}
+
+	// Apply robust defaults for any remaining empty fields before saving
+	if doc.WhySectionTitle == "" {
+		doc.WhySectionTitle = "Why Blue Mist Perfumes"
+	}
+	if doc.CategorySectionTitle == "" {
+		doc.CategorySectionTitle = "Shop by Collection"
+	}
+	if doc.CategorySectionLabel == "" {
+		doc.CategorySectionLabel = "Discover Your Scent"
+	}
+	if doc.HeroSubtitleEn == "" {
+		doc.HeroSubtitleEn = "Signature Egyptian Collection"
+	}
+	if doc.HeroSubtitleAr == "" {
+		doc.HeroSubtitleAr = "مجموعة توقيع مصرية"
+	}
+	if doc.HeroTitleEn == "" {
+		doc.HeroTitleEn = "BLUE MIST PERFUMES"
+	}
+	if doc.HeroTitleAr == "" {
+		doc.HeroTitleAr = "بلو ميست للعطور"
+	}
+	if doc.HeroDescriptionEn == "" {
+		doc.HeroDescriptionEn = "Simply put, our perfume is the best. Elevate your presence with our exquisite collection of perfumes and bakhoor."
+	}
+	if doc.HeroDescriptionAr == "" {
+		doc.HeroDescriptionAr = "بعبارة بسيطة، عطرنا هو الأفضل. ارفع حضورك مع مجموعتنا الراقية من العطور والبخور."
+	}
+	if doc.HeroButtonTextEn == "" {
+		doc.HeroButtonTextEn = "Explore Collection"
+	}
+	if doc.HeroButtonTextAr == "" {
+		doc.HeroButtonTextAr = "استكشف المجموعة"
+	}
+	if len(doc.HeroImages) == 0 {
+		doc.HeroImages = []string{"/images/premium-hero.png"}
+	}
 
 	opts := options.Update().SetUpsert(true)
 	_, err = col.UpdateOne(context.Background(), bson.M{"_id": settingsDocID}, bson.M{"$set": doc}, opts)
@@ -386,9 +537,21 @@ func UpdateFeatureFlags(c *gin.Context) {
 		"google_client_id":                config.AppConfig.GoogleClientID,
 		"stripe_publishable_key":          config.AppConfig.StripePublishableKey,
 		"signup_enabled":                  docSignupEnabled(doc.SignupEnabled),
+		"personalization_enabled":         docPersonalizationEnabled(doc.PersonalizationEnabled),
 		"telegram_enabled":                docTelegramEnabled(doc.TelegramEnabled),
 		"telegram_bot_token":              doc.TelegramBotToken,
 		"telegram_chat_id":                doc.TelegramChatID,
+		"category_section_title":          doc.CategorySectionTitle,
+		"category_section_label":          doc.CategorySectionLabel,
+		"hero_subtitle_en":                doc.HeroSubtitleEn,
+		"hero_subtitle_ar":                doc.HeroSubtitleAr,
+		"hero_title_en":                   doc.HeroTitleEn,
+		"hero_title_ar":                   doc.HeroTitleAr,
+		"hero_description_en":             doc.HeroDescriptionEn,
+		"hero_description_ar":             doc.HeroDescriptionAr,
+		"hero_button_text_en":             doc.HeroButtonTextEn,
+		"hero_button_text_ar":             doc.HeroButtonTextAr,
+		"hero_images":                     doc.HeroImages,
 	})
 }
 
@@ -455,6 +618,13 @@ func IsSignupEnabled() bool {
 }
 
 func docTelegramEnabled(p *bool) bool {
+	if p == nil {
+		return false
+	}
+	return *p
+}
+
+func docPersonalizationEnabled(p *bool) bool {
 	if p == nil {
 		return false
 	}

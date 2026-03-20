@@ -13,14 +13,14 @@ export function BackButton({ to, label, asLink = true }) {
   if (asLink && to) {
     return (
       <Link to={to} className={s.back}>
-        ← {displayLabel}
+        {displayLabel}
       </Link>
     )
   }
 
   return (
     <button type="button" className={s.back} onClick={() => navigate(-1)}>
-      ← {displayLabel}
+      {displayLabel}
     </button>
   )
 }

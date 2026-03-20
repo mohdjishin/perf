@@ -25,6 +25,7 @@ export default function Home() {
   const [loading, setLoading] = useState(true)
   const [banner, setBanner] = useState(null)
   const [categories, setCategories] = useState([])
+  const [currentHeroIndex, setCurrentHeroIndex] = useState(0)
   const catGridRef = useRef(null)
 
   const scrollCats = (direction) => {
@@ -51,6 +52,13 @@ export default function Home() {
           why_section_items: Array.isArray(f.why_section_items) && f.why_section_items.length > 0
             ? f.why_section_items
             : undefined,
+          cat_section_title: f.category_section_title ?? 'Shop by Collection',
+          cat_section_label: f.category_section_label ?? 'Discover Your Scent',
+          hero_subtitle: locale === 'ar' ? f.hero_subtitle_ar : f.hero_subtitle_en,
+          hero_title: locale === 'ar' ? f.hero_title_ar : f.hero_title_en,
+          hero_description: locale === 'ar' ? f.hero_description_ar : f.hero_description_en,
+          hero_button_text: locale === 'ar' ? f.hero_button_text_ar : f.hero_button_text_en,
+          hero_images: Array.isArray(f.hero_images) && f.hero_images.length > 0 ? f.hero_images : ['/images/premium-hero.png'],
         })
         setProducts(data.products || [])
         setNewArrivals(data.new_arrivals || [])
@@ -78,6 +86,15 @@ export default function Home() {
     }
   }, [categories.length])
 
+  useEffect(() => {
+    if (features.hero_images && features.hero_images.length > 1) {
+      const interval = setInterval(() => {
+        setCurrentHeroIndex((prev) => (prev + 1) % features.hero_images.length)
+      }, 5000)
+      return () => clearInterval(interval)
+    }
+  }, [features.hero_images])
+
   if (loading) {
     return <PageSkeletonGrid count={6} />
   }
@@ -88,15 +105,53 @@ export default function Home() {
       <section className={s.hero} aria-label="Welcome">
         <div className={s.heroFrame}>
           <div className={s.heroTextSide}>
-            <p className={s.heroEyebrow}>Signature Egyptian Collection</p>
-            <h1 className={s.heroTitle}>{t('home.heroTitle')}</h1>
-            <p className={s.heroDesc}>{t('home.heroDesc')}</p>
+            <p className={s.heroEyebrow}>{features.hero_subtitle || 'Signature Egyptian Collection'}</p>
+            <h1 className={s.heroTitle}>{features.hero_title || t('home.heroTitle')}</h1>
+            <p className={s.heroDesc}>{features.hero_description || t('home.heroDesc')}</p>
             <div className={s.heroActions}>
-              <Link to="/shop" className={s.heroBtnPrimary}>{t('home.exploreCollection')}</Link>
+              <Link to="/shop" className={s.heroBtnPrimary}>{features.hero_button_text || t('home.exploreCollection')}</Link>
             </div>
           </div>
           <div className={s.heroImageSide}>
-            <img src="/images/premium-hero.png" alt="Perfume Collection" className={s.heroImg} />
+            {features.hero_images && features.hero_images.map((img, idx) => {
+              const isVideo = img.toLowerCase().endsWith('.mp4') || img.toLowerCase().endsWith('.webm')
+              const isActive = idx === currentHeroIndex
+
+              if (isVideo) {
+                return (
+                  <video
+                    key={idx}
+                    src={img}
+                    autoPlay
+                    muted
+                    loop
+                    playsInline
+                    className={`${s.heroVideo} ${isActive ? s.active : ''}`}
+                  />
+                )
+              }
+
+              return (
+                <img
+                  key={idx}
+                  src={img}
+                  alt={t('home.heroTitle')}
+                  className={`${s.heroImg} ${isActive ? s.active : ''}`}
+                />
+              )
+            })}
+            {features.hero_images && features.hero_images.length > 1 && (
+              <div className={s.heroDots}>
+                {features.hero_images.map((_, idx) => (
+                  <button
+                    key={idx}
+                    className={`${s.heroDot} ${idx === currentHeroIndex ? s.activeDot : ''}`}
+                    onClick={() => setCurrentHeroIndex(idx)}
+                    aria-label={`Go to slide ${idx + 1}`}
+                  />
+                ))}
+              </div>
+            )}
           </div>
         </div>
       </section>
@@ -120,8 +175,8 @@ export default function Home() {
       {/* Category Grid — Shop by Scent (myop style circles/squares) */}
       <section className={s.categories} aria-labelledby="cat-heading">
         <div className={s.sectionHeaderCentered}>
-          <p className={s.sectionLabel}>Discover Your Scent</p>
-          <h2 id="cat-heading" className={s.sectionTitleLarge}>Shop by Collection</h2>
+          <p className={s.sectionLabel}>{features.cat_section_label}</p>
+          <h2 id="cat-heading" className={s.sectionTitleLarge}>{features.cat_section_title}</h2>
         </div>
         <div className={s.catGridWrapper}>
           <button

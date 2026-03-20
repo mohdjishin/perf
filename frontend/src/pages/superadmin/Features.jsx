@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
-import { api } from '../../api/client'
+import { api, uploadFile } from '../../api/client'
 import s from './SuperAdmin.module.css'
 import f from './Features.module.css'
+import { Toast } from '../../components/Toast'
 
 const defaultWhyItems = (t) => [
   { title: t('featuresAdmin.whyItem1Title'), description: t('featuresAdmin.whyItem1Desc') },
@@ -22,6 +23,7 @@ export default function SuperAdminFeatures() {
   const [i18nEnabled, setI18nEnabled] = useState(true)
   const [storeLocatorEnabled, setStoreLocatorEnabled] = useState(true)
   const [signupEnabled, setSignupEnabled] = useState(true)
+  const [personalizationEnabled, setPersonalizationEnabled] = useState(false)
   const [invoiceCompanyName, setInvoiceCompanyName] = useState('Blue Mist Perfumes')
   const [invoiceStreet, setInvoiceStreet] = useState('')
   const [invoiceCity, setInvoiceCity] = useState('')
@@ -47,6 +49,17 @@ export default function SuperAdminFeatures() {
   const [whySectionEnabled, setWhySectionEnabled] = useState(true)
   const [whySectionTitle, setWhySectionTitle] = useState('')
   const [whySectionItems, setWhySectionItems] = useState([])
+  const [categorySectionTitle, setCategorySectionTitle] = useState('Shop by Collection')
+  const [categorySectionLabel, setCategorySectionLabel] = useState('Discover Your Scent')
+  const [heroSubtitleEn, setHeroSubtitleEn] = useState('')
+  const [heroSubtitleAr, setHeroSubtitleAr] = useState('')
+  const [heroTitleEn, setHeroTitleEn] = useState('')
+  const [heroTitleAr, setHeroTitleAr] = useState('')
+  const [heroDescriptionEn, setHeroDescriptionEn] = useState('')
+  const [heroDescriptionAr, setHeroDescriptionAr] = useState('')
+  const [heroButtonTextEn, setHeroButtonTextEn] = useState('')
+  const [heroButtonTextAr, setHeroButtonTextAr] = useState('')
+  const [heroImages, setHeroImages] = useState([])
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [message, setMessage] = useState(null)
@@ -64,6 +77,7 @@ export default function SuperAdminFeatures() {
         setI18nEnabled(data.i18n_enabled !== false)
         setStoreLocatorEnabled(data.store_locator_enabled !== false)
         setSignupEnabled(data.signup_enabled !== false)
+        setPersonalizationEnabled(data.personalization_enabled === true)
         setInvoiceCompanyName(data.invoice_company_name ?? 'Blue Mist Perfumes')
         setInvoiceStreet(data.invoice_street ?? '')
         setInvoiceCity(data.invoice_city ?? '')
@@ -91,6 +105,17 @@ export default function SuperAdminFeatures() {
         setWhySectionItems(Array.isArray(data.why_section_items) && data.why_section_items.length > 0
           ? data.why_section_items.map((i) => ({ title: i.title ?? '', description: i.description ?? '' }))
           : defaultWhyItems(t))
+        setCategorySectionTitle(data.category_section_title ?? 'Shop by Collection')
+        setCategorySectionLabel(data.category_section_label ?? 'Discover Your Scent')
+        setHeroSubtitleEn(data.hero_subtitle_en ?? '')
+        setHeroSubtitleAr(data.hero_subtitle_ar ?? '')
+        setHeroTitleEn(data.hero_title_en ?? '')
+        setHeroTitleAr(data.hero_title_ar ?? '')
+        setHeroDescriptionEn(data.hero_description_en ?? '')
+        setHeroDescriptionAr(data.hero_description_ar ?? '')
+        setHeroButtonTextEn(data.hero_button_text_en ?? '')
+        setHeroButtonTextAr(data.hero_button_text_ar ?? '')
+        setHeroImages(Array.isArray(data.hero_images) && data.hero_images.length > 0 ? data.hero_images : ['/images/premium-hero.png'])
       })
       .catch(() => setError(t('featuresAdmin.errorLoad')))
       .finally(() => setLoading(false))
@@ -114,6 +139,7 @@ export default function SuperAdminFeatures() {
           i18n_enabled: i18nEnabled,
           store_locator_enabled: storeLocatorEnabled,
           signup_enabled: signupEnabled,
+          personalization_enabled: personalizationEnabled,
           invoice_company_name: invoiceCompanyName.trim() || undefined,
           invoice_street: invoiceStreet.trim() || undefined,
           invoice_city: invoiceCity.trim() || undefined,
@@ -142,6 +168,17 @@ export default function SuperAdminFeatures() {
             title: i.title.trim(),
             description: i.description.trim(),
           })),
+          category_section_title: categorySectionTitle.trim() || 'Shop by Collection',
+          category_section_label: categorySectionLabel.trim() || 'Discover Your Scent',
+          hero_subtitle_en: heroSubtitleEn.trim() || undefined,
+          hero_subtitle_ar: heroSubtitleAr.trim() || undefined,
+          hero_title_en: heroTitleEn.trim() || undefined,
+          hero_title_ar: heroTitleAr.trim() || undefined,
+          hero_description_en: heroDescriptionEn.trim() || undefined,
+          hero_description_ar: heroDescriptionAr.trim() || undefined,
+          hero_button_text_en: heroButtonTextEn.trim() || undefined,
+          hero_button_text_ar: heroButtonTextAr.trim() || undefined,
+          hero_images: heroImages.filter(img => img.trim()),
         }),
       })
       setMessage(t('featuresAdmin.settingsSaved'))
@@ -164,262 +201,367 @@ export default function SuperAdminFeatures() {
 
   return (
     <div className={s.page}>
-      <Link to="/superadmin" className={s.back}>← {t('featuresAdmin.back')}</Link>
-      <h1 className={s.title}>{t('featuresAdmin.title')}</h1>
-      <p className={s.subtitle}>{t('featuresAdmin.subtitle')}</p>
-
-      <form onSubmit={handleSave} className={f.form}>
-        {error && <p className={f.error}>{error}</p>}
-        {message && <p className={f.message}>{message}</p>}
-        <p className={f.groupLabel}>{t('featuresAdmin.customerSignup')}</p>
-        <label className={f.toggle}>
-          <input
-            type="checkbox"
-            checked={signupEnabled}
-            onChange={(e) => setSignupEnabled(e.target.checked)}
-          />
-          <span className={f.toggleLabel}>{t('featuresAdmin.customerSignupEnabled')}</span>
-        </label>
-        <p className={f.hint}>{t('featuresAdmin.customerSignupHint')}</p>
-
-        <p className={f.groupLabel}>{t('featuresAdmin.featured')}</p>
-        <label className={f.toggle}>
-          <input type="checkbox" checked={featuredHome} onChange={(e) => setFeaturedHome(e.target.checked)} />
-          <span>{t('featuresAdmin.homeSection')}</span>
-        </label>
-        <p className={f.groupLabel}>{t('featuresAdmin.newArrivals')}</p>
-        <label className={f.toggle}>
-          <input type="checkbox" checked={newArrivalHome} onChange={(e) => setNewArrivalHome(e.target.checked)} />
-          <span>{t('featuresAdmin.homeSection')}</span>
-        </label>
-        <label className={f.toggle}>
-          <input type="checkbox" checked={newArrivalShop} onChange={(e) => setNewArrivalShop(e.target.checked)} />
-          <span>{t('featuresAdmin.shopFilter')}</span>
-        </label>
-        <p className={f.groupLabel}>{t('featuresAdmin.discounted')}</p>
-        <label className={f.toggle}>
-          <input type="checkbox" checked={discountedHome} onChange={(e) => setDiscountedHome(e.target.checked)} />
-          <span>{t('featuresAdmin.homeSection')}</span>
-        </label>
-        <label className={f.toggle}>
-          <input type="checkbox" checked={discountedShop} onChange={(e) => setDiscountedShop(e.target.checked)} />
-          <span>{t('featuresAdmin.shopFilter')}</span>
-        </label>
-        <p className={f.groupLabel}>{t('featuresAdmin.seasonalBanner')}</p>
-        <label className={f.toggle}>
-          <input type="checkbox" checked={seasonalBannerEnabled} onChange={(e) => setSeasonalBannerEnabled(e.target.checked)} />
-          <span>{t('featuresAdmin.showPromoBanner')}</span>
-        </label>
-        <p className={f.hint}>
-          <Link to="/superadmin/seasonal-sale" className={f.link}>{t('featuresAdmin.configureBanner')}</Link> {t('featuresAdmin.configureBannerHint')}
-        </p>
-        <p className={f.groupLabel}>{t('featuresAdmin.multiLanguage')}</p>
-        <label className={f.toggle}>
-          <input type="checkbox" checked={i18nEnabled} onChange={(e) => setI18nEnabled(e.target.checked)} />
-          <span>{t('featuresAdmin.i18nHint')}</span>
-        </label>
-        <p className={f.hint}>
-          {t('featuresAdmin.i18nOffHint')}
-        </p>
-        <p className={f.groupLabel}>{t('featuresAdmin.storeLocator')}</p>
-        <label className={f.toggle}>
-          <input type="checkbox" checked={storeLocatorEnabled} onChange={(e) => setStoreLocatorEnabled(e.target.checked)} />
-          <span>{t('featuresAdmin.storeLocatorHint')}</span>
-        </label>
-        <p className={f.hint}>
-          {t('featuresAdmin.storeLocatorOffHint')}
-        </p>
-        <p className={f.groupLabel}>{t('featuresAdmin.invoiceSettings')}</p>
-        <p className={f.hint}>{t('featuresAdmin.invoiceSettingsHint')}</p>
-        <div className={f.whyFields}>
-          <label className={f.fieldLabel}>
-            {t('featuresAdmin.invoiceCompanyName')}
-            <input type="text" className={f.input} value={invoiceCompanyName} onChange={(e) => setInvoiceCompanyName(e.target.value)} placeholder="Blue Mist Perfumes" maxLength={120} />
-          </label>
-          <label className={f.fieldLabel}>
-            {t('featuresAdmin.invoiceStreet')}
-            <input type="text" className={f.input} value={invoiceStreet} onChange={(e) => setInvoiceStreet(e.target.value)} placeholder={t('featuresAdmin.invoiceStreetPlaceholder')} maxLength={200} />
-          </label>
-          <div className={f.row}>
-            <label className={f.fieldLabel}>
-              {t('featuresAdmin.invoiceCity')}
-              <input type="text" className={f.input} value={invoiceCity} onChange={(e) => setInvoiceCity(e.target.value)} maxLength={80} />
-            </label>
-            <label className={f.fieldLabel}>
-              {t('featuresAdmin.invoiceState')}
-              <input type="text" className={f.input} value={invoiceState} onChange={(e) => setInvoiceState(e.target.value)} placeholder={t('featuresAdmin.invoiceStatePlaceholder')} maxLength={80} />
-            </label>
-          </div>
-          <div className={f.row}>
-            <label className={f.fieldLabel}>
-              {t('featuresAdmin.invoiceZip')}
-              <input type="text" className={f.input} value={invoiceZip} onChange={(e) => setInvoiceZip(e.target.value)} maxLength={20} />
-            </label>
-            <label className={f.fieldLabel}>
-              {t('featuresAdmin.invoiceCountry')}
-              <input type="text" className={f.input} value={invoiceCountry} onChange={(e) => setInvoiceCountry(e.target.value)} placeholder="e.g. UAE" maxLength={80} />
-            </label>
-          </div>
-          <label className={f.fieldLabel}>
-            {t('featuresAdmin.invoicePhone')}
-            <input type="text" className={f.input} value={invoicePhone} onChange={(e) => setInvoicePhone(e.target.value)} placeholder="+971 ..." maxLength={40} />
-          </label>
-          <label className={f.fieldLabel}>
-            {t('featuresAdmin.invoiceEmail')}
-            <input type="email" className={f.input} value={invoiceEmail} onChange={(e) => setInvoiceEmail(e.target.value)} placeholder="info@example.com" maxLength={120} />
-          </label>
-          <label className={f.fieldLabel}>
-            {t('featuresAdmin.invoiceTrn')}
-            <input type="text" className={f.input} value={invoiceTrn} onChange={(e) => setInvoiceTrn(e.target.value)} placeholder={t('featuresAdmin.invoiceTrnPlaceholder')} maxLength={60} />
-          </label>
+      <Toast
+        visible={!!message}
+        message={message || ''}
+        onClose={() => setMessage(null)}
+      />
+      <header className={s.header}>
+        <div className={s.headerLeft}>
+          <Link to="/superadmin" className={s.back}>← {t('featuresAdmin.back')}</Link>
+          <h1 className={s.title}>{t('featuresAdmin.title')}</h1>
+          <p className={s.subtitle}>{t('featuresAdmin.subtitle')}</p>
         </div>
-        <p className={f.groupLabel}>{t('featuresAdmin.returnsPolicy')}</p>
-        <p className={f.hint}>{t('featuresAdmin.returnsPolicyHint')}</p>
-        <label className={f.fieldLabel}>
-          {t('featuresAdmin.returnDaysAfterDelivery')}
-          <input
-            type="number"
-            min="0"
-            className={f.input}
-            value={returnDaysAfterDelivery === 0 ? '' : returnDaysAfterDelivery}
-            onChange={(e) => setReturnDaysAfterDelivery(Math.max(0, parseInt(e.target.value, 10) || 0))}
-            placeholder="0"
-          />
-        </label>
-        <p className={f.groupLabel}>{t('featuresAdmin.telegramBot')}</p>
-        <label className={f.toggle}>
-          <input type="checkbox" checked={telegramEnabled} onChange={(e) => setTelegramEnabled(e.target.checked)} />
-          <span>{t('featuresAdmin.telegramBotEnabled')}</span>
-        </label>
-        <p className={f.hint}>{t('featuresAdmin.telegramHint')}</p>
-        <div className={f.whyFields}>
-          <label className={f.fieldLabel}>
-            {t('featuresAdmin.telegramBotToken')}
-            <input
-              type="text"
-              className={f.input}
-              value={telegramBotToken}
-              onChange={(e) => setTelegramBotToken(e.target.value)}
-              placeholder={t('featuresAdmin.telegramBotTokenPlaceholder')}
-            />
-          </label>
-          <label className={f.fieldLabel}>
-            {t('featuresAdmin.telegramChatId')}
-            <input
-              type="text"
-              className={f.input}
-              value={telegramChatId}
-              onChange={(e) => setTelegramChatId(e.target.value)}
-              placeholder={t('featuresAdmin.telegramChatIdPlaceholder')}
-            />
-          </label>
-        </div>
-        <p className={f.groupLabel}>{t('featuresAdmin.socialMedia')}</p>
-        <label className={f.toggle}>
-          <input type="checkbox" checked={socialEnabled} onChange={(e) => setSocialEnabled(e.target.checked)} />
-          <span>{t('featuresAdmin.showSocialLinks')}</span>
-        </label>
-        <p className={f.hint}>{t('featuresAdmin.socialHint')}</p>
-        <div className={f.whyFields}>
-          <label className={f.toggle}>
-            <input type="checkbox" checked={socialFacebookEnabled} onChange={(e) => setSocialFacebookEnabled(e.target.checked)} />
-            <span>{t('featuresAdmin.showFacebook')}</span>
-          </label>
-          <label className={f.fieldLabel}>
-            {t('featuresAdmin.facebookUrl')}
-            <input type="url" className={f.input} value={socialFacebook} onChange={(e) => setSocialFacebook(e.target.value)} placeholder="https://facebook.com/..." />
-          </label>
-          <label className={f.toggle}>
-            <input type="checkbox" checked={socialInstagramEnabled} onChange={(e) => setSocialInstagramEnabled(e.target.checked)} />
-            <span>{t('featuresAdmin.showInstagram')}</span>
-          </label>
-          <label className={f.fieldLabel}>
-            {t('featuresAdmin.instagramUrl')}
-            <input type="url" className={f.input} value={socialInstagram} onChange={(e) => setSocialInstagram(e.target.value)} placeholder="https://instagram.com/..." />
-          </label>
-          <label className={f.toggle}>
-            <input type="checkbox" checked={socialTwitterEnabled} onChange={(e) => setSocialTwitterEnabled(e.target.checked)} />
-            <span>{t('featuresAdmin.showTwitter')}</span>
-          </label>
-          <label className={f.fieldLabel}>
-            {t('featuresAdmin.twitterUrl')}
-            <input type="url" className={f.input} value={socialTwitter} onChange={(e) => setSocialTwitter(e.target.value)} placeholder="https://x.com/..." />
-          </label>
-          <label className={f.toggle}>
-            <input type="checkbox" checked={socialYoutubeEnabled} onChange={(e) => setSocialYoutubeEnabled(e.target.checked)} />
-            <span>{t('featuresAdmin.showYoutube')}</span>
-          </label>
-          <label className={f.fieldLabel}>
-            {t('featuresAdmin.youtubeUrl')}
-            <input type="url" className={f.input} value={socialYoutube} onChange={(e) => setSocialYoutube(e.target.value)} placeholder="https://youtube.com/..." />
-          </label>
-        </div>
-        <p className={f.groupLabel}>{t('featuresAdmin.whySection')}</p>
-        <label className={f.toggle}>
-          <input type="checkbox" checked={whySectionEnabled} onChange={(e) => setWhySectionEnabled(e.target.checked)} />
-          <span>{t('featuresAdmin.whySectionLabel')}</span>
-        </label>
-        <div className={f.whyFields}>
-          <label className={f.fieldLabel}>
-            {t('featuresAdmin.sectionTitle')}
-            <input
-              type="text"
-              className={f.input}
-              value={whySectionTitle}
-              onChange={(e) => setWhySectionTitle(e.target.value)}
-              placeholder={t('featuresAdmin.sectionTitlePlaceholder')}
-              maxLength={120}
-            />
-          </label>
-          <p className={f.fieldLabel}>{t('featuresAdmin.bulletItems')}</p>
-          {whySectionItems.map((item, index) => (
-            <div key={index} className={f.whyItem}>
-              <input
-                type="text"
-                className={f.input}
-                value={item.title}
-                onChange={(e) => {
-                  const next = [...whySectionItems]
-                  next[index] = { ...next[index], title: e.target.value }
-                  setWhySectionItems(next)
-                }}
-                placeholder={t('featuresAdmin.titlePlaceholder')}
-                maxLength={100}
-              />
-              <input
-                type="text"
-                className={f.input}
-                value={item.description}
-                onChange={(e) => {
-                  const next = [...whySectionItems]
-                  next[index] = { ...next[index], description: e.target.value }
-                  setWhySectionItems(next)
-                }}
-                placeholder={t('featuresAdmin.descriptionPlaceholder')}
-                maxLength={200}
-              />
-              <button
-                type="button"
-                className={f.removeItemBtn}
-                onClick={() => setWhySectionItems(whySectionItems.filter((_, i) => i !== index))}
-                aria-label={t('featuresAdmin.removeItem')}
-              >
-                {t('featuresAdmin.removeItem')}
-              </button>
-            </div>
-          ))}
-          <button
-            type="button"
-            className={f.addItemBtn}
-            onClick={() => setWhySectionItems([...whySectionItems, { title: '', description: '' }])}
-          >
-            {t('featuresAdmin.addItem')}
+        <div className={s.headerActions}>
+          <button type="submit" form="features-form" className={f.saveBtn} disabled={saving}>
+            {saving ? t('featuresAdmin.saving') : t('common.save')}
           </button>
         </div>
-        <p className={f.hint}>
-          {t('featuresAdmin.bulletHint')}
-        </p>
-        <div className={f.actions}>
+      </header>
+
+      <form id="features-form" onSubmit={handleSave} className={f.formContainer}>
+        {error && <p className={f.error}>{error}</p>}
+
+        <div className={f.grid}>
+          {/* General Configuration */}
+          <section className={f.card}>
+            <h2 className={f.cardTitle}>General Configuration</h2>
+            <div className={f.cardBody}>
+              <label className={f.toggle}>
+                <input type="checkbox" checked={signupEnabled} onChange={(e) => setSignupEnabled(e.target.checked)} />
+                <span className={f.toggleLabel}>{t('featuresAdmin.customerSignupEnabled')}</span>
+              </label>
+              <p className={f.hint}>{t('featuresAdmin.customerSignupHint')}</p>
+
+              <label className={f.toggle}>
+                <input type="checkbox" checked={i18nEnabled} onChange={(e) => setI18nEnabled(e.target.checked)} />
+                <span>{t('featuresAdmin.i18nHint')}</span>
+              </label>
+              <p className={f.hint}>{t('featuresAdmin.i18nOffHint')}</p>
+
+              <label className={f.toggle}>
+                <input type="checkbox" checked={storeLocatorEnabled} onChange={(e) => setStoreLocatorEnabled(e.target.checked)} />
+                <span>{t('featuresAdmin.storeLocatorHint')}</span>
+              </label>
+              <p className={f.hint}>{t('featuresAdmin.storeLocatorOffHint')}</p>
+
+              <div className={f.divider} style={{ margin: '1rem 0' }} />
+
+              <label className={f.toggle}>
+                <input type="checkbox" checked={personalizationEnabled} onChange={(e) => setPersonalizationEnabled(e.target.checked)} />
+                <span className={f.toggleLabel}>{t('featuresAdmin.personalizationEnabled') || 'Product Personalization'}</span>
+              </label>
+              <p className={f.hint}>{t('featuresAdmin.personalizationHint') || 'Allow customers to add custom engraving to products'}</p>
+            </div>
+          </section>
+
+          {/* Home Page Sections */}
+          <section className={f.card}>
+            <h2 className={f.cardTitle}>Home Page Visibility</h2>
+            <div className={f.cardBody}>
+              <div className={f.visibilityGroup}>
+                <label className={f.toggle}>
+                  <input type="checkbox" checked={featuredHome} onChange={(e) => setFeaturedHome(e.target.checked)} />
+                  <span>{t('featuresAdmin.featured')} - {t('featuresAdmin.homeSection')}</span>
+                </label>
+                <label className={f.toggle}>
+                  <input type="checkbox" checked={newArrivalHome} onChange={(e) => setNewArrivalHome(e.target.checked)} />
+                  <span>{t('featuresAdmin.newArrivals')} - {t('featuresAdmin.homeSection')}</span>
+                </label>
+                <label className={f.toggle}>
+                  <input type="checkbox" checked={newArrivalShop} onChange={(e) => setNewArrivalShop(e.target.checked)} />
+                  <span>{t('featuresAdmin.newArrivals')} - {t('featuresAdmin.shopFilter')}</span>
+                </label>
+                <label className={f.toggle}>
+                  <input type="checkbox" checked={discountedHome} onChange={(e) => setDiscountedHome(e.target.checked)} />
+                  <span>{t('featuresAdmin.discounted')} - {t('featuresAdmin.homeSection')}</span>
+                </label>
+                <label className={f.toggle}>
+                  <input type="checkbox" checked={discountedShop} onChange={(e) => setDiscountedShop(e.target.checked)} />
+                  <span>{t('featuresAdmin.discounted')} - {t('featuresAdmin.shopFilter')}</span>
+                </label>
+                <label className={f.toggle}>
+                  <input type="checkbox" checked={seasonalBannerEnabled} onChange={(e) => setSeasonalBannerEnabled(e.target.checked)} />
+                  <span>{t('featuresAdmin.seasonalBanner')}</span>
+                </label>
+              </div>
+              <p className={f.hint}>
+                <Link to="/superadmin/seasonal-sale" className={f.link}>{t('featuresAdmin.configureBanner')}</Link>
+              </p>
+            </div>
+          </section>
+
+          {/* Hero Section */}
+          <section className={`${f.card} ${f.cardWide}`}>
+            <h2 className={f.cardTitle}>{t('featuresAdmin.heroSection')}</h2>
+            <div className={f.cardBody}>
+              <div className={f.formGrid}>
+                <div className={f.row}>
+                  <label className={f.fieldLabel}>
+                    {t('featuresAdmin.heroSubtitle')} (EN)
+                    <input type="text" className={f.input} value={heroSubtitleEn} onChange={(e) => setHeroSubtitleEn(e.target.value)} placeholder="e.g. Signature Egyptian Collection" />
+                  </label>
+                  <label className={f.fieldLabel}>
+                    {t('featuresAdmin.heroSubtitle')} (AR)
+                    <input type="text" className={f.input} value={heroSubtitleAr} onChange={(e) => setHeroSubtitleAr(e.target.value)} dir="rtl" placeholder="مثلاً: مجموعة توقيع مصرية" />
+                  </label>
+                </div>
+                <div className={f.row}>
+                  <label className={f.fieldLabel}>
+                    {t('featuresAdmin.heroTitle')} (EN)
+                    <input type="text" className={f.input} value={heroTitleEn} onChange={(e) => setHeroTitleEn(e.target.value)} placeholder="e.g. BLUE MIST PERFUMES" />
+                  </label>
+                  <label className={f.fieldLabel}>
+                    {t('featuresAdmin.heroTitle')} (AR)
+                    <input type="text" className={f.input} value={heroTitleAr} onChange={(e) => setHeroTitleAr(e.target.value)} dir="rtl" placeholder="مثلاً: بلو ميست للعطور" />
+                  </label>
+                </div>
+                <div className={f.row}>
+                  <label className={f.fieldLabel}>
+                    {t('featuresAdmin.heroDescription')} (EN)
+                    <textarea className={f.input} value={heroDescriptionEn} onChange={(e) => setHeroDescriptionEn(e.target.value)} rows={2} placeholder="e.g. Discover our exquisite range of scents..." />
+                  </label>
+                  <label className={f.fieldLabel}>
+                    {t('featuresAdmin.heroDescription')} (AR)
+                    <textarea className={f.input} value={heroDescriptionAr} onChange={(e) => setHeroDescriptionAr(e.target.value)} rows={2} dir="rtl" placeholder="مثلاً: اكتشف مجموعتنا الرائعة من الروائح..." />
+                  </label>
+                </div>
+                <div className={f.row}>
+                  <label className={f.fieldLabel}>
+                    {t('featuresAdmin.heroButtonText')} (EN)
+                    <input type="text" className={f.input} value={heroButtonTextEn} onChange={(e) => setHeroButtonTextEn(e.target.value)} placeholder="e.g. Explore Collection" />
+                  </label>
+                  <label className={f.fieldLabel}>
+                    {t('featuresAdmin.heroButtonText')} (AR)
+                    <input type="text" className={f.input} value={heroButtonTextAr} onChange={(e) => setHeroButtonTextAr(e.target.value)} dir="rtl" placeholder="مثلاً: استكشف المجموعة" />
+                  </label>
+                </div>
+              </div>
+
+              <div className={f.heroImagesSection}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <p className={f.subLabel}>{t('featuresAdmin.heroImages')}</p>
+                  <span className={f.hint} style={{ margin: 0 }}>
+                    Preferred: 1920×1080 (Landscape) or 1080×1920 (Portrait). Supports .mp4 videos.
+                  </span>
+                </div>
+                <div className={f.heroImagesList}>
+                  {heroImages.map((img, idx) => (
+                    <div key={idx} className={f.heroImageRow}>
+                      <div className={f.imageInputWrap}>
+                        <input
+                          type="text"
+                          className={f.input}
+                          value={img}
+                          onChange={(e) => {
+                            const next = [...heroImages]
+                            next[idx] = e.target.value
+                            setHeroImages(next)
+                          }}
+                          placeholder="Image URL"
+                        />
+                        {img && <img src={img} alt="" className={f.inputPreview} />}
+                      </div>
+                      <input
+                        type="file"
+                        id={`hero-upload-${idx}`}
+                        hidden
+                        accept="image/*"
+                        onChange={async (e) => {
+                          const file = e.target.files?.[0]
+                          if (!file) return
+                          try {
+                            setSaving(true)
+                            const url = await uploadFile(file)
+                            const next = [...heroImages]
+                            next[idx] = url
+                            setHeroImages(next)
+                          } catch (err) {
+                            setError(err.message)
+                          } finally {
+                            setSaving(false)
+                          }
+                        }}
+                      />
+                      <button type="button" className={f.smBtn} onClick={() => document.getElementById(`hero-upload-${idx}`).click()}>
+                        {t('adminProducts.upload')}
+                      </button>
+                      <button type="button" className={f.smBtnDanger} onClick={() => setHeroImages(heroImages.filter((_, i) => i !== idx))}>
+                        Remove
+                      </button>
+                    </div>
+                  ))}
+                  <button type="button" className={f.addItemBtn} onClick={() => setHeroImages([...heroImages, ''])}>
+                    + {t('featuresAdmin.addImage')}
+                  </button>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          {/* Categories & Why */}
+          <section className={f.card}>
+            <h2 className={f.cardTitle}>Promotional Sections</h2>
+            <div className={f.cardBody}>
+              <p className={f.subLabel}>Category Section (Shop by Collection)</p>
+              <label className={f.fieldLabel}>Section Title</label>
+              <input type="text" className={f.input} value={categorySectionTitle} onChange={(e) => setCategorySectionTitle(e.target.value)} placeholder="e.g. Shop by Collection" />
+              <label className={f.fieldLabel}>Section Label</label>
+              <input type="text" className={f.input} value={categorySectionLabel} onChange={(e) => setCategorySectionLabel(e.target.value)} placeholder="e.g. Discover Your Scent" />
+
+              <div className={f.divider} />
+
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <p className={f.subLabel} style={{ margin: 0 }}>{t('featuresAdmin.whySection')}</p>
+                <label className={f.toggle}>
+                  <input type="checkbox" checked={whySectionEnabled} onChange={(e) => setWhySectionEnabled(e.target.checked)} />
+                  <span>Enable</span>
+                </label>
+              </div>
+
+              {whySectionEnabled && (
+                <div className={f.whyEditor}>
+                  <label className={f.fieldLabel}>{t('featuresAdmin.sectionTitle')}</label>
+                  <input type="text" className={f.input} value={whySectionTitle} onChange={(e) => setWhySectionTitle(e.target.value)} placeholder="e.g. Why Blue Mist?" />
+                  <p className={f.fieldLabel}>{t('featuresAdmin.bulletItems')}</p>
+                  {whySectionItems.map((item, index) => (
+                    <div key={index} className={f.whyItemCard}>
+                      <input type="text" className={f.input} value={item.title} onChange={(e) => {
+                        const next = [...whySectionItems]
+                        next[index] = { ...next[index], title: e.target.value }
+                        setWhySectionItems(next)
+                      }} placeholder="Item Title (e.g. Pure Essence)" />
+                      <textarea className={f.input} value={item.description} onChange={(e) => {
+                        const next = [...whySectionItems]
+                        next[index] = { ...next[index], description: e.target.value }
+                        setWhySectionItems(next)
+                      }} placeholder="Item Description (e.g. We use the finest ingredients...)" rows={2} />
+                      <button type="button" className={f.smBtnDanger} onClick={() => setWhySectionItems(whySectionItems.filter((_, i) => i !== index))}>
+                        {t('featuresAdmin.removeItem')}
+                      </button>
+                    </div>
+                  ))}
+                  <button type="button" className={f.addItemBtn} onClick={() => setWhySectionItems([...whySectionItems, { title: '', description: '' }])}>
+                    {t('featuresAdmin.addItem')}
+                  </button>
+                </div>
+              )}
+            </div>
+          </section>
+
+          {/* Social Media */}
+          <section className={f.card}>
+            <h2 className={f.cardTitle}>{t('featuresAdmin.socialMedia')}</h2>
+            <div className={f.cardBody}>
+              <label className={f.toggle}>
+                <input type="checkbox" checked={socialEnabled} onChange={(e) => setSocialEnabled(e.target.checked)} />
+                <span>{t('featuresAdmin.showSocialLinks')}</span>
+              </label>
+
+              {socialEnabled && (
+                <div className={f.socialGroup}>
+                  {['Instagram', 'Facebook', 'Twitter', 'Youtube'].map(platform => {
+                    const low = platform.toLowerCase()
+                    const stateVal = low === 'instagram' ? socialInstagram : (low === 'facebook' ? socialFacebook : (low === 'twitter' ? socialTwitter : socialYoutube))
+                    const setVal = low === 'instagram' ? setSocialInstagram : (low === 'facebook' ? setSocialFacebook : (low === 'twitter' ? setSocialTwitter : setSocialYoutube))
+                    const stateEna = low === 'instagram' ? socialInstagramEnabled : (low === 'facebook' ? socialFacebookEnabled : (low === 'twitter' ? socialTwitterEnabled : socialYoutubeEnabled))
+                    const setEna = low === 'instagram' ? setSocialInstagramEnabled : (low === 'facebook' ? setSocialFacebookEnabled : (low === 'twitter' ? setSocialTwitterEnabled : setSocialYoutubeEnabled))
+
+                    return (
+                      <div key={platform} className={f.socialRow}>
+                        <label className={f.toggle} style={{ marginBottom: 0 }}>
+                          <input type="checkbox" checked={stateEna} onChange={(e) => setEna(e.target.checked)} />
+                          <span>{platform}</span>
+                        </label>
+                        <input type="url" className={f.input} value={stateVal} onChange={(e) => setVal(e.target.value)} disabled={!stateEna} placeholder={`https://${low}.com/...`} />
+                      </div>
+                    )
+                  })}
+                </div>
+              )}
+            </div>
+          </section>
+
+          {/* Invoicing & Returns */}
+          <section className={`${f.card} ${f.cardWide}`}>
+            <h2 className={f.cardTitle}>{t('featuresAdmin.invoiceSettings')}</h2>
+            <div className={f.cardBody}>
+              <div className={f.formGrid}>
+                <div className={f.row}>
+                  <label className={f.fieldLabel}>
+                    {t('featuresAdmin.invoiceCompanyName')}
+                    <input type="text" className={f.input} value={invoiceCompanyName} onChange={(e) => setInvoiceCompanyName(e.target.value)} placeholder="e.g. Blue Mist Perfumes" />
+                  </label>
+                  <label className={f.fieldLabel}>
+                    {t('featuresAdmin.invoiceEmail')}
+                    <input type="email" className={f.input} value={invoiceEmail} onChange={(e) => setInvoiceEmail(e.target.value)} placeholder="e.g. info@bluemist.com" />
+                  </label>
+                </div>
+                <div className={f.row}>
+                  <label className={f.fieldLabel}>
+                    {t('featuresAdmin.invoiceStreet')}
+                    <input type="text" className={f.input} value={invoiceStreet} onChange={(e) => setInvoiceStreet(e.target.value)} placeholder="e.g. 123 Luxury Ave" />
+                  </label>
+                  <label className={f.fieldLabel}>
+                    {t('featuresAdmin.invoicePhone')}
+                    <input type="text" className={f.input} value={invoicePhone} onChange={(e) => setInvoicePhone(e.target.value)} placeholder="e.g. +971 50 123 4567" />
+                  </label>
+                </div>
+                <div className={f.row}>
+                  <label className={f.fieldLabel}>
+                    {t('featuresAdmin.invoiceCity')}
+                    <input type="text" className={f.input} value={invoiceCity} onChange={(e) => setInvoiceCity(e.target.value)} placeholder="e.g. Dubai" />
+                  </label>
+                  <label className={f.fieldLabel}>
+                    {t('featuresAdmin.invoiceState')}
+                    <input type="text" className={f.input} value={invoiceState} onChange={(e) => setInvoiceState(e.target.value)} placeholder="e.g. Dubai" />
+                  </label>
+                </div>
+                <div className={f.row}>
+                  <label className={f.fieldLabel}>
+                    {t('featuresAdmin.invoiceZip')}
+                    <input type="text" className={f.input} value={invoiceZip} onChange={(e) => setInvoiceZip(e.target.value)} placeholder="e.g. 00000" />
+                  </label>
+                  <label className={f.fieldLabel}>
+                    {t('featuresAdmin.invoiceTrn')}
+                    <input type="text" className={f.input} value={invoiceTrn} onChange={(e) => setInvoiceTrn(e.target.value)} placeholder="e.g. 100XXXXXXXXXXXX" />
+                  </label>
+                </div>
+              </div>
+              <div className={f.divider} />
+              <label className={f.fieldLabel}>
+                {t('featuresAdmin.returnDaysAfterDelivery')}
+                <input
+                  type="number"
+                  min="0"
+                  className={f.input}
+                  style={{ maxWidth: '120px' }}
+                  value={returnDaysAfterDelivery === 0 ? '' : returnDaysAfterDelivery}
+                  onChange={(e) => setReturnDaysAfterDelivery(Math.max(0, parseInt(e.target.value, 10) || 0))}
+                  placeholder="e.g. 7"
+                />
+              </label>
+            </div>
+          </section>
+
+          {/* Admin Tools */}
+          <section className={f.card}>
+            <h2 className={f.cardTitle}>{t('featuresAdmin.telegramBot')}</h2>
+            <div className={f.cardBody}>
+              <label className={f.toggle}>
+                <input type="checkbox" checked={telegramEnabled} onChange={(e) => setTelegramEnabled(e.target.checked)} />
+                <span>{t('featuresAdmin.telegramBotEnabled')}</span>
+              </label>
+              <p className={f.hint}>{t('featuresAdmin.telegramHint')}</p>
+              <label className={f.fieldLabel}>{t('featuresAdmin.telegramBotToken')}</label>
+              <input type="password" className={f.input} value={telegramBotToken} onChange={(e) => setTelegramBotToken(e.target.value)} placeholder="Bot Token from @BotFather" />
+              <label className={f.fieldLabel}>{t('featuresAdmin.telegramChatId')}</label>
+              <input type="text" className={f.input} value={telegramChatId} onChange={(e) => setTelegramChatId(e.target.value)} placeholder="Chat ID for notifications" />
+            </div>
+          </section>
+        </div>
+
+        <div className={f.stickyFooter}>
           <button type="submit" className={f.saveBtn} disabled={saving}>
             {saving ? t('featuresAdmin.saving') : t('common.save')}
           </button>

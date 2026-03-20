@@ -125,231 +125,233 @@ export default function Shop() {
   const uniqueCategories = apiCategories.map((c) => c.name).filter(Boolean)
 
   return (
-    <div className={s.page}>
-      <BackButton to="/" label={t('nav.home')} />
+    <div>
       <SeasonalBanner page="shop" />
-      <header className={s.hero}>
-        <h1 className={s.heroTitle}>{t('shop.heroTitle')}</h1>
-        <p className={s.heroTagline}>{t('shop.heroTagline')}</p>
-      </header>
+      <div className={s.page}>
+        <BackButton to="/" label={t('nav.home')} />
+        <header className={s.hero}>
+          <h1 className={s.heroTitle}>{t('shop.heroTitle')}</h1>
+          <p className={s.heroTagline}>{t('shop.heroTagline')}</p>
+        </header>
 
-      <div className={s.toolbar}>
-        <div className={s.searchWrap}>
-          <input
-            type="search"
-            placeholder={t('shop.searchPlaceholder')}
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            onKeyDown={(e) => e.key === 'Enter' && setSearchQuery(search.trim())}
-            className={s.searchInput}
-          />
+        <div className={s.toolbar}>
+          <div className={s.searchWrap}>
+            <input
+              type="search"
+              placeholder={t('shop.searchPlaceholder')}
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              onKeyDown={(e) => e.key === 'Enter' && setSearchQuery(search.trim())}
+              className={s.searchInput}
+            />
+            <button
+              type="button"
+              onClick={() => setSearchQuery(search.trim())}
+              className={s.searchBtn}
+              aria-label={t('shop.search')}
+            >
+              {t('shop.search')}
+            </button>
+          </div>
+          <label className={s.sortLabel}>
+            <span className={s.sortLabelText}>{t('shop.sortLabel')}</span>
+            <select
+              value={sortBy}
+              onChange={(e) => setSortBy(e.target.value)}
+              className={s.sortSelect}
+              aria-label={t('shop.sortLabel')}
+            >
+              <option value="">{t('shop.sortNewest')}</option>
+              <option value="price_asc">{t('shop.sortPriceAsc')}</option>
+              <option value="price_desc">{t('shop.sortPriceDesc')}</option>
+              <option value="rating_desc">{t('shop.sortRatingDesc')}</option>
+              <option value="rating_asc">{t('shop.sortRatingAsc')}</option>
+            </select>
+          </label>
           <button
             type="button"
-            onClick={() => setSearchQuery(search.trim())}
-            className={s.searchBtn}
-            aria-label={t('shop.search')}
+            className={`${s.refineBtn} ${filterOpen ? s.refineBtnActive : ''}`}
+            onClick={() => setFilterOpen(!filterOpen)}
+            aria-expanded={filterOpen}
           >
-            {t('shop.search')}
+            {t('shop.refine')}
           </button>
         </div>
-        <label className={s.sortLabel}>
-          <span className={s.sortLabelText}>{t('shop.sortLabel')}</span>
-          <select
-            value={sortBy}
-            onChange={(e) => setSortBy(e.target.value)}
-            className={s.sortSelect}
-            aria-label={t('shop.sortLabel')}
-          >
-            <option value="">{t('shop.sortNewest')}</option>
-            <option value="price_asc">{t('shop.sortPriceAsc')}</option>
-            <option value="price_desc">{t('shop.sortPriceDesc')}</option>
-            <option value="rating_desc">{t('shop.sortRatingDesc')}</option>
-            <option value="rating_asc">{t('shop.sortRatingAsc')}</option>
-          </select>
-        </label>
-        <button
-          type="button"
-          className={`${s.refineBtn} ${filterOpen ? s.refineBtnActive : ''}`}
-          onClick={() => setFilterOpen(!filterOpen)}
-          aria-expanded={filterOpen}
-        >
-          {t('shop.refine')}
-        </button>
-      </div>
 
-      {searchQuery && (
-        <div className={s.activeSearch}>
-          <span>{t('shop.resultsFor', { query: searchQuery })}</span>
-          <button type="button" onClick={() => { setSearch(''); setSearchQuery(''); setPage(1); }} className={s.clearSearch}>{t('shop.clearSearch')}</button>
-        </div>
-      )}
-
-      {hasActiveFilters && (
-        <div className={s.activePills}>
-          {category && <span className={s.pill}>{t(`category.${categoryKey(category)}`, { defaultValue: category })} <button type="button" onClick={() => updateParam('category', '')} aria-label="Remove category">×</button></span>}
-          {audience && <span className={s.pill}>{audience === 'men' ? t('product.forHim') : audience === 'women' ? t('product.forHer') : t('product.unisex')} <button type="button" onClick={() => updateParam('audience', '')} aria-label="Remove audience">×</button></span>}
-          {newArrival && <span className={s.pill}>{t('shop.newArrival')} <button type="button" onClick={() => updateParam('new_arrival', '')} aria-label="Remove">×</button></span>}
-          {onSale && <span className={s.pill}>{t('shop.onSale')} <button type="button" onClick={() => updateParam('on_sale', '')} aria-label="Remove">×</button></span>}
-          {seasonalFlag && (
-            <span className={s.pill}>
-              Seasonal: {seasonalFlag}
-              <button
-                type="button"
-                onClick={() => {
-                  setSeasonalFlag('')
-                  setPage(1)
-                  const next = new URLSearchParams(searchParams)
-                  next.delete('seasonal')
-                  setSearchParams(next)
-                }}
-                aria-label="Remove seasonal filter"
-              >
-                ×
-              </button>
-            </span>
-          )}
-          <button type="button" onClick={clearAllFilters} className={s.clearAll}>{t('shop.clearAll')}</button>
-        </div>
-      )}
-
-      <div className={s.shopLayout}>
-        <aside className={`${s.sidebar} ${filterOpen ? s.sidebarOpen : ''}`}>
-          {uniqueCategories.length > 0 && (
-            <div className={s.filterGroup}>
-              <span className={s.filterGroupLabel}>{t('shop.scentNavigator') || 'Scent Navigator'}</span>
-              <div className={s.filterRow}>
-                <button className={`${s.filterBtn} ${!category ? s.active : ''}`} onClick={() => updateParam('category', '')}>{t('shop.all')}</button>
-                {uniqueCategories.map((c) => (
-                  <button key={c} className={`${s.filterBtn} ${category === c ? s.active : ''}`} onClick={() => updateParam('category', c)}>{t(`category.${categoryKey(c)}`, { defaultValue: c })}</button>
-                ))}
-              </div>
-            </div>
-          )}
-          <div className={s.filterGroup}>
-            <span className={s.filterGroupLabel}>{t('shop.forLabel')}</span>
-            <div className={s.filterRow}>
-              <button className={`${s.filterBtn} ${!audience ? s.active : ''}`} onClick={() => updateParam('audience', '')}>{t('shop.all')}</button>
-              <button className={`${s.filterBtn} ${audience === 'men' ? s.active : ''}`} onClick={() => updateParam('audience', 'men')}>{t('product.forHim')}</button>
-              <button className={`${s.filterBtn} ${audience === 'women' ? s.active : ''}`} onClick={() => updateParam('audience', 'women')}>{t('product.forHer')}</button>
-              <button className={`${s.filterBtn} ${audience === 'unisex' ? s.active : ''}`} onClick={() => updateParam('audience', 'unisex')}>{t('product.unisex')}</button>
-            </div>
+        {searchQuery && (
+          <div className={s.activeSearch}>
+            <span>{t('shop.resultsFor', { query: searchQuery })}</span>
+            <button type="button" onClick={() => { setSearch(''); setSearchQuery(''); setPage(1); }} className={s.clearSearch}>{t('shop.clearSearch')}</button>
           </div>
-          {(features.new_arrival_shop_filter_enabled || features.discounted_shop_filter_enabled) && (
+        )}
+
+        {hasActiveFilters && (
+          <div className={s.activePills}>
+            {category && <span className={s.pill}>{t(`category.${categoryKey(category)}`, { defaultValue: category })} <button type="button" onClick={() => updateParam('category', '')} aria-label="Remove category">×</button></span>}
+            {audience && <span className={s.pill}>{audience === 'men' ? t('product.forHim') : audience === 'women' ? t('product.forHer') : t('product.unisex')} <button type="button" onClick={() => updateParam('audience', '')} aria-label="Remove audience">×</button></span>}
+            {newArrival && <span className={s.pill}>{t('shop.newArrival')} <button type="button" onClick={() => updateParam('new_arrival', '')} aria-label="Remove">×</button></span>}
+            {onSale && <span className={s.pill}>{t('shop.onSale')} <button type="button" onClick={() => updateParam('on_sale', '')} aria-label="Remove">×</button></span>}
+            {seasonalFlag && (
+              <span className={s.pill}>
+                Seasonal: {seasonalFlag}
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSeasonalFlag('')
+                    setPage(1)
+                    const next = new URLSearchParams(searchParams)
+                    next.delete('seasonal')
+                    setSearchParams(next)
+                  }}
+                  aria-label="Remove seasonal filter"
+                >
+                  ×
+                </button>
+              </span>
+            )}
+            <button type="button" onClick={clearAllFilters} className={s.clearAll}>{t('shop.clearAll')}</button>
+          </div>
+        )}
+
+        <div className={s.shopLayout}>
+          <aside className={`${s.sidebar} ${filterOpen ? s.sidebarOpen : ''}`}>
+            {uniqueCategories.length > 0 && (
+              <div className={s.filterGroup}>
+                <span className={s.filterGroupLabel}>{t('shop.scentNavigator') || 'Scent Navigator'}</span>
+                <div className={s.filterRow}>
+                  <button className={`${s.filterBtn} ${!category ? s.active : ''}`} onClick={() => updateParam('category', '')}>{t('shop.all')}</button>
+                  {uniqueCategories.map((c) => (
+                    <button key={c} className={`${s.filterBtn} ${category === c ? s.active : ''}`} onClick={() => updateParam('category', c)}>{t(`category.${categoryKey(c)}`, { defaultValue: c })}</button>
+                  ))}
+                </div>
+              </div>
+            )}
             <div className={s.filterGroup}>
-              <span className={s.filterGroupLabel}>{t('shop.showLabel')}</span>
+              <span className={s.filterGroupLabel}>{t('shop.forLabel')}</span>
               <div className={s.filterRow}>
-                {features.new_arrival_shop_filter_enabled && (
-                  <label className={s.filterToggle}>
-                    <input type="checkbox" checked={newArrival} onChange={(e) => updateParam('new_arrival', e.target.checked ? '1' : '')} />
-                    <span>{t('shop.newArrival')}</span>
-                  </label>
-                )}
-                {features.discounted_shop_filter_enabled && (
-                  <label className={s.filterToggle}>
-                    <input type="checkbox" checked={onSale} onChange={(e) => updateParam('on_sale', e.target.checked ? '1' : '')} />
-                    <span>{t('shop.onSale')}</span>
-                  </label>
-                )}
+                <button className={`${s.filterBtn} ${!audience ? s.active : ''}`} onClick={() => updateParam('audience', '')}>{t('shop.all')}</button>
+                <button className={`${s.filterBtn} ${audience === 'men' ? s.active : ''}`} onClick={() => updateParam('audience', 'men')}>{t('product.forHim')}</button>
+                <button className={`${s.filterBtn} ${audience === 'women' ? s.active : ''}`} onClick={() => updateParam('audience', 'women')}>{t('product.forHer')}</button>
+                <button className={`${s.filterBtn} ${audience === 'unisex' ? s.active : ''}`} onClick={() => updateParam('audience', 'unisex')}>{t('product.unisex')}</button>
               </div>
             </div>
-          )}
-        </aside>
-
-        <div className={s.main}>
-          {loading ? (
-            <PageSkeletonGrid count={12} />
-          ) : products.length === 0 ? (
-            <>
-              {apiError && (
-                <div className={s.errorBanner} role="alert">
-                  <p className={s.errorTitle}>{apiError}</p>
-                  <button type="button" onClick={() => { setApiError(null); setRetryCount((c) => c + 1); }} className={s.retryLink}>{t('shop.tryAgain')}</button>
+            {(features.new_arrival_shop_filter_enabled || features.discounted_shop_filter_enabled) && (
+              <div className={s.filterGroup}>
+                <span className={s.filterGroupLabel}>{t('shop.showLabel')}</span>
+                <div className={s.filterRow}>
+                  {features.new_arrival_shop_filter_enabled && (
+                    <label className={s.filterToggle}>
+                      <input type="checkbox" checked={newArrival} onChange={(e) => updateParam('new_arrival', e.target.checked ? '1' : '')} />
+                      <span>{t('shop.newArrival')}</span>
+                    </label>
+                  )}
+                  {features.discounted_shop_filter_enabled && (
+                    <label className={s.filterToggle}>
+                      <input type="checkbox" checked={onSale} onChange={(e) => updateParam('on_sale', e.target.checked ? '1' : '')} />
+                      <span>{t('shop.onSale')}</span>
+                    </label>
+                  )}
                 </div>
-              )}
-              {!apiError && (
-                <EmptyState
-                  title={searchQuery ? t('shop.noResults') : t('shop.noProducts')}
-                  message={searchQuery ? t('shop.tryDifferent') : 'Check back soon or contact us to add products.'}
-                  actionLabel={searchQuery ? t('shop.clearSearch') : t('shop.backToHome')}
-                  actionTo={searchQuery ? undefined : '/'}
-                  onAction={searchQuery ? () => { setSearch(''); setSearchQuery(''); setPage(1); } : undefined}
-                />
-              )}
-            </>
-          ) : (
-            <>
-              <div className={s.grid}>
-                {products.map((p, i) => {
-                  const { name, description } = getProductDisplay(p, locale)
-                  return (
-                    <Link
-                      key={p.id}
-                      to={`/product/${p.id}`}
-                      className={s.card}
-                      style={{ animationDelay: `${i * 0.05}s` }}
-                    >
-                      <div className={s.imageWrap}>
-                        {(p.newArrival || p.onSale || p.stock <= 0) && (
-                          <div className={s.badges}>
-                            {p.newArrival && <span className={s.badgeNew}>{t('product.new')}</span>}
-                            {p.onSale && p.discountPercent > 0 && (
-                              <span className={s.badgeSale}>{t('product.percentOff', { percent: p.discountPercent })}</span>
-                            )}
-                            {p.stock <= 0 && <span className={s.badgeStock}>{t('product.outOfStock')}</span>}
-                          </div>
-                        )}
-                        <img
-                          src={p.imageUrl || 'https://placehold.co/400x500/e2e8f0/94a3b8?text=·'}
-                          alt={name}
-                          loading="lazy"
-                        />
-                      </div>
-                      <div className={s.cardBody}>
-                        <span className={s.category}>{t(`category.${categoryKey(p.category)}`, { defaultValue: p.category || 'Fragrance' })}</span>
-                        {p.audience && (
-                          <span className={s.audience}>
-                            {p.audience === 'men' ? t('product.forHim') : p.audience === 'women' ? t('product.forHer') : t('product.unisex')}
-                          </span>
-                        )}
-                        <h3 className={s.name}>{name}</h3>
-                        {p.notes && p.notes.length > 0 && (
-                          <div className={s.scentNotes}>
-                            {p.notes.slice(0, 3).map((note, idx) => (
-                              <span key={idx} className={s.scentTag}>{note}</span>
-                            ))}
-                          </div>
-                        )}
-                        {description && (
-                          <p className={s.desc}>{description.length > 100 ? description.slice(0, 100) + '…' : description}</p>
-                        )}
-                        {p.rating > 0 && (
-                          <StarRatingDisplay value={p.rating} className={s.cardRating} />
-                        )}
-                        <p className={s.price}>
-                          {p.onSale && p.discountPercent > 0 && p.price != null ? (
-                            <>
-                              <span className={s.originalPrice}>{formatPrice(p.price)}</span>
-                              <span className={s.salePrice}>{formatPrice(p.price * (1 - (p.discountPercent || 0) / 100))}</span>
-                            </>
-                          ) : (
-                            formatPrice(p.price)
-                          )}
-                        </p>
-                      </div>
-                    </Link>
-                  )
-                })}
               </div>
-              {pagination?.totalPages > 1 && (
-                <Pagination
-                  page={page}
-                  totalPages={pagination.totalPages}
-                  total={pagination.total}
-                  onPageChange={setPage}
-                />
-              )}
-            </>
-          )}
+            )}
+          </aside>
+
+          <div className={s.main}>
+            {loading ? (
+              <PageSkeletonGrid count={12} />
+            ) : products.length === 0 ? (
+              <>
+                {apiError && (
+                  <div className={s.errorBanner} role="alert">
+                    <p className={s.errorTitle}>{apiError}</p>
+                    <button type="button" onClick={() => { setApiError(null); setRetryCount((c) => c + 1); }} className={s.retryLink}>{t('shop.tryAgain')}</button>
+                  </div>
+                )}
+                {!apiError && (
+                  <EmptyState
+                    title={searchQuery ? t('shop.noResults') : t('shop.noProducts')}
+                    message={searchQuery ? t('shop.tryDifferent') : 'Check back soon or contact us to add products.'}
+                    actionLabel={searchQuery ? t('shop.clearSearch') : t('shop.backToHome')}
+                    actionTo={searchQuery ? undefined : '/'}
+                    onAction={searchQuery ? () => { setSearch(''); setSearchQuery(''); setPage(1); } : undefined}
+                  />
+                )}
+              </>
+            ) : (
+              <>
+                <div className={s.grid}>
+                  {products.map((p, i) => {
+                    const { name, description } = getProductDisplay(p, locale)
+                    return (
+                      <Link
+                        key={p.id}
+                        to={`/product/${p.id}`}
+                        className={s.card}
+                        style={{ animationDelay: `${i * 0.05}s` }}
+                      >
+                        <div className={s.imageWrap}>
+                          {(p.newArrival || p.onSale || p.stock <= 0) && (
+                            <div className={s.badges}>
+                              {p.newArrival && <span className={s.badgeNew}>{t('product.new')}</span>}
+                              {p.onSale && p.discountPercent > 0 && (
+                                <span className={s.badgeSale}>{t('product.percentOff', { percent: p.discountPercent })}</span>
+                              )}
+                              {p.stock <= 0 && <span className={s.badgeStock}>{t('product.outOfStock')}</span>}
+                            </div>
+                          )}
+                          <img
+                            src={p.imageUrl || 'https://placehold.co/400x500/e2e8f0/94a3b8?text=·'}
+                            alt={name}
+                            loading="lazy"
+                          />
+                        </div>
+                        <div className={s.cardBody}>
+                          <span className={s.category}>{t(`category.${categoryKey(p.category)}`, { defaultValue: p.category || 'Fragrance' })}</span>
+                          {p.audience && (
+                            <span className={s.audience}>
+                              {p.audience === 'men' ? t('product.forHim') : p.audience === 'women' ? t('product.forHer') : t('product.unisex')}
+                            </span>
+                          )}
+                          <h3 className={s.name}>{name}</h3>
+                          {p.notes && p.notes.length > 0 && (
+                            <div className={s.scentNotes}>
+                              {p.notes.slice(0, 3).map((note, idx) => (
+                                <span key={idx} className={s.scentTag}>{note}</span>
+                              ))}
+                            </div>
+                          )}
+                          {description && (
+                            <p className={s.desc}>{description.length > 100 ? description.slice(0, 100) + '…' : description}</p>
+                          )}
+                          {p.rating > 0 && (
+                            <StarRatingDisplay value={p.rating} className={s.cardRating} />
+                          )}
+                          <p className={s.price}>
+                            {p.onSale && p.discountPercent > 0 && p.price != null ? (
+                              <>
+                                <span className={s.originalPrice}>{formatPrice(p.price)}</span>
+                                <span className={s.salePrice}>{formatPrice(p.price * (1 - (p.discountPercent || 0) / 100))}</span>
+                              </>
+                            ) : (
+                              formatPrice(p.price)
+                            )}
+                          </p>
+                        </div>
+                      </Link>
+                    )
+                  })}
+                </div>
+                {pagination?.totalPages > 1 && (
+                  <Pagination
+                    page={page}
+                    totalPages={pagination.totalPages}
+                    total={pagination.total}
+                    onPageChange={setPage}
+                  />
+                )}
+              </>
+            )}
+          </div>
         </div>
       </div>
     </div>

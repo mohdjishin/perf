@@ -39,6 +39,7 @@ func main() {
 	seedCategories()
 	seedSeasonalSaleBanner()
 	seedStoreLocations()
+	seedFeatureFlags()
 	backfillOrderNumbers()
 	backfillAuditOrderNumbers()
 	migrateUserRoleToCustomer()
@@ -345,3 +346,51 @@ func seedStoreLocations() {
 	}
 	logger.Info("Seeded store locations (3 shops)")
 }
+func seedFeatureFlags() {
+	col := database.DB.Collection("features")
+	count, err := col.CountDocuments(context.Background(), bson.M{"_id": "features"})
+	if err != nil || count > 0 {
+		return
+	}
+
+	defaultWhyItems := []models.WhySectionItem{
+		{Title: "Authentic Oud", Description: "Premium agarwood sourced from the finest regions"},
+		{Title: "Dubai Crafted", Description: "Hand-blended by master perfumers in the UAE"},
+		{Title: "Arabian Heritage", Description: "Timeless fragrances that honour tradition"},
+	}
+
+	doc := models.FeatureFlagsDoc{
+		ID:                          "features",
+		NewArrivalSectionEnabled:    true,
+		NewArrivalShopFilterEnabled: true,
+		DiscountedSectionEnabled:    true,
+		DiscountedShopFilterEnabled: true,
+		FeaturedSectionEnabled:      true,
+		SeasonalBannerEnabled:       true,
+		WhySectionEnabled:           true,
+		WhySectionTitle:             "Why Blue Mist Perfumes",
+		WhySectionItems:             defaultWhyItems,
+		I18nEnabled:                 ptrBool(true),
+		StoreLocatorEnabled:         ptrBool(true),
+		SocialEnabled:               ptrBool(false),
+		PersonalizationEnabled:      ptrBool(false),
+		InvoiceCompanyName:          "Blue Mist Perfumes",
+		SignupEnabled:               ptrBool(true),
+		CategorySectionTitle:        "Shop by Collection",
+		CategorySectionLabel:        "Discover Your Scent",
+		HeroSubtitleEn:              "Signature Egyptian Collection",
+		HeroSubtitleAr:              "مجموعة توقيع مصرية",
+		HeroTitleEn:                 "BLUE MIST PERFUMES",
+		HeroTitleAr:                 "بلو ميست للعطور",
+		HeroDescriptionEn:           "Simply put, our perfume is the best. Elevate your presence with our exquisite collection of perfumes and bakhoor.",
+		HeroDescriptionAr:           "بعبارة بسيطة، عطرنا هو الأفضل. ارفع حضورك مع مجموعتنا الراقية من العطور والبخور.",
+		HeroButtonTextEn:            "Explore Collection",
+		HeroButtonTextAr:            "استكشف المجموعة",
+		HeroImages:                  []string{"/images/premium-hero.png"},
+	}
+
+	_, _ = col.InsertOne(context.Background(), doc)
+	logger.Info("Seeded default feature flags")
+}
+
+func ptrBool(b bool) *bool { return &b }

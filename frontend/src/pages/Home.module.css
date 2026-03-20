@@ -41,20 +41,75 @@
   overflow: hidden;
 }
 
-.heroImg {
+.heroImg,
+.heroVideo {
+  position: absolute;
+  top: 0;
+  left: 0;
   width: 100%;
   height: 100%;
   object-fit: cover;
-  transition: transform 1.5s var(--ease-out);
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 1.2s ease-in-out, visibility 1.2s ease-in-out;
 }
 
-.heroFrame:hover .heroImg {
+.active {
+  opacity: 1;
+  visibility: visible;
+  animation: kenBurns 10s linear infinite alternate;
+}
+
+@keyframes kenBurns {
+  from {
+    transform: scale(1);
+  }
+
+  to {
+    transform: scale(1.12);
+  }
+}
+
+.heroFrame:hover .heroImg,
+.heroFrame:hover .heroVideo {
   transform: scale(1.05);
 }
 
 .heroContent {
   display: contents;
   /* logic placeholder if needed */
+}
+
+.heroDots {
+  position: absolute;
+  bottom: var(--space-xl);
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: var(--space-sm);
+  z-index: 5;
+}
+
+.heroDot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.4);
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  padding: 0;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.heroDot:hover {
+  background: rgba(255, 255, 255, 0.7);
+}
+
+.activeDot {
+  background: #fff;
+  width: 20px;
+  border-radius: 4px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
 }
 
 .heroEyebrow {
