@@ -55,6 +55,8 @@
   align-items: center;
   gap: var(--space-md);
   margin-bottom: var(--space-lg);
+  width: 100%;
+  overflow: hidden;
 }
 
 .searchWrap {
@@ -365,7 +367,7 @@
     width: 100%;
     max-height: 0;
     overflow: hidden;
-    padding: 0 var(--space-lg);
+    padding: 0;
     border: none;
     background: transparent;
     transition: max-height 0.38s ease;
@@ -425,7 +427,7 @@
   aspect-ratio: 4/5;
   overflow: hidden;
   position: relative;
-  background: linear-gradient(145deg, #f5ede0, #ede2c8);
+  background: var(--color-surface-elevated);
 }
 
 .badges {

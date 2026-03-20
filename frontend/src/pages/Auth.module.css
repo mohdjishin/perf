@@ -6,10 +6,7 @@
   justify-content: center;
   padding: var(--space-2xl) var(--space-lg);
   animation: fadeIn 0.6s var(--ease-out) both;
-  background:
-    radial-gradient(ellipse 80% 50% at 50% -10%, rgba(201, 168, 76, 0.12) 0%, transparent 70%),
-    radial-gradient(circle at 10% 90%, rgba(212, 149, 106, 0.08) 0%, transparent 40%),
-    var(--color-bg);
+  background: var(--color-bg);
 }
 
 .authWrap {

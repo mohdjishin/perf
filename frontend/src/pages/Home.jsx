@@ -105,7 +105,11 @@ export default function Home() {
           {['oud', 'floral', 'woody', 'musk'].map((cat) => (
             <Link key={cat} to={`/shop?category=${cat}`} className={s.catCard}>
               <div className={s.catImageWrap}>
-                <img src={`/images/cat-${cat}.jpg`} alt={cat} onError={(e) => e.target.src = 'https://placehold.co/300x300/e2e8f0/94a3b8?text=·'} />
+                <img
+                  src={cat === 'musk' ? 'https://placehold.co/600x600/fdf8f0/caa04e?text=Musk+Collection' : `/images/cat-${cat}.jpg`}
+                  alt={cat}
+                  onError={(e) => e.target.src = 'https://placehold.co/300x300/e2e8f0/94a3b8?text=·'}
+                />
               </div>
               <span className={s.catName}>{t(`category.${cat}`, { defaultValue: cat })}</span>
             </Link>

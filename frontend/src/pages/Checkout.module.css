@@ -304,6 +304,13 @@
   margin-bottom: var(--space-lg);
 }
 
+@media (max-width: 600px) {
+  .row {
+    grid-template-columns: 1fr;
+    gap: var(--space-sm);
+  }
+}
+
 .row .input {
   margin-bottom: 0;
 }

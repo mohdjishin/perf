@@ -240,9 +240,12 @@
   aspect-ratio: 1;
   border-radius: 50%;
   overflow: hidden;
-  margin-bottom: var(--space-xl);
+  margin-bottom: var(--space-lg);
   background: var(--color-surface-elevated);
   box-shadow: 0 10px 40px rgba(0, 0, 0, 0.05);
+  border: 4px solid #fff;
+  /* myop style white ring */
+  transition: border-color var(--transition), transform var(--transition);
 }
 
 .catImageWrap img {
