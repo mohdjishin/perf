@@ -80,6 +80,7 @@ func GetFeatureFlags(c *gin.Context) {
 			"marquee_section_enabled":    true,
 			"marquee_items_en":           []string{"Long Lasting", "Premium Quality", "Cruelty Free"},
 			"marquee_items_ar":           []string{"يدوم طويلاً", "جودة ممتازة", "خالٍ من القسوة"},
+			"home_cache_enabled":         true,
 		}
 
 		if isSuperAdmin {
@@ -164,6 +165,10 @@ func GetFeatureFlags(c *gin.Context) {
 	if doc.MarqueeSectionEnabled != nil {
 		marqueeSectionEnabled = *doc.MarqueeSectionEnabled
 	}
+	homeCacheEnabled := true
+	if doc.HomeCacheEnabled != nil {
+		homeCacheEnabled = *doc.HomeCacheEnabled
+	}
 	marqueeItemsEn := doc.MarqueeItemsEn
 	if len(marqueeItemsEn) == 0 {
 		marqueeItemsEn = []string{"Long Lasting", "Premium Quality", "Cruelty Free"}
@@ -224,6 +229,7 @@ func GetFeatureFlags(c *gin.Context) {
 		"marquee_section_enabled":         marqueeSectionEnabled,
 		"marquee_items_en":                marqueeItemsEn,
 		"marquee_items_ar":                marqueeItemsAr,
+		"home_cache_enabled":              homeCacheEnabled,
 	}
 
 	if isSuperAdmin {
@@ -286,6 +292,7 @@ type UpdateFeatureFlagsRequest struct {
 	MarqueeSectionEnabled       *bool                    `json:"marquee_section_enabled"`
 	MarqueeItemsEn              *[]string                `json:"marquee_items_en"`
 	MarqueeItemsAr              *[]string                `json:"marquee_items_ar"`
+	HomeCacheEnabled            *bool                    `json:"home_cache_enabled"`
 }
 
 // UpdateFeatureFlags updates feature flags. Only super_admin may call this; route is protected by RequireSuperAdmin. Upserts the document in the features collection.
@@ -500,6 +507,10 @@ func UpdateFeatureFlags(c *gin.Context) {
 	if req.MarqueeItemsAr != nil {
 		doc.MarqueeItemsAr = *req.MarqueeItemsAr
 	}
+	if req.HomeCacheEnabled != nil {
+		v := *req.HomeCacheEnabled
+		doc.HomeCacheEnabled = &v
+	}
 
 	// Apply robust defaults for any remaining empty fields before saving
 	if doc.WhySectionTitle == "" {
@@ -545,6 +556,9 @@ func UpdateFeatureFlags(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
+
+	HomeCache.Clear() // Invalidate home cache
+	SyncGlobalSettings()
 	c.JSON(http.StatusOK, gin.H{
 		"new_arrival_section_enabled":     doc.NewArrivalSectionEnabled,
 		"new_arrival_shop_filter_enabled": doc.NewArrivalShopFilterEnabled,
@@ -598,6 +612,7 @@ func UpdateFeatureFlags(c *gin.Context) {
 		"marquee_section_enabled":         docMarqueeSectionEnabled(doc.MarqueeSectionEnabled),
 		"marquee_items_en":                doc.MarqueeItemsEn,
 		"marquee_items_ar":                doc.MarqueeItemsAr,
+		"home_cache_enabled":              docHomeCacheEnabled(doc.HomeCacheEnabled),
 	})
 }
 
@@ -687,6 +702,13 @@ func docTelegramEnabled(p *bool) bool {
 func docPersonalizationEnabled(p *bool) bool {
 	if p == nil {
 		return false
+	}
+	return *p
+}
+
+func docHomeCacheEnabled(p *bool) bool {
+	if p == nil {
+		return true
 	}
 	return *p
 }

@@ -344,13 +344,14 @@ func CreateProduct(c *gin.Context) {
 	if product.Audience != "men" && product.Audience != "women" && product.Audience != "unisex" {
 		product.Audience = ""
 	}
-
 	col := database.DB.Collection("products")
 	_, err := col.InsertOne(context.Background(), product)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
+
+	HomeCache.Clear() // Invalidate home cache
 
 	details := map[string]interface{}{
 		"request": map[string]interface{}{
@@ -506,6 +507,8 @@ func UpdateProduct(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
+
+	HomeCache.Clear() // Invalidate home cache
 	if res.MatchedCount == 0 {
 		c.JSON(http.StatusNotFound, gin.H{"error": "Product not found"})
 		return
@@ -539,6 +542,8 @@ func DeleteProduct(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
+
+	HomeCache.Clear() // Invalidate home cache
 	if res.MatchedCount == 0 {
 		c.JSON(http.StatusNotFound, gin.H{"error": "Product not found"})
 		return

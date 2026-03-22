@@ -181,6 +181,8 @@ func UpdateSeasonalSaleBanner(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
+
+	HomeCache.Clear() // Invalidate home cache
 	active := doc.Enabled
 	if active && (doc.StartDate != "" || doc.EndDate != "") {
 		now := time.Now().UTC().Format("2006-01-02")

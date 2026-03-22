@@ -154,6 +154,8 @@ func CreateCategory(c *gin.Context) {
 		return
 	}
 
+	HomeCache.Clear() // Invalidate home cache
+
 	c.JSON(http.StatusCreated, gin.H{
 		"id":       doc["_id"].(primitive.ObjectID).Hex(),
 		"name":     req.Name,
@@ -201,6 +203,8 @@ func UpdateCategory(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update category"})
 		return
 	}
+
+	HomeCache.Clear() // Invalidate home cache
 
 	// If name changed, update products that use this category name
 	if oldCat.Name != req.Name {
@@ -279,6 +283,7 @@ func DeleteCategory(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Products use this category; specify moveProductsTo to move them to another category"})
 		return
 	}
+	HomeCache.Clear() // Invalidate home cache
 	c.JSON(http.StatusOK, gin.H{"ok": true})
 }
 

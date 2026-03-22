@@ -4,9 +4,12 @@ import (
 	"context"
 	"net/http"
 	"sync"
+	"time"
 
+	"perfume-store/config"
 	"perfume-store/database"
-	"perfume-store/models"
+
+	"perfume-store/utils"
 
 	"github.com/gin-gonic/gin"
 	"go.mongodb.org/mongo-driver/bson"
@@ -17,110 +20,214 @@ import (
 
 const settingsDocIDForHome = "features"
 
-// GetHomePayload returns features plus featured products (6), new arrivals (4), and discounted (4) in one response for the home page.
+var (
+	GlobalHomeCacheEnabled bool = true
+	globalSettingsMu       sync.RWMutex
+)
+
+// SyncGlobalSettings updates the global settings from the database.
+func SyncGlobalSettings() {
+	if database.DB == nil {
+		return
+	}
+	col := database.DB.Collection("features")
+	var doc struct {
+		HomeCacheEnabled *bool `bson:"home_cache_enabled"`
+	}
+	err := col.FindOne(context.Background(), bson.M{"_id": settingsDocIDForHome}).Decode(&doc)
+	enabled := true
+	if err == nil && doc.HomeCacheEnabled != nil {
+		enabled = *doc.HomeCacheEnabled
+	}
+
+	globalSettingsMu.Lock()
+	GlobalHomeCacheEnabled = enabled
+	globalSettingsMu.Unlock()
+}
+
+type WhyItem struct {
+	Title       string `bson:"title" json:"title"`
+	Description string `bson:"description" json:"description"`
+}
+
+type HomeData struct {
+	Features    gin.H   `json:"features"`
+	Products    []gin.H `json:"products,omitempty"`
+	NewArrivals []gin.H `json:"new_arrivals,omitempty"`
+	Discounted  []gin.H `json:"discounted,omitempty"`
+	Categories  []gin.H `json:"categories,omitempty"`
+	Banner      gin.H   `json:"banner,omitempty"`
+}
+
+var HomeCache = utils.NewMemoryCache[HomeData]()
+
+// GetHomePayload returns features plus featured products, new arrivals, and discounted products.
+// It uses an in-memory cache with configurable TTL and singleflight protection to prevent stampedes.
 func GetHomePayload(c *gin.Context) {
 	if database.DB == nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "database not connected"})
 		return
 	}
-	role := c.GetString("user_role")
-	activeOnly := role != string(models.RoleAdmin) && role != string(models.RoleSuperAdmin)
 
-	// 1. Features
-	features := getFeaturesPayload(c)
-	if features == nil {
+	activeOnly := true
+	if c.Query("admin") == "true" {
+		activeOnly = false
+	}
+
+	// 0. Cache Selection
+	cacheKey := "home_data_public"
+	if !activeOnly {
+		cacheKey = "home_data_admin"
+	}
+
+	globalSettingsMu.RLock()
+	cacheEnabled := GlobalHomeCacheEnabled
+	globalSettingsMu.RUnlock()
+
+	ttl := time.Duration(config.AppConfig.HomeCacheTTL) * time.Second
+
+	var payload HomeData
+	var err error
+
+	if cacheEnabled && ttl > 0 {
+		payload, err = HomeCache.GetOrSet(cacheKey, ttl, func() (HomeData, error) {
+			return fetchHomeDataFromDB(c, activeOnly)
+		})
+	} else {
+		payload, err = fetchHomeDataFromDB(c, activeOnly)
+	}
+
+	if err != nil {
+		if err == context.Canceled {
+			return
+		}
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
-	// 2. Product lists (featured 6, new arrivals 4, discounted 4) — run in parallel for lower latency
+	c.JSON(http.StatusOK, payload)
+}
+
+// fetchHomeDataFromDB is the core logic that fetches all enabled sections for the home page.
+func fetchHomeDataFromDB(c *gin.Context, activeOnly bool) (HomeData, error) {
+	// 1. Fetch Features first - we need them to decide what else to fetch
+	features := getFeaturesPayload(c)
+	if features == nil {
+		return HomeData{}, context.Canceled
+	}
+
+	isEnabled := func(key string) bool {
+		if val, ok := features[key]; ok {
+			if b, ok := val.(bool); ok {
+				return b
+			}
+		}
+		return false
+	}
+
+	ctx := c.Request.Context()
 	col := database.DB.Collection("products")
 	baseFilter := bson.M{}
 	if activeOnly {
 		baseFilter["active"] = true
 	}
-	proj := options.Find().SetSort(bson.D{{Key: "created_at", Value: -1}}).SetProjection(bson.M{"updated_at": 0})
-	ctx := context.Background()
 
 	var featured, newArrivals, discounted []gin.H
 	var homeCategories []gin.H
+	var banner gin.H
 	var wg sync.WaitGroup
-	wg.Add(4)
 
-	go func() {
-		defer wg.Done()
-		cursor, err := col.Find(ctx, baseFilter, proj.SetLimit(6))
-		if err == nil {
-			featured = decodeProductsToItems(cursor)
-			cursor.Close(ctx)
-		}
-	}()
-	go func() {
-		defer wg.Done()
-		f := bson.M{}
-		for k, v := range baseFilter {
-			f[k] = v
-		}
-		f["new_arrival"] = true
-		cursor, err := col.Find(ctx, f, proj.SetLimit(4))
-		if err == nil {
-			newArrivals = decodeProductsToItems(cursor)
-			cursor.Close(ctx)
-		}
-	}()
-	go func() {
-		defer wg.Done()
-		f := bson.M{}
-		for k, v := range baseFilter {
-			f[k] = v
-		}
-		f["on_sale"] = true
-		cursor, err := col.Find(ctx, f, proj.SetLimit(4))
-		if err == nil {
-			discounted = decodeProductsToItems(cursor)
-			cursor.Close(ctx)
-		}
-	}()
-	go func() {
-		defer wg.Done()
-		catCol := database.DB.Collection("categories")
-		cursor, err := catCol.Find(ctx, bson.M{}, options.Find().SetSort(bson.D{{Key: "name", Value: 1}}))
-		if err == nil {
-			var cats []struct {
-				ID       primitive.ObjectID `bson:"_id"`
-				Name     string             `bson:"name"`
-				ImageURL string             `bson:"image_url"`
+	// 2. Conditionally fetch based on features
+	if isEnabled("featured_section_enabled") {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			cursor, err := col.Find(ctx, baseFilter, options.Find().SetLimit(6).SetSort(bson.D{{Key: "rating", Value: -1}}).SetProjection(bson.M{"updated_at": 0}))
+			if err == nil {
+				featured = decodeProductsToItems(cursor)
+				cursor.Close(ctx)
 			}
-			if cursor.All(ctx, &cats) == nil {
-				homeCategories = make([]gin.H, len(cats))
-				for i, cat := range cats {
-					homeCategories[i] = gin.H{
-						"id":       cat.ID.Hex(),
-						"name":     cat.Name,
-						"imageUrl": cat.ImageURL,
+		}()
+	}
+
+	if isEnabled("new_arrival_section_enabled") {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			naFilter := bson.M{}
+			for k, v := range baseFilter {
+				naFilter[k] = v
+			}
+			naFilter["new_arrival"] = true
+			cursor, err := col.Find(ctx, naFilter, options.Find().SetLimit(4).SetSort(bson.D{{Key: "created_at", Value: -1}}).SetProjection(bson.M{"updated_at": 0}))
+			if err == nil {
+				newArrivals = decodeProductsToItems(cursor)
+				cursor.Close(ctx)
+			}
+		}()
+	}
+
+	if isEnabled("discounted_section_enabled") {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			saleFilter := bson.M{}
+			for k, v := range baseFilter {
+				saleFilter[k] = v
+			}
+			saleFilter["on_sale"] = true
+			cursor, err := col.Find(ctx, saleFilter, options.Find().SetLimit(4).SetSort(bson.D{{Key: "discount_percent", Value: -1}}).SetProjection(bson.M{"updated_at": 0}))
+			if err == nil {
+				discounted = decodeProductsToItems(cursor)
+				cursor.Close(ctx)
+			}
+		}()
+	}
+
+	if isEnabled("category_section_enabled") {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			catCol := database.DB.Collection("categories")
+			cursor, err := catCol.Find(ctx, bson.M{}, options.Find().SetLimit(10))
+			if err == nil {
+				var cats []struct {
+					ID       primitive.ObjectID `bson:"_id"`
+					Name     string             `bson:"name"`
+					ImageURL string             `bson:"image_url"`
+				}
+				if cursor.All(ctx, &cats) == nil {
+					homeCategories = make([]gin.H, len(cats))
+					for i, cat := range cats {
+						homeCategories[i] = gin.H{
+							"id":       cat.ID.Hex(),
+							"name":     cat.Name,
+							"imageUrl": cat.ImageURL,
+						}
 					}
 				}
+				cursor.Close(ctx)
 			}
-			cursor.Close(ctx)
-		}
-	}()
+		}()
+	}
+
+	if isEnabled("seasonal_banner_enabled") {
+		banner = getSeasonalBannerPayload(ctx)
+	}
+
 	wg.Wait()
 
-	// Include banner so Home can show it without a second request
-	c.JSON(http.StatusOK, gin.H{
-		"features":     features,
-		"products":     featured,
-		"new_arrivals": newArrivals,
-		"discounted":   discounted,
-		"categories":   homeCategories,
-		"banner":       getSeasonalBannerPayload(ctx),
-	})
+	return HomeData{
+		Features:    features,
+		Products:    featured,
+		NewArrivals: newArrivals,
+		Discounted:  discounted,
+		Categories:  homeCategories,
+		Banner:      banner,
+	}, nil
 }
 
 func getFeaturesPayload(c *gin.Context) gin.H {
-	type whyItem struct {
-		Title       string `bson:"title"`
-		Description string `bson:"description"`
-	}
 	col := database.DB.Collection("features")
 	var doc struct {
 		NewArrivalSectionEnabled    bool      `bson:"new_arrival_section_enabled"`
@@ -131,7 +238,7 @@ func getFeaturesPayload(c *gin.Context) gin.H {
 		SeasonalBannerEnabled       bool      `bson:"seasonal_banner_enabled"`
 		WhySectionEnabled           bool      `bson:"why_section_enabled"`
 		WhySectionTitle             string    `bson:"why_section_title"`
-		WhySectionItems             []whyItem `bson:"why_section_items"`
+		WhySectionItems             []WhyItem `bson:"why_section_items"`
 		I18nEnabled                 *bool     `bson:"i18n_enabled,omitempty"`
 		SocialEnabled               *bool     `bson:"social_enabled,omitempty"`
 		SocialFacebook              string    `bson:"social_facebook"`
@@ -157,24 +264,21 @@ func getFeaturesPayload(c *gin.Context) gin.H {
 		MarqueeSectionEnabled       *bool     `bson:"marquee_section_enabled,omitempty"`
 		MarqueeItemsEn              []string  `bson:"marquee_items_en"`
 		MarqueeItemsAr              []string  `bson:"marquee_items_ar"`
+		HomeCacheEnabled            *bool     `bson:"home_cache_enabled,omitempty"`
 	}
-	defaultWhy := []whyItem{
+	defaultWhy := []WhyItem{
 		{Title: "Authentic Oud", Description: "Premium agarwood sourced from the finest regions"},
 		{Title: "Dubai Crafted", Description: "Hand-blended by master perfumers in the UAE"},
 		{Title: "Arabian Heritage", Description: "Timeless fragrances that honour tradition"},
 	}
 	err := col.FindOne(context.Background(), bson.M{"_id": settingsDocIDForHome}).Decode(&doc)
 	if err != nil {
-		defaultWhyItems := make([]gin.H, len(defaultWhy))
-		for i, it := range defaultWhy {
-			defaultWhyItems[i] = gin.H{"title": it.Title, "description": it.Description}
-		}
 		return gin.H{
 			"new_arrival_section_enabled": true, "new_arrival_shop_filter_enabled": true,
 			"discounted_section_enabled": true, "discounted_shop_filter_enabled": true,
 			"featured_section_enabled": true, "seasonal_banner_enabled": true,
 			"why_section_enabled": true, "why_section_title": "Why Blue Mist Perfumes",
-			"why_section_items": defaultWhyItems,
+			"why_section_items": defaultWhy,
 			"i18n_enabled":      true,
 			"social_enabled":    false,
 			"social_facebook":   "", "social_facebook_enabled": true,
@@ -196,6 +300,7 @@ func getFeaturesPayload(c *gin.Context) gin.H {
 			"marquee_section_enabled":  true,
 			"marquee_items_en":         []string{"Long Lasting", "Premium Quality", "Cruelty Free"},
 			"marquee_items_ar":         []string{"يدوم طويلاً", "جودة ممتازة", "خالٍ من القسوة"},
+			"home_cache_enabled":       true,
 		}
 	}
 	if doc.WhySectionItems == nil {
@@ -204,24 +309,32 @@ func getFeaturesPayload(c *gin.Context) gin.H {
 	if doc.WhySectionTitle == "" {
 		doc.WhySectionTitle = "Why Blue Mist Perfumes"
 	}
-	// Serialize why items with lowercase keys so frontend gets "title" and "description"
-	whyItems := make([]gin.H, len(doc.WhySectionItems))
-	for i, it := range doc.WhySectionItems {
-		whyItems[i] = gin.H{"title": it.Title, "description": it.Description}
-	}
-	i18nEnabled := true
+
+	i18nEn := true
 	if doc.I18nEnabled != nil {
-		i18nEnabled = *doc.I18nEnabled
+		i18nEn = *doc.I18nEnabled
 	}
-	socialEnabled := false
+	socialEn := false
 	if doc.SocialEnabled != nil {
-		socialEnabled = *doc.SocialEnabled
+		socialEn = *doc.SocialEnabled
 	}
 	socialPlatformEnabled := func(p *bool) bool {
 		if p == nil {
 			return true
 		}
 		return *p
+	}
+	categorySectionEnabled := true
+	if doc.CategorySectionEnabled != nil {
+		categorySectionEnabled = *doc.CategorySectionEnabled
+	}
+	marqueeSectionEnabled := true
+	if doc.MarqueeSectionEnabled != nil {
+		marqueeSectionEnabled = *doc.MarqueeSectionEnabled
+	}
+	homeCacheEnabled := true
+	if doc.HomeCacheEnabled != nil {
+		homeCacheEnabled = *doc.HomeCacheEnabled
 	}
 	return gin.H{
 		"new_arrival_section_enabled":     doc.NewArrivalSectionEnabled,
@@ -232,9 +345,9 @@ func getFeaturesPayload(c *gin.Context) gin.H {
 		"seasonal_banner_enabled":         doc.SeasonalBannerEnabled,
 		"why_section_enabled":             doc.WhySectionEnabled,
 		"why_section_title":               doc.WhySectionTitle,
-		"why_section_items":               whyItems,
-		"i18n_enabled":                    i18nEnabled,
-		"social_enabled":                  socialEnabled,
+		"why_section_items":               doc.WhySectionItems,
+		"i18n_enabled":                    i18nEn,
+		"social_enabled":                  socialEn,
 		"social_facebook":                 doc.SocialFacebook,
 		"social_facebook_enabled":         socialPlatformEnabled(doc.SocialFacebookEnabled),
 		"social_instagram":                doc.SocialInstagram,
@@ -254,10 +367,11 @@ func getFeaturesPayload(c *gin.Context) gin.H {
 		"hero_button_text_en":             doc.HeroButtonTextEn,
 		"hero_button_text_ar":             doc.HeroButtonTextAr,
 		"hero_images":                     doc.HeroImages,
-		"category_section_enabled":        docCategorySectionEnabled(doc.CategorySectionEnabled),
-		"marquee_section_enabled":         docMarqueeSectionEnabled(doc.MarqueeSectionEnabled),
+		"category_section_enabled":        categorySectionEnabled,
+		"marquee_section_enabled":         marqueeSectionEnabled,
 		"marquee_items_en":                docMarqueeItemsEn(doc.MarqueeItemsEn),
 		"marquee_items_ar":                docMarqueeItemsAr(doc.MarqueeItemsAr),
+		"home_cache_enabled":              homeCacheEnabled,
 	}
 }
 

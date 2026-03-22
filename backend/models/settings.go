@@ -60,6 +60,7 @@ type FeatureFlags struct {
 	MarqueeSectionEnabled       bool             `json:"marquee_section_enabled"`
 	MarqueeItemsEn              []string         `json:"marquee_items_en"`
 	MarqueeItemsAr              []string         `json:"marquee_items_ar"`
+	HomeCacheEnabled            bool             `json:"home_cache_enabled"`
 }
 
 // FeatureFlagsDoc is the stored document in MongoDB.
@@ -115,4 +116,5 @@ type FeatureFlagsDoc struct {
 	MarqueeSectionEnabled       *bool            `bson:"marquee_section_enabled,omitempty"`
 	MarqueeItemsEn              []string         `bson:"marquee_items_en"`
 	MarqueeItemsAr              []string         `bson:"marquee_items_ar"`
+	HomeCacheEnabled            *bool            `bson:"home_cache_enabled,omitempty"`
 }

@@ -8,6 +8,7 @@ import (
 
 	"perfume-store/config"
 	"perfume-store/database"
+	"perfume-store/handlers"
 	"perfume-store/logger"
 	"perfume-store/middleware"
 	"perfume-store/models"
@@ -40,6 +41,7 @@ func main() {
 	seedSeasonalSaleBanner()
 	seedStoreLocations()
 	seedFeatureFlags()
+	handlers.SyncGlobalSettings()
 	backfillOrderNumbers()
 	backfillAuditOrderNumbers()
 	migrateUserRoleToCustomer()

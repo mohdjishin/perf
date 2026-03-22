@@ -3,6 +3,7 @@ package config
 import (
 	"encoding/json"
 	"os"
+	"strconv"
 	"strings"
 
 	"perfume-store/logger"
@@ -22,6 +23,7 @@ type Config struct {
 	StripePublishableKey string   `json:"stripe_publishable_key"`
 	StripeWebhookSecret  string   `json:"stripe_webhook_secret"`
 	FrontendURL          string   `json:"frontend_url"`
+	HomeCacheTTL         int      `json:"home_cache_ttl"` // in seconds
 }
 
 var AppConfig *Config
@@ -41,6 +43,7 @@ func Load(configPath string) {
 		StripePublishableKey: "pk_test_dummy",
 		StripeWebhookSecret:  "whsec_dummy",
 		FrontendURL:          "http://localhost:5173",
+		HomeCacheTTL:         300,
 	}
 
 	// 2. Try to load from config.json (if it exists)
@@ -90,6 +93,9 @@ func Load(configPath string) {
 			if jsonConfig.FrontendURL != "" {
 				AppConfig.FrontendURL = jsonConfig.FrontendURL
 			}
+			if jsonConfig.HomeCacheTTL > 0 {
+				AppConfig.HomeCacheTTL = jsonConfig.HomeCacheTTL
+			}
 		}
 	}
 
@@ -134,6 +140,11 @@ func Load(configPath string) {
 	}
 	if env := os.Getenv("FRONTEND_URL"); env != "" {
 		AppConfig.FrontendURL = env
+	}
+	if env := os.Getenv("HOME_CACHE_TTL"); env != "" {
+		if val, err := strconv.Atoi(env); err == nil && val > 0 {
+			AppConfig.HomeCacheTTL = val
+		}
 	}
 
 	// Production safety check (Optional, but good practice)
