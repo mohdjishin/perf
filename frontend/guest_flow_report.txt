@@ -1,8 +1,0 @@
-
-Running 2 tests using 1 worker
-
-[QA] Auditing Guest Discovery on Desktop
-  ✓  1 [chromium] › e2e/comprehensive-audit.spec.js:42:5 › Expert QA Audit: Guest Role › 1. Guest: Visual & Discovery Audit (1.8s)
-  ✓  2 [chromium] › e2e/comprehensive-audit.spec.js:62:5 › Expert QA Audit: Guest Role › 2. Guest: Security Check (2.2s)
-
-  2 passed (5.9s)
