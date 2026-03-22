@@ -336,7 +336,7 @@
     top: 57px;
     /* Adjust if seasonal banner is present */
     left: 0;
-    width: 100vw;
+    width: 100%;
     flex-direction: column;
     align-items: stretch;
     padding: 0 var(--space-lg);
@@ -345,15 +345,16 @@
     border-bottom: 1px solid var(--color-border);
     box-shadow: 0 10px 40px rgba(44, 31, 14, 0.1);
     gap: 0;
-    max-height: 0;
-    overflow: hidden;
     opacity: 0;
-    transition: max-height var(--transition-slow), opacity var(--transition), padding var(--transition);
+    transform: translateY(-10px);
+    pointer-events: none;
+    transition: transform var(--transition-slow), opacity var(--transition);
   }
 
   .linksOpen {
-    max-height: 480px;
+    transform: translateY(0);
     opacity: 1;
+    pointer-events: auto;
     padding: var(--space-md) var(--space-lg);
   }
 

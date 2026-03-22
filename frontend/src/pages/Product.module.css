@@ -368,7 +368,8 @@
 
 .addBtn {
   flex: 1;
-  min-width: 140px;
+  min-width: 0;
+  /* Allow shrinking on very small mobile */
   min-height: var(--touch-min, 44px);
   padding: 0.8rem var(--space-xl);
   background: var(--color-accent);

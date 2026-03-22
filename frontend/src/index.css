@@ -58,11 +58,26 @@
   --focus-ring: 2px solid var(--color-accent);
   --focus-offset: 2px;
 
+  /* Navbar height global variable */
+  --nav-height: 80px;
+
   /* Breakpoints */
   --bp-sm: 480px;
   --bp-md: 768px;
   --bp-lg: 1024px;
   --bp-xl: 1280px;
+}
+
+@media (max-width: 768px) {
+  :root {
+    --nav-height: 64px;
+  }
+}
+
+@media (max-width: 480px) {
+  :root {
+    --nav-height: 56px;
+  }
 }
 
 * {
@@ -76,6 +91,8 @@ html {
   -moz-osx-font-smoothing: grayscale;
   scroll-behavior: smooth;
   direction: ltr;
+  width: 100%;
+  overflow-x: hidden;
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -89,6 +106,8 @@ body {
   background: var(--color-bg);
   color: var(--color-text);
   min-height: 100vh;
+  width: 100%;
+  overflow-x: hidden;
   line-height: 1.65;
   font-size: 15px;
   direction: ltr;
@@ -415,6 +434,8 @@ select {
 .layout {
   position: relative;
   min-height: 100vh;
+  width: 100%;
+  overflow-x: hidden;
   display: flex;
   flex-direction: column;
 }
@@ -422,6 +443,7 @@ select {
 .layoutMain {
   flex: 1;
   min-width: 0;
+  padding-top: var(--nav-height);
 }
 
 .animate-fade-in {
@@ -460,7 +482,8 @@ select {
 
 @media (max-width: 480px) {
   .container {
-    padding: 0 var(--space-sm);
+    padding: 0 var(--space-md);
+    /* Use md for consistency on small mobile */
   }
 }
 

@@ -157,7 +157,8 @@
   .heroFrame {
     flex-direction: column;
     min-height: auto;
-    border-radius: 24px;
+    border-radius: 20px;
+    /* Reduced for mobile */
   }
 
   .heroTextSide {
@@ -182,12 +183,21 @@
 }
 
 @media (max-width: 480px) {
+  .hero {
+    padding: 100px var(--space-md) var(--space-xl);
+  }
+
+  .heroFrame {
+    border-radius: 12px;
+  }
+
   .heroTitle {
-    font-size: 2.2rem;
+    font-size: 2.22rem;
+    letter-spacing: 0.01em;
   }
 
   .heroImageSide {
-    height: 300px;
+    height: 280px;
   }
 }
 
@@ -298,6 +308,23 @@
 
   .catCard {
     flex: 0 0 160px;
+    animation: fadeInUp 0.5s var(--ease-out) both;
+  }
+
+  .catCard:nth-child(1) {
+    animation-delay: 0.1s;
+  }
+
+  .catCard:nth-child(2) {
+    animation-delay: 0.2s;
+  }
+
+  .catCard:nth-child(3) {
+    animation-delay: 0.3s;
+  }
+
+  .catCard:nth-child(4) {
+    animation-delay: 0.4s;
   }
 
   .catImageWrap {

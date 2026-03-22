@@ -370,11 +370,17 @@
     padding: 0;
     border: none;
     background: transparent;
-    transition: max-height 0.38s ease;
+    opacity: 0;
+    transform: translateY(-10px);
+    pointer-events: none;
+    transition: transform 0.4s var(--ease-out), opacity 0.3s var(--ease-out);
   }
 
   .sidebarOpen {
-    max-height: 460px;
+    max-height: none;
+    opacity: 1;
+    transform: translateY(0);
+    pointer-events: auto;
     padding: var(--space-lg);
     margin-bottom: var(--space-lg);
     background: var(--color-surface);
@@ -397,7 +403,17 @@
 @media (max-width: 480px) {
   .grid {
     grid-template-columns: repeat(2, 1fr);
-    gap: var(--space-md);
+    gap: 12px;
+    /* Denser on mobile */
+  }
+
+  .cardBody {
+    padding: 10px;
+  }
+
+  .name {
+    font-size: 0.8rem;
+    margin: 4px 0;
   }
 }
 
