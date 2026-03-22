@@ -246,7 +246,7 @@ export default function Product() {
               {display.description || t('product.defaultDescription')}
             </p>
 
-            {/* Scent Profile — MYOP Inspired */}
+            {/* Scent Profile —  Inspired */}
             {(product.topNote || product.heartNote || product.baseNote || (Array.isArray(product.notes) && product.notes.length > 0)) && (
               <div className={s.scentProfile}>
                 <h3 className={s.subHeading}>{t('product.scentProfile')}</h3>
@@ -278,7 +278,7 @@ export default function Product() {
               </div>
             )}
 
-            {/* Personalization — MYOP Inspired */}
+            {/* Personalization —  Inspired */}
             {user?.role === 'customer' && personalizationEnabled && (
               <div className={s.personalization}>
                 <h3 className={s.subHeading}>{t('product.personalize')}</h3>
