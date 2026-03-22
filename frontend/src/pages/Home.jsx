@@ -160,7 +160,7 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Marquee strip — as seen on myop top bar/section */}
+      {/* Marquee strip — as seen on  top bar/section */}
       {globalFeatures.marqueeSectionEnabled && globalFeatures.marqueeItems && globalFeatures.marqueeItems.length > 0 && (
         <div className={s.marqueeOuter}>
           <div className={s.marqueeTrack}>
@@ -178,7 +178,7 @@ export default function Home() {
         </div>
       )}
 
-      {/* Category Grid — Shop by Scent (myop style circles/squares) */}
+      {/* Category Grid — Shop by Scent ( style circles/squares) */}
       {globalFeatures.categorySectionEnabled && (
         <section className={s.categories} aria-labelledby="cat-heading">
           <div className={s.sectionHeaderCentered}>
