@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
-import { api, uploadFile } from '../../api/client'
+import { api, uploadFile, getMediaUrl } from '../../api/client'
 import s from './SuperAdmin.module.css'
 import f from './Features.module.css'
 import { Toast } from '../../components/Toast'
@@ -372,7 +372,7 @@ export default function SuperAdminFeatures() {
                           }}
                           placeholder="Image URL"
                         />
-                        {img && <img src={img} alt="" className={f.inputPreview} />}
+                        {img && <img src={getMediaUrl(img)} alt="" className={f.inputPreview} />}
                       </div>
                       <input
                         type="file"

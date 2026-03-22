@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { useAuth } from '../context/AuthContext'
+import { getMediaUrl } from '../api/client'
 import { useCart } from '../context/CartContext'
 import { useFeatures } from '../context/FeaturesContext'
 import s from './Navbar.module.css'
@@ -105,7 +106,7 @@ export default function Navbar() {
               )}
               <Link to="/profile" className={s.userLink} onClick={closeMenu}>
                 {user.profileUrl ? (
-                  <img src={user.profileUrl} alt="" className={s.avatar} referrerPolicy="no-referrer" />
+                  <img src={getMediaUrl(user.profileUrl)} alt="" className={s.avatar} referrerPolicy="no-referrer" />
                 ) : (
                   <div className={s.avatarPlaceholder}>{user.firstName[0]}</div>
                 )}

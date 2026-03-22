@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
-import { api, uploadFile } from '../../api/client'
+import { api, uploadFile, getMediaUrl } from '../../api/client'
 import { PageSkeletonList } from '../../components/Skeleton'
 import { EmptyState } from '../../components/EmptyState'
 import { Toast } from '../../components/Toast'
@@ -43,8 +43,6 @@ export default function AdminCategories() {
     if (!file) return
     setUploading(true)
     setError('')
-    const formData = new FormData()
-    formData.append('image', file)
     try {
       const url = await uploadFile(file)
       setNewImageUrl(url)
@@ -230,7 +228,7 @@ export default function AdminCategories() {
               {newImageUrl && (
                 <div className={s.imagePreview} style={{ height: '80px', width: '80px', borderRadius: '50%', marginTop: '0.5rem', position: 'relative', overflow: 'visible' }}>
                   <div style={{ width: '100%', height: '100%', borderRadius: '50%', overflow: 'hidden', border: '2px solid var(--color-primary)' }}>
-                    <img src={newImageUrl} alt="Preview" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                    <img src={getMediaUrl(newImageUrl)} alt="Preview" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                   </div>
                   <button
                     type="button"
@@ -274,7 +272,7 @@ export default function AdminCategories() {
                   <td>
                     <div style={{ width: '48px', height: '48px', borderRadius: '50%', overflow: 'hidden', background: 'var(--color-surface-elevated)', border: '1px solid var(--color-border)' }}>
                       {c.imageUrl ? (
-                        <img src={c.imageUrl} alt={c.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                        <img src={getMediaUrl(c.imageUrl)} alt={c.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                       ) : (
                         <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '10px', color: 'var(--color-text-light)' }}>No Img</div>
                       )}

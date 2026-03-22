@@ -106,3 +106,18 @@ export async function uploadFile(file, path = '/upload') {
   }
   return data.url
 }
+
+/**
+ * Resolves a media path to a full URL if it's a relative backend path.
+ */
+export function getMediaUrl(path) {
+  if (!path) return ''
+  if (path.startsWith('http') || path.startsWith('data:')) return path
+  if (path.startsWith('/uploads/')) {
+    // If apiBaseUrl is absolute (e.g. http://api.com/api), base is http://api.com
+    // If apiBaseUrl is relative (e.g. /api), base is empty (works with Vite proxy)
+    const base = apiBaseUrl.endsWith('/api') ? apiBaseUrl.slice(0, -4) : ''
+    return `${base}${path}`
+  }
+  return path
+}

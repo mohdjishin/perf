@@ -9,7 +9,6 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
-	"strings"
 
 	"github.com/gin-gonic/gin"
 )
@@ -17,35 +16,7 @@ import (
 const maxUploadSize = 5 << 20 // 5MB
 const uploadDir = "uploads"
 
-var allowedTypes = map[string]bool{
-	"image/jpeg":          true,
-	"image/jpg":           true,
-	"image/pjpeg":         true,
-	"image/x-citrix-jpeg": true,
-	"image/png":           true,
-	"image/gif":           true,
-	"image/webp":          true,
-}
-
-// magic bytes (prefix) for allowed image types
-var magicSignatures = map[string][]byte{
-	"image/jpeg":          {0xFF, 0xD8, 0xFF},
-	"image/jpg":           {0xFF, 0xD8, 0xFF},
-	"image/pjpeg":         {0xFF, 0xD8, 0xFF},
-	"image/x-citrix-jpeg": {0xFF, 0xD8, 0xFF},
-	"image/png":           {0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A},
-	"image/gif":           []byte("GIF87a"),
-	"image/webp":          nil, // set in init: RIFF....WEBP
-}
-
-func init() {
-	webpSig := make([]byte, 12)
-	copy(webpSig, "RIFF")
-	copy(webpSig[8:], "WEBP")
-	magicSignatures["image/webp"] = webpSig
-}
-
-// UploadImage handles image file upload (admin only). Validates Content-Type and file magic bytes before saving.
+// UploadImage handles image file upload (admin only). Validates file magic bytes before saving.
 func UploadImage(c *gin.Context) {
 	file, err := c.FormFile("image")
 	if err != nil {
@@ -58,40 +29,26 @@ func UploadImage(c *gin.Context) {
 		return
 	}
 
-	contentType := file.Header.Get("Content-Type")
-	// Normalize jpg and other variants to jpeg
-	if contentType == "image/jpg" || contentType == "image/pjpeg" || contentType == "image/x-citrix-jpeg" {
-		contentType = "image/jpeg"
-	}
-
-	if !allowedTypes[contentType] {
-		// Log the actual rejected content type
-		fmt.Printf("Upload rejected: Invalid Content-Type '%s' for file '%s'\n", contentType, file.Filename)
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid file type. Use JPEG, PNG, GIF, or WebP"})
-		return
-	}
-
-	// Validate magic bytes
+	// Read magic bytes
 	src, err := file.Open()
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Could not read file"})
 		return
 	}
 	defer src.Close()
+
 	header := make([]byte, 12)
 	n, _ := io.ReadAtLeast(src, header, 12)
 	header = header[:n]
-	if !validateMagicBytes(contentType, header) {
-		// Log the failure for debugging
-		fmt.Printf("Upload rejected: Magic bytes mismatch for type '%s'. First bytes: %X\n", contentType, header)
-		c.JSON(http.StatusBadRequest, gin.H{"error": "File content does not match declared type. Use a valid JPEG, PNG, GIF, or WebP image."})
+
+	// Detect true content type and extension
+	mime, ext := detectType(header)
+	if mime == "" {
+		fmt.Printf("Upload rejected: Unknown magic bytes for file '%s'. Header: %X\n", file.Filename, header)
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid file content. Use a valid JPEG, PNG, GIF, or WebP image."})
 		return
 	}
 
-	ext := strings.ToLower(filepath.Ext(file.Filename))
-	if ext == "" {
-		ext = ".jpg"
-	}
 	filename := fmt.Sprintf("%s%s", randomID(), ext)
 
 	if err := os.MkdirAll(uploadDir, 0755); err != nil {
@@ -105,8 +62,8 @@ func UploadImage(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to save file"})
 		return
 	}
-	_, _ = destFile.Write(header)
-	_, _ = io.Copy(destFile, src)
+	_, _ = destFile.Write(header) // Write the bytes we already read
+	_, _ = io.Copy(destFile, src) // Copy the rest
 	if err := destFile.Close(); err != nil {
 		os.Remove(dest)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to save file"})
@@ -115,21 +72,69 @@ func UploadImage(c *gin.Context) {
 
 	// Return path - frontend will use with same origin (proxy /uploads to backend)
 	url := "/uploads/" + filename
-	c.JSON(http.StatusOK, gin.H{"url": url})
+	c.JSON(http.StatusOK, gin.H{"url": url, "filename": filename})
 }
 
-func validateMagicBytes(contentType string, header []byte) bool {
-	sig := magicSignatures[contentType]
-	if sig == nil {
-		return false
+// ListUploads returns a list of all files in the uploads directory (admin only)
+func ListUploads(c *gin.Context) {
+	files, err := os.ReadDir(uploadDir)
+	if err != nil {
+		if os.IsNotExist(err) {
+			c.JSON(http.StatusOK, []string{})
+			return
+		}
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to read upload directory"})
+		return
 	}
-	if contentType == "image/gif" {
-		return bytes.HasPrefix(header, []byte("GIF87a")) || bytes.HasPrefix(header, []byte("GIF89a"))
+
+	var filenames []string
+	for _, f := range files {
+		if !f.IsDir() {
+			filenames = append(filenames, f.Name())
+		}
 	}
-	if len(header) < len(sig) {
-		return false
+	c.JSON(http.StatusOK, filenames)
+}
+
+// DeleteUpload deletes a specific file from the uploads directory (admin only)
+func DeleteUpload(c *gin.Context) {
+	filename := c.Param("filename")
+	if filename == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Filename is required"})
+		return
 	}
-	return bytes.HasPrefix(header, sig)
+
+	// Prevent path traversal
+	filename = filepath.Base(filename)
+	path := filepath.Join(uploadDir, filename)
+
+	if _, err := os.Stat(path); os.IsNotExist(err) {
+		c.JSON(http.StatusNotFound, gin.H{"error": "File not found"})
+		return
+	}
+
+	if err := os.Remove(path); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to delete file"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "File deleted successfully"})
+}
+
+func detectType(header []byte) (mime, ext string) {
+	if bytes.HasPrefix(header, []byte{0xFF, 0xD8, 0xFF}) {
+		return "image/jpeg", ".jpg"
+	}
+	if bytes.HasPrefix(header, []byte{0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A}) {
+		return "image/png", ".png"
+	}
+	if bytes.HasPrefix(header, []byte("GIF87a")) || bytes.HasPrefix(header, []byte("GIF89a")) {
+		return "image/gif", ".gif"
+	}
+	if len(header) >= 12 && bytes.Equal(header[0:4], []byte("RIFF")) && bytes.Equal(header[8:12], []byte("WEBP")) {
+		return "image/webp", ".webp"
+	}
+	return "", ""
 }
 
 func randomID() string {

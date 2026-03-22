@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom'
 import { useCart } from '../context/CartContext'
+import { getMediaUrl } from '../api/client'
 import { formatPrice } from '../utils/currency'
 import { EmptyState } from '../components/EmptyState'
 import { BackButton } from '../components/BackButton'
@@ -32,7 +33,7 @@ export default function Cart() {
             <div key={item.id} className={s.item}>
               <div className={s.itemImage}>
                 <img
-                  src={item.imageUrl || 'https://placehold.co/80x100/e2e8f0/94a3b8?text=·'}
+                  src={getMediaUrl(item.imageUrl) || 'https://placehold.co/80x100/e2e8f0/94a3b8?text=·'}
                   alt={item.name}
                   loading="lazy"
                 />

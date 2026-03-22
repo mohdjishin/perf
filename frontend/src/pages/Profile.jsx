@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
+import { getMediaUrl } from '../api/client'
 import { useAuth } from '../context/AuthContext'
 import { api } from '../api/client'
 import { BackButton } from '../components/BackButton'
@@ -176,7 +177,7 @@ export default function Profile() {
       <BackButton to="/" label="Home" />
       <div className={s.profileHeader}>
         {user?.profileUrl ? (
-          <img src={user.profileUrl} alt="" className={s.profilePic} referrerPolicy="no-referrer" />
+          <img src={getMediaUrl(user.profileUrl)} alt="" className={s.profilePic} referrerPolicy="no-referrer" />
         ) : (
           <div className={s.profilePicPlaceholder}>{user?.firstName ? user.firstName[0] : '?'}</div>
         )}

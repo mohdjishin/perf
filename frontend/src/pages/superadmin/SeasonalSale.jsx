@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
-import { api, uploadFile } from '../../api/client'
+import { api, uploadFile, getMediaUrl } from '../../api/client'
 import s from './SuperAdmin.module.css'
 import b from './SeasonalSale.module.css'
 
@@ -223,7 +223,7 @@ export default function SeasonalSale() {
           {imageUrl && (
             <div className={b.imagePreview}>
               <img
-                src={imageUrl}
+                src={getMediaUrl(imageUrl)}
                 alt="Banner preview"
                 onError={(e) => { e.target.style.display = 'none' }}
               />

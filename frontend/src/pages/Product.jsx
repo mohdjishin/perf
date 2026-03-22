@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { Link, useParams, useLocation, useSearchParams } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
-import { api } from '../api/client'
+import { api, getMediaUrl } from '../api/client'
 import { useCart } from '../context/CartContext'
 import { useAuth } from '../context/AuthContext'
 import { formatPrice } from '../utils/currency'
@@ -134,7 +134,7 @@ export default function Product() {
         {fromAdminReviews && (adminProductName || adminProductImage) && (
           <div className={s.errorProductPreview}>
             {adminProductImage && (
-              <img src={decodeURIComponent(adminProductImage)} alt="" className={s.errorProductImg} />
+              <img src={getMediaUrl(decodeURIComponent(adminProductImage))} alt="" className={s.errorProductImg} />
             )}
             {adminProductName && (
               <p className={s.errorProductName}>
@@ -180,7 +180,7 @@ export default function Product() {
               </div>
             )}
             <img
-              src={mainImage || 'https://placehold.co/600x750/e2e8f0/94a3b8?text=·'}
+              src={getMediaUrl(mainImage) || 'https://placehold.co/600x750/e2e8f0/94a3b8?text=·'}
               alt={display.name}
             />
             {images.length > 1 && (
@@ -213,7 +213,7 @@ export default function Product() {
                     onClick={() => setSelectedImageIndex(idx)}
                     aria-label={t('product.imageNumber', { current: idx + 1, total: images.length })}
                   >
-                    <img src={url} alt="" />
+                    <img src={getMediaUrl(url)} alt="" />
                   </button>
                 ))}
               </div>

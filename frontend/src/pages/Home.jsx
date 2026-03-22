@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react'
 import { Link } from 'react-router-dom'
-import { api } from '../api/client'
+import { api, getMediaUrl } from '../api/client'
 import { formatPrice } from '../utils/currency'
 import SeasonalBanner from '../components/SeasonalBanner'
 import { PageSkeletonGrid } from '../components/Skeleton'
@@ -139,7 +139,7 @@ export default function Home() {
               return (
                 <img
                   key={idx}
-                  src={img}
+                  src={getMediaUrl(img)}
                   alt={t('home.heroTitle')}
                   className={`${s.heroImg} ${isActive ? s.active : ''}`}
                 />
@@ -200,7 +200,7 @@ export default function Home() {
                 <Link key={cat.id || cat.name} to={`/shop?category=${encodeURIComponent(cat.name)}`} className={s.catCard}>
                   <div className={s.catImageWrap}>
                     <img
-                      src={cat.imageUrl || `https://placehold.co/600x600/fdf8f0/caa04e?text=${encodeURIComponent(cat.name)}`}
+                      src={getMediaUrl(cat.imageUrl) || `https://placehold.co/600x600/fdf8f0/caa04e?text=${encodeURIComponent(cat.name)}`}
                       alt={cat.name}
                       onError={(e) => {
                         if (!e.target.src.includes('placehold.co')) {
@@ -250,7 +250,7 @@ export default function Home() {
                   <div className={s.imageWrap}>
                     {p.stock <= 0 && <span className={s.badgeStock}>{t('product.outOfStock')}</span>}
                     <img
-                      src={p.imageUrl || 'https://placehold.co/400x500/e2e8f0/94a3b8?text=·'}
+                      src={getMediaUrl(p.imageUrl) || 'https://placehold.co/400x500/e2e8f0/94a3b8?text=·'}
                       alt={name}
                       loading="lazy"
                     />
@@ -293,7 +293,7 @@ export default function Home() {
                     <span className={s.badgeNew}>{t('product.new')}</span>
                     {p.stock <= 0 && <span className={s.badgeStock}>{t('product.outOfStock')}</span>}
                     <img
-                      src={p.imageUrl || 'https://placehold.co/400x500/e2e8f0/94a3b8?text=·'}
+                      src={getMediaUrl(p.imageUrl) || 'https://placehold.co/400x500/e2e8f0/94a3b8?text=·'}
                       alt={name}
                       loading="lazy"
                     />
@@ -336,7 +336,7 @@ export default function Home() {
                     {p.discountPercent > 0 && <span className={s.badgeSale}>{t('product.percentOff', { percent: p.discountPercent })}</span>}
                     {p.stock <= 0 && <span className={s.badgeStock}>{t('product.outOfStock')}</span>}
                     <img
-                      src={p.imageUrl || 'https://placehold.co/400x500/e2e8f0/94a3b8?text=·'}
+                      src={getMediaUrl(p.imageUrl) || 'https://placehold.co/400x500/e2e8f0/94a3b8?text=·'}
                       alt={name}
                       loading="lazy"
                     />

@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { useAuth } from '../../context/AuthContext'
 import { useFeatures } from '../../context/FeaturesContext'
-import { api, uploadFile } from '../../api/client'
+import { api, uploadFile, getMediaUrl } from '../../api/client'
 import { formatPrice } from '../../utils/currency'
 import { PageSkeletonGrid } from '../../components/Skeleton'
 import { EmptyState } from '../../components/EmptyState'
@@ -586,7 +586,7 @@ export default function AdminProducts() {
                             >
                               <span className={s.thumbGrip} aria-hidden>⋮⋮</span>
                               <img
-                                src={url}
+                                src={getMediaUrl(url)}
                                 alt={t('adminProducts.preview')}
                                 onError={(e) => { e.target.style.display = 'none' }}
                                 className={s.thumbImg}
@@ -608,7 +608,7 @@ export default function AdminProducts() {
                       ) : form.imageUrl ? (
                         <div className={s.imagePreview}>
                           <img
-                            src={form.imageUrl}
+                            src={getMediaUrl(form.imageUrl)}
                             alt={t('adminProducts.preview')}
                             onError={(e) => { e.target.style.display = 'none' }}
                           />
@@ -804,7 +804,7 @@ export default function AdminProducts() {
                 <tr key={getProductId(p) ?? p.name}>
                   <td>
                     <img
-                      src={p.imageUrl || 'https://placehold.co/60x60/e2e8f0/94a3b8?text=·'}
+                      src={getMediaUrl(p.imageUrl) || 'https://placehold.co/60x60/e2e8f0/94a3b8?text=·'}
                       alt=""
                       className={s.thumb}
                       loading="lazy"

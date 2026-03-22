@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
-import { api } from '../api/client'
+import { api, getMediaUrl } from '../api/client'
 import { formatPrice } from '../utils/currency'
 import { getProductDisplay, categoryKey } from '../utils/productI18n'
 import { PageSkeletonGrid } from '../components/Skeleton'
@@ -300,7 +300,7 @@ export default function Shop() {
                             </div>
                           )}
                           <img
-                            src={p.imageUrl || 'https://placehold.co/400x500/e2e8f0/94a3b8?text=·'}
+                            src={getMediaUrl(p.imageUrl) || 'https://placehold.co/400x500/e2e8f0/94a3b8?text=·'}
                             alt={name}
                             loading="lazy"
                           />

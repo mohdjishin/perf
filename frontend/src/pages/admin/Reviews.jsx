@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
-import { api } from '../../api/client'
+import { api, getMediaUrl } from '../../api/client'
 import { PageSkeletonList } from '../../components/Skeleton'
 import { EmptyState } from '../../components/EmptyState'
 import { Toast } from '../../components/Toast'
@@ -113,7 +113,7 @@ export default function AdminReviews() {
                     >
                       {r.productImage && (
                         <img
-                          src={r.productImage}
+                          src={getMediaUrl(r.productImage)}
                           alt=""
                           className={s.reviewProductImg}
                         />

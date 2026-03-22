@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
-import { api } from '../api/client'
+import { api, getMediaUrl } from '../api/client'
 import { formatPrice } from '../utils/currency'
 import { downloadOrderInvoice } from '../utils/invoicePdf'
 import { PageSkeletonList } from '../components/Skeleton'
@@ -83,7 +83,7 @@ export default function Orders() {
   useEffect(() => {
     api('/settings/features')
       .then((d) => setReturnDays(Math.max(0, parseInt(d.return_days_after_delivery, 10) || 0)))
-      .catch(() => {})
+      .catch(() => { })
   }, [])
 
   const openReturnModal = (orderId) => {
@@ -182,171 +182,171 @@ export default function Orders() {
           const statusStr = o.status != null ? String(o.status).toLowerCase() : ''
           const statusClass = s[orderStatusClass(o.status)] || ''
           return (
-          <div key={o.id || `order-${i}`} className={s.card} style={{ animationDelay: `${i * 0.05}s` }}>
-            <div className={s.cardHeader}>
-              <span className={s.cardHeaderLeft}>
-                <span className={s.orderId}>{o.orderNumber ?? '—'}</span>
-                <span className={s.date}>
-                  {o.createdAt && !isNaN(new Date(o.createdAt).getTime())
-                    ? new Date(o.createdAt).toLocaleDateString()
-                    : '—'}
-                </span>
-                {o.total != null && (
-                  <span className={s.cardHeaderTotal}>{formatPrice(o.total)}</span>
-                )}
-              </span>
-              <span className={s.statusWrap}>
-                <span className={`${s.status} ${statusClass}`}>
-                  {orderStatusText(o.status)}
-                </span>
-                <span className={`${s.paymentBadge} ${(o.paymentStatus || '').toLowerCase() === 'paid' ? s.paymentBadgePaid : s.paymentBadgeUnpaid}`}>
-                  {(o.paymentStatus || '').toLowerCase() === 'paid' ? 'Paid' : 'Unpaid'}
-                </span>
-              </span>
-            </div>
-            <div className={s.cardBody}>
-            {(statusStr === 'shipped' || statusStr === 'delivered') && (
-              <div className={s.shippingStatus}>
-                <div className={s.shippingStatusTitle}>
-                  <span className={s.shippingIcon}>
-                    {statusStr === 'shipped' ? '📦' : '✓'}
+            <div key={o.id || `order-${i}`} className={s.card} style={{ animationDelay: `${i * 0.05}s` }}>
+              <div className={s.cardHeader}>
+                <span className={s.cardHeaderLeft}>
+                  <span className={s.orderId}>{o.orderNumber ?? '—'}</span>
+                  <span className={s.date}>
+                    {o.createdAt && !isNaN(new Date(o.createdAt).getTime())
+                      ? new Date(o.createdAt).toLocaleDateString()
+                      : '—'}
                   </span>
-                  {statusStr === 'shipped' ? 'Shipping updates' : 'Delivery'}
-                </div>
-                {(() => {
-                  const rr = o.returnRequest || o._returnRequest
-                  const shippingEntries = (o.shippingHistory?.length > 0 ? [...o.shippingHistory] : [])
-                    .sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt))
-                    .map((entry) => ({ date: entry.createdAt, message: entry.message }))
-                  const returnEntries = []
-                  if (rr && statusStr === 'delivered') {
-                    if (rr.createdAt) returnEntries.push({ date: rr.createdAt, message: t('returns.requested') })
-                    if (rr.status === 'accepted' && rr.reviewedAt) returnEntries.push({ date: rr.reviewedAt, message: t('returns.initiated') })
-                    if (rr.status === 'rejected' && rr.reviewedAt) returnEntries.push({ date: rr.reviewedAt, message: t('returns.canceled') })
-                    if (rr.status === 'accepted' && rr.productReceivedAt) returnEntries.push({ date: rr.productReceivedAt, message: t('returns.productReceived') })
-                    if (rr.status === 'accepted' && rr.refundIssuedAt) returnEntries.push({ date: rr.refundIssuedAt, message: t('returns.refundIssued') })
-                  }
-                  const allEntries = [...shippingEntries, ...returnEntries].sort((a, b) => new Date(a.date) - new Date(b.date))
-                  if (allEntries.length > 0) {
-                    return (
-                      <ul className={s.shippingHistory}>
-                        {allEntries.map((entry, i) => (
-                          <li key={i} className={s.shippingHistoryItem}>
-                            <span className={s.shippingHistoryTime}>
-                              {new Date(entry.date).toLocaleString()}
-                            </span>
-                            <span>{entry.message}</span>
-                          </li>
-                        ))}
-                      </ul>
-                    )
-                  }
-                  return (
-                    <span className={s.shippingDefault}>
-                      {statusStr === 'shipped'
-                        ? 'Your order is on its way'
-                        : 'Delivered to your address'}
-                    </span>
-                  )
-                })()}
-              </div>
-            )}
-            <div className={s.items}>
-              {(Array.isArray(o.items) ? o.items : []).map((item, j) => {
-                const productIdStr = normalizeProductId(item?.productId ?? item?.product_id)
-                const productLink = productIdStr.length === 24 ? `/product/${productIdStr}` : null
-                const imgUrl = item?.imageUrl ?? item?.image_url
-                return (
-                  <div key={j} className={s.item}>
-                    {productLink && (
-                      <Link to={productLink} className={s.itemImageWrap} aria-label={item?.name}>
-                        <img
-                          src={imgUrl || 'https://placehold.co/56x70/e2e8f0/94a3b8?text=·'}
-                          alt=""
-                          className={s.itemImage}
-                        />
-                      </Link>
-                    )}
-                    {!productLink && imgUrl && (
-                      <span className={s.itemImageWrap}>
-                        <img src={imgUrl} alt="" className={s.itemImage} />
-                      </span>
-                    )}
-                    <span className={s.itemInfo}>
-                      {productLink ? (
-                        <Link to={productLink} className={s.itemNameLink}>
-                          {item?.name ?? '—'} × {item?.quantity ?? 0}
-                        </Link>
-                      ) : (
-                        <span>{item?.name ?? '—'} × {item?.quantity ?? 0}</span>
-                      )}
-                      {statusStr === 'delivered' && productLink && (
-                        <Link to={`/product/${productIdStr}#reviews`} className={s.itemReviewLink}>
-                          {t('orders.reviewProduct')}
-                        </Link>
-                      )}
-                    </span>
-                    <span className={s.itemPrice}>{formatPrice(Number(item?.price ?? 0) * Number(item?.quantity ?? 0))}</span>
-                  </div>
-                )
-              })}
-            </div>
-            <div className={s.total}>Total: {formatPrice(o.total)}</div>
-            <div className={s.address}>
-              {o.address && typeof o.address === 'object'
-                ? [o.address.street, o.address.city, o.address.state, o.address.zip, o.address.country].filter(Boolean).join(', ') || '—'
-                : '—'}
-            </div>
-            {statusStr === 'delivered' && (
-              <div className={s.orderActions}>
-                {invoiceError && (
-                  <p className={s.invoiceError} role="alert">{invoiceError}</p>
-                )}
-                <div className={s.orderActionsButtons}>
-                  <button
-                    type="button"
-                    className={s.invoiceBtn}
-                    disabled={!!downloadingId}
-                    onClick={async () => {
-                      setInvoiceError(null)
-                      setDownloadingId(o.id)
-                      try {
-                        const featuresRes = await api('/settings/features').catch(() => ({}))
-                        const invoice = featuresRes?.invoice_company_name != null ? {
-                          companyName: (featuresRes.invoice_company_name || '').trim() || 'Blue Mist Perfumes',
-                          street: (featuresRes.invoice_street || '').trim(),
-                          city: (featuresRes.invoice_city || '').trim(),
-                          state: (featuresRes.invoice_state || '').trim(),
-                          zip: (featuresRes.invoice_zip || '').trim(),
-                          country: (featuresRes.invoice_country || '').trim(),
-                          phone: (featuresRes.invoice_phone || '').trim(),
-                          email: (featuresRes.invoice_email || '').trim(),
-                          trn: (featuresRes.invoice_trn || '').trim() || undefined,
-                        } : {}
-                        await downloadOrderInvoice(o, invoice)
-                      } catch (err) {
-                        setInvoiceError(err?.message || 'Download failed. Please try again.')
-                      } finally {
-                        setDownloadingId(null)
-                      }
-                    }}
-                  >
-                    {downloadingId === o.id ? t('orders.downloadingInvoice') : t('orders.downloadInvoice')}
-                  </button>
-                  {canReturnOrder(o, returnDays) && !(o.returnRequest || o._returnRequest) && (
-                    <button
-                      type="button"
-                      className={s.returnBtn}
-                      onClick={() => openReturnModal(o.id)}
-                    >
-                      {t('returns.requestReturn')}
-                    </button>
+                  {o.total != null && (
+                    <span className={s.cardHeaderTotal}>{formatPrice(o.total)}</span>
                   )}
-                </div>
+                </span>
+                <span className={s.statusWrap}>
+                  <span className={`${s.status} ${statusClass}`}>
+                    {orderStatusText(o.status)}
+                  </span>
+                  <span className={`${s.paymentBadge} ${(o.paymentStatus || '').toLowerCase() === 'paid' ? s.paymentBadgePaid : s.paymentBadgeUnpaid}`}>
+                    {(o.paymentStatus || '').toLowerCase() === 'paid' ? 'Paid' : 'Unpaid'}
+                  </span>
+                </span>
               </div>
-            )}
+              <div className={s.cardBody}>
+                {(statusStr === 'shipped' || statusStr === 'delivered') && (
+                  <div className={s.shippingStatus}>
+                    <div className={s.shippingStatusTitle}>
+                      <span className={s.shippingIcon}>
+                        {statusStr === 'shipped' ? '📦' : '✓'}
+                      </span>
+                      {statusStr === 'shipped' ? 'Shipping updates' : 'Delivery'}
+                    </div>
+                    {(() => {
+                      const rr = o.returnRequest || o._returnRequest
+                      const shippingEntries = (o.shippingHistory?.length > 0 ? [...o.shippingHistory] : [])
+                        .sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt))
+                        .map((entry) => ({ date: entry.createdAt, message: entry.message }))
+                      const returnEntries = []
+                      if (rr && statusStr === 'delivered') {
+                        if (rr.createdAt) returnEntries.push({ date: rr.createdAt, message: t('returns.requested') })
+                        if (rr.status === 'accepted' && rr.reviewedAt) returnEntries.push({ date: rr.reviewedAt, message: t('returns.initiated') })
+                        if (rr.status === 'rejected' && rr.reviewedAt) returnEntries.push({ date: rr.reviewedAt, message: t('returns.canceled') })
+                        if (rr.status === 'accepted' && rr.productReceivedAt) returnEntries.push({ date: rr.productReceivedAt, message: t('returns.productReceived') })
+                        if (rr.status === 'accepted' && rr.refundIssuedAt) returnEntries.push({ date: rr.refundIssuedAt, message: t('returns.refundIssued') })
+                      }
+                      const allEntries = [...shippingEntries, ...returnEntries].sort((a, b) => new Date(a.date) - new Date(b.date))
+                      if (allEntries.length > 0) {
+                        return (
+                          <ul className={s.shippingHistory}>
+                            {allEntries.map((entry, i) => (
+                              <li key={i} className={s.shippingHistoryItem}>
+                                <span className={s.shippingHistoryTime}>
+                                  {new Date(entry.date).toLocaleString()}
+                                </span>
+                                <span>{entry.message}</span>
+                              </li>
+                            ))}
+                          </ul>
+                        )
+                      }
+                      return (
+                        <span className={s.shippingDefault}>
+                          {statusStr === 'shipped'
+                            ? 'Your order is on its way'
+                            : 'Delivered to your address'}
+                        </span>
+                      )
+                    })()}
+                  </div>
+                )}
+                <div className={s.items}>
+                  {(Array.isArray(o.items) ? o.items : []).map((item, j) => {
+                    const productIdStr = normalizeProductId(item?.productId ?? item?.product_id)
+                    const productLink = productIdStr.length === 24 ? `/product/${productIdStr}` : null
+                    const imgUrl = item?.imageUrl ?? item?.image_url
+                    return (
+                      <div key={j} className={s.item}>
+                        {productLink && (
+                          <Link to={productLink} className={s.itemImageWrap} aria-label={item?.name}>
+                            <img
+                              src={getMediaUrl(imgUrl) || 'https://placehold.co/56x70/e2e8f0/94a3b8?text=·'}
+                              alt=""
+                              className={s.itemImage}
+                            />
+                          </Link>
+                        )}
+                        {!productLink && imgUrl && (
+                          <span className={s.itemImageWrap}>
+                            <img src={getMediaUrl(imgUrl)} alt="" className={s.itemImage} />
+                          </span>
+                        )}
+                        <span className={s.itemInfo}>
+                          {productLink ? (
+                            <Link to={productLink} className={s.itemNameLink}>
+                              {item?.name ?? '—'} × {item?.quantity ?? 0}
+                            </Link>
+                          ) : (
+                            <span>{item?.name ?? '—'} × {item?.quantity ?? 0}</span>
+                          )}
+                          {statusStr === 'delivered' && productLink && (
+                            <Link to={`/product/${productIdStr}#reviews`} className={s.itemReviewLink}>
+                              {t('orders.reviewProduct')}
+                            </Link>
+                          )}
+                        </span>
+                        <span className={s.itemPrice}>{formatPrice(Number(item?.price ?? 0) * Number(item?.quantity ?? 0))}</span>
+                      </div>
+                    )
+                  })}
+                </div>
+                <div className={s.total}>Total: {formatPrice(o.total)}</div>
+                <div className={s.address}>
+                  {o.address && typeof o.address === 'object'
+                    ? [o.address.street, o.address.city, o.address.state, o.address.zip, o.address.country].filter(Boolean).join(', ') || '—'
+                    : '—'}
+                </div>
+                {statusStr === 'delivered' && (
+                  <div className={s.orderActions}>
+                    {invoiceError && (
+                      <p className={s.invoiceError} role="alert">{invoiceError}</p>
+                    )}
+                    <div className={s.orderActionsButtons}>
+                      <button
+                        type="button"
+                        className={s.invoiceBtn}
+                        disabled={!!downloadingId}
+                        onClick={async () => {
+                          setInvoiceError(null)
+                          setDownloadingId(o.id)
+                          try {
+                            const featuresRes = await api('/settings/features').catch(() => ({}))
+                            const invoice = featuresRes?.invoice_company_name != null ? {
+                              companyName: (featuresRes.invoice_company_name || '').trim() || 'Blue Mist Perfumes',
+                              street: (featuresRes.invoice_street || '').trim(),
+                              city: (featuresRes.invoice_city || '').trim(),
+                              state: (featuresRes.invoice_state || '').trim(),
+                              zip: (featuresRes.invoice_zip || '').trim(),
+                              country: (featuresRes.invoice_country || '').trim(),
+                              phone: (featuresRes.invoice_phone || '').trim(),
+                              email: (featuresRes.invoice_email || '').trim(),
+                              trn: (featuresRes.invoice_trn || '').trim() || undefined,
+                            } : {}
+                            await downloadOrderInvoice(o, invoice)
+                          } catch (err) {
+                            setInvoiceError(err?.message || 'Download failed. Please try again.')
+                          } finally {
+                            setDownloadingId(null)
+                          }
+                        }}
+                      >
+                        {downloadingId === o.id ? t('orders.downloadingInvoice') : t('orders.downloadInvoice')}
+                      </button>
+                      {canReturnOrder(o, returnDays) && !(o.returnRequest || o._returnRequest) && (
+                        <button
+                          type="button"
+                          className={s.returnBtn}
+                          onClick={() => openReturnModal(o.id)}
+                        >
+                          {t('returns.requestReturn')}
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                )}
+              </div>
             </div>
-          </div>
           )
         })}
       </div>
