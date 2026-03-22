@@ -43,7 +43,7 @@ func Load(configPath string) {
 		StripePublishableKey: "pk_test_dummy",
 		StripeWebhookSecret:  "whsec_dummy",
 		FrontendURL:          "http://localhost:5173",
-		HomeCacheTTL:         300,
+		HomeCacheTTL:         36000,
 	}
 
 	// 2. Try to load from config.json (if it exists)
