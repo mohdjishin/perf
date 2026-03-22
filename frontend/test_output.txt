@@ -1,0 +1,33 @@
+
+Running 1 test using 1 worker
+
+[QA] Auditing Guest Discovery on Desktop
+  ✘  1 [chromium] › e2e/comprehensive-audit.spec.js:41:5 › Expert QA Audit: Guest Role › 1. Guest: Visual & Discovery Audit (1.4s)
+
+
+  1) [chromium] › e2e/comprehensive-audit.spec.js:41:5 › Expert QA Audit: Guest Role › 1. Guest: Visual & Discovery Audit 
+
+    Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeVisible[2m([22m[2m)[22m failed
+
+    Locator: nav a[href="/shop"], .layout a[href="/shop"], text=Shop, text=Explore >> nth=0
+    Expected: visible
+    Error: Unexpected token "=" while parsing css selector "nav a[href="/shop"], .layout a[href="/shop"], text=Shop, text=Explore". Did you mean to CSS.escape it?
+
+    Call log:
+    [2m  - Expect "toBeVisible" with timeout 5000ms[22m
+    [2m  - waiting for nav a[href="/shop"], .layout a[href="/shop"], text=Shop, text=Explore >> nth=0[22m
+
+
+      49 |         // Find any link that looks like "Shop" or "Products" or go directly
+      50 |         const shopLink = page.locator('nav a[href="/shop"], .layout a[href="/shop"], text=Shop, text=Explore').first();
+    > 51 |         await expect(shopLink).toBeVisible();
+         |                                ^
+      52 |         await shopLink.click();
+      53 |         await expect(page).toHaveURL(/.*shop/);
+      54 |
+        at /home/mjishin/Documents/ecom/frontend/e2e/comprehensive-audit.spec.js:51:32
+
+    Error Context: test-results/comprehensive-audit-Expert-2476d-uest-Visual-Discovery-Audit-chromium/error-context.md
+
+  1 failed
+    [chromium] › e2e/comprehensive-audit.spec.js:41:5 › Expert QA Audit: Guest Role › 1. Guest: Visual & Discovery Audit 

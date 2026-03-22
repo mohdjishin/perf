@@ -64,6 +64,7 @@ export default function SuperAdminFeatures() {
   const [marqueeSectionEnabled, setMarqueeSectionEnabled] = useState(true)
   const [marqueeItemsEn, setMarqueeItemsEn] = useState([])
   const [marqueeItemsAr, setMarqueeItemsAr] = useState([])
+  const [homeCacheEnabled, setHomeCacheEnabled] = useState(true)
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [message, setMessage] = useState(null)
@@ -120,10 +121,10 @@ export default function SuperAdminFeatures() {
         setHeroButtonTextEn(data.hero_button_text_en ?? '')
         setHeroButtonTextAr(data.hero_button_text_ar ?? '')
         setHeroImages(Array.isArray(data.hero_images) && data.hero_images.length > 0 ? data.hero_images : ['/images/premium-hero.png'])
-        setCategorySectionEnabled(data.category_section_enabled !== false)
         setMarqueeSectionEnabled(data.marquee_section_enabled !== false)
         setMarqueeItemsEn(Array.isArray(data.marquee_items_en) ? data.marquee_items_en : [])
         setMarqueeItemsAr(Array.isArray(data.marquee_items_ar) ? data.marquee_items_ar : [])
+        setHomeCacheEnabled(data.home_cache_enabled !== false)
       })
       .catch(() => setError(t('featuresAdmin.errorLoad')))
       .finally(() => setLoading(false))
@@ -191,6 +192,7 @@ export default function SuperAdminFeatures() {
           marquee_section_enabled: marqueeSectionEnabled,
           marquee_items_en: marqueeItemsEn.filter(it => it.trim()),
           marquee_items_ar: marqueeItemsAr.filter(it => it.trim()),
+          home_cache_enabled: homeCacheEnabled,
         }),
       })
       setMessage(t('featuresAdmin.settingsSaved'))
@@ -264,6 +266,14 @@ export default function SuperAdminFeatures() {
                 <span className={f.toggleLabel}>{t('featuresAdmin.personalizationEnabled') || 'Product Personalization'}</span>
               </label>
               <p className={f.hint}>{t('featuresAdmin.personalizationHint') || 'Allow customers to add custom engraving to products'}</p>
+
+              <div className={f.divider} style={{ margin: '1rem 0' }} />
+
+              <label className={f.toggle}>
+                <input type="checkbox" checked={homeCacheEnabled} onChange={(e) => setHomeCacheEnabled(e.target.checked)} />
+                <span className={f.toggleLabel}>Enable Home Data Caching</span>
+              </label>
+              <p className={f.hint}>High-performance caching for the home page. Recommended for faster load times.</p>
             </div>
           </section>
 

@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react'
+import i18n from '../i18n'
 import { api } from '../api/client'
 
 const defaultInvoice = {
@@ -11,14 +12,28 @@ const defaultInvoice = {
   phone: '',
   email: '',
 }
-const FeaturesContext = createContext({ i18nEnabled: true, storeLocatorEnabled: true, socialEnabled: false, social: {}, invoice: defaultInvoice, googleClientId: null, stripePublishableKey: null, signupEnabled: true, personalizationEnabled: false, categorySectionEnabled: true, marqueeSectionEnabled: true })
+const DEFAULT_FEATURES = {
+  i18nEnabled: true,
+  storeLocatorEnabled: true,
+  socialEnabled: false,
+  social: {},
+  invoice: defaultInvoice,
+  googleClientId: null,
+  stripePublishableKey: null,
+  signupEnabled: true,
+  personalizationEnabled: false,
+  categorySectionEnabled: true,
+  marqueeSectionEnabled: true
+}
+
+const FeaturesContext = createContext(DEFAULT_FEATURES)
 
 /**
  * Provides app-wide feature flags (e.g. i18n_enabled) from /settings/features.
  * Used by Navbar to show/hide the language switcher.
  */
 export function FeaturesProvider({ children }) {
-  const [features, setFeatures] = useState({ i18nEnabled: true, storeLocatorEnabled: true, socialEnabled: false, social: {}, invoice: defaultInvoice, googleClientId: null, stripePublishableKey: null, signupEnabled: true, personalizationEnabled: false, categorySectionEnabled: true, marqueeSectionEnabled: true })
+  const [features, setFeatures] = useState(DEFAULT_FEATURES)
 
   const fetchFeatures = () => {
     api('/settings/features')
@@ -53,6 +68,7 @@ export function FeaturesProvider({ children }) {
           personalizationEnabled: data.personalization_enabled === true,
           categorySectionEnabled: data.category_section_enabled !== false,
           marqueeSectionEnabled: data.marquee_section_enabled !== false,
+          marqueeItems: i18n.language === 'ar' ? data.marquee_items_ar : data.marquee_items_en,
         })
       })
       .catch(() => {
@@ -75,6 +91,6 @@ export function FeaturesProvider({ children }) {
 }
 
 export function useFeatures() {
-  return useContext(FeaturesContext) || { i18nEnabled: true, storeLocatorEnabled: true, socialEnabled: false, social: {}, invoice: defaultInvoice, googleClientId: null, stripePublishableKey: null, signupEnabled: true, personalizationEnabled: false, categorySectionEnabled: true, marqueeSectionEnabled: true }
+  return useContext(FeaturesContext) || DEFAULT_FEATURES
 }
 

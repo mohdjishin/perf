@@ -1,5 +1,5 @@
-import { lazy, Suspense } from 'react'
-import { Routes, Route, Navigate } from 'react-router-dom'
+import { lazy, Suspense, useEffect } from 'react'
+import { Routes, Route, Navigate, useNavigate, useLocation } from 'react-router-dom'
 import { GoogleOAuthProvider } from '@react-oauth/google'
 import { AuthProvider, useAuth } from './context/AuthContext'
 import { CartProvider } from './context/CartContext'
@@ -35,6 +35,7 @@ const Profile = lazy(() => import('./pages/Profile'))
 const Orders = lazy(() => import('./pages/Orders'))
 const ShopLocator = lazy(() => import('./pages/ShopLocator'))
 const StoreLocations = lazy(() => import('./pages/superadmin/StoreLocations'))
+const NotFound = lazy(() => import('./pages/NotFound'))
 
 function ProtectedRoute({ children, roles = [] }) {
   const { user, loading } = useAuth()
@@ -42,18 +43,50 @@ function ProtectedRoute({ children, roles = [] }) {
   // Wait for auth to finish loading before making any redirect decisions
   if (loading) return <LoadingState message="Checking auth..." />
   if (!token) return <Navigate to="/login" replace />
+  // If roles are required but user hasn't resolved yet (e.g. token valid but profile still fetching)
+  // keep showing loading rather than briefly mounting protected content or silently passing
+  if (roles.length && !user) return <LoadingState message="Checking auth..." />
   if (roles.length && user && !roles.includes(user.role)) return <Navigate to="/" replace />
   return children
 }
 
 function GoogleOAuthWrapper({ children }) {
   const { googleClientId } = useFeatures()
-  if (!googleClientId) return children
   return (
-    <GoogleOAuthProvider clientId={googleClientId}>
+    <GoogleOAuthProvider clientId={googleClientId || ""}>
       {children}
     </GoogleOAuthProvider>
   )
+}
+
+function ScrollToTop() {
+  const { pathname } = useLocation()
+  useEffect(() => {
+    window.scrollTo(0, 0)
+  }, [pathname])
+  return null
+}
+
+function ShortcutHandler() {
+  const { user } = useAuth()
+  const navigate = useNavigate()
+
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.ctrlKey && e.altKey && (e.key === 'm' || e.key === 'M')) {
+        e.preventDefault()
+        if (user?.role === 'super_admin') {
+          navigate('/superadmin')
+        } else if (user?.role === 'admin') {
+          navigate('/admin')
+        }
+      }
+    }
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [user, navigate])
+
+  return null
 }
 
 function App() {
@@ -62,6 +95,8 @@ function App() {
       <FeaturesProvider>
         <GoogleOAuthWrapper>
           <CartProvider>
+            <ScrollToTop />
+            <ShortcutHandler />
             <Suspense fallback={<PageSkeleton />}>
               <Routes>
                 <Route path="/" element={<Layout />}>
@@ -163,6 +198,7 @@ function App() {
                       <StoreLocations />
                     </ProtectedRoute>
                   } />
+                  <Route path="*" element={<NotFound />} />
                 </Route>
               </Routes>
             </Suspense>

@@ -185,7 +185,7 @@ export default function AdminProducts() {
       newArrival: false,
       onSale: false,
       discountPercent: '',
-      stock: '',
+      stock: '1',
       featured: false,
       notes: '',
       topNote: '',
@@ -527,6 +527,11 @@ export default function AdminProducts() {
                           onChange={(e) => setForm((f) => ({ ...f, stock: e.target.value }))}
                           className={s.input}
                         />
+                        {(parseInt(form.stock) || 0) === 0 && (
+                          <p style={{ color: '#b45309', fontSize: '0.75rem', marginTop: '0.25rem' }}>
+                            ⚠ Stock is 0 — customers will not be able to add this product to their cart.
+                          </p>
+                        )}
                       </div>
                     </div>
                     <div className={s.imageSection}>

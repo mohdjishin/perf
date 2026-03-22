@@ -3,80 +3,62 @@
 @import './styles/shared.css';
 
 :root {
-  /* Fonts - myop.in inspired */
+  /* Fonts - Enterprise Grace */
   --font-display: 'Tenor Sans', 'Cinzel', serif;
-  --font-sans: 'Outfit', 'Jost', sans-serif;
+  --font-sans: 'Outfit', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   --font-serif: 'Cormorant Garamond', serif;
 
-  /* Colors - Egyptian Luxury Palette (myop.in inspired contrast) */
-  --color-bg: #fdf8f0;
+  /* Colors - Premium Egyptian Palette */
+  --color-bg: #fdfdfd;
   --color-surface: #ffffff;
-  --color-surface-elevated: #f8f1e5;
-  --color-text: #171717;
-  /* myop near-black */
-  --color-text-muted: #575757;
-  --color-text-light: #8b8b8b;
-  --color-accent: #caa04e;
-  /* myop gold */
+  --color-surface-elevated: #f8f9fa;
+  --color-surface-glass: rgba(255, 255, 255, 0.85);
+  --color-text: #1a1a1a;
+  --color-text-muted: #666666;
+  --color-text-light: #999999;
+  --color-accent: #c49a6c;
+  /* Refined Gold */
+  --color-accent-hover: #b3885a;
   --color-on-accent: #ffffff;
-  --color-border: rgba(23, 23, 23, 0.08);
-  /* Transparent borders like myop */
-  --color-error: #af3f3f;
+  --color-border: rgba(0, 0, 0, 0.06);
+  --color-border-heavy: rgba(0, 0, 0, 0.12);
+  --color-error: #d93025;
 
   /* Design Tokens */
   --radius-sm: 4px;
-  --radius: 12px;
-  --radius-lg: 20px;
-  /* myop product card radius */
-  --radius-xl: 32px;
-  --radius-pill: 99px;
+  --radius: 8px;
+  /* Sharper for enterprise feel */
+  --radius-lg: 16px;
+  --radius-xl: 24px;
+  --radius-pill: 9999px;
 
-  /* Spacing */
-  --space-xs: 0.25rem;
-  --space-sm: 0.5rem;
+  /* Spacing - 8px Grid */
+  --space-2xs: 0.25rem;
+  --space-xs: 0.5rem;
+  --space-sm: 0.75rem;
   --space-md: 1rem;
   --space-lg: 1.5rem;
-  --space-xl: 2rem;
-  --space-2xl: 3rem;
-  --space-3xl: 4.5rem;
-  --max-width: 1320px;
-  /* slightly wider for modern feel */
+  --space-xl: 2.5rem;
+  --space-2xl: 4rem;
+  --space-3xl: 6rem;
+  --max-width: 1400px;
 
-  /* Transitions - smooth performance */
-  --transition-fast: 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-  --transition: 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-  --transition-slow: 0.6s cubic-bezier(0.4, 0, 0.2, 1);
-  --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
-
-  /* Tracking */
-  --tracking-wide: 0.05em;
-  --tracking-extra: 0.15em;
-  --tracking-mega: 0.4em;
+  /* Transitions */
+  --transition-fast: 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+  --transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-slow: 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+  --ease-standard: cubic-bezier(0.4, 0, 0.2, 1);
 
   /* UX */
-  --touch-min: 44px;
-  --focus-ring: 2px solid var(--color-accent);
-  --focus-offset: 2px;
-
-  /* Navbar height global variable */
-  --nav-height: 80px;
-
-  /* Breakpoints */
-  --bp-sm: 480px;
-  --bp-md: 768px;
-  --bp-lg: 1024px;
-  --bp-xl: 1280px;
+  --nav-height: 72px;
+  --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.02), 0 1px 2px rgba(0, 0, 0, 0.04);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.05), 0 2px 4px rgba(0, 0, 0, 0.03);
+  --shadow-lg: 0 12px 24px rgba(0, 0, 0, 0.06), 0 4px 8px rgba(0, 0, 0, 0.04);
 }
 
 @media (max-width: 768px) {
   :root {
     --nav-height: 64px;
-  }
-}
-
-@media (max-width: 480px) {
-  :root {
-    --nav-height: 56px;
   }
 }
 
@@ -95,12 +77,6 @@ html {
   overflow-x: hidden;
 }
 
-@media (prefers-reduced-motion: reduce) {
-  html {
-    scroll-behavior: auto;
-  }
-}
-
 body {
   font-family: var(--font-sans);
   background: var(--color-bg);
@@ -108,22 +84,15 @@ body {
   min-height: 100vh;
   width: 100%;
   overflow-x: hidden;
-  line-height: 1.65;
-  font-size: 15px;
-  direction: ltr;
-  text-align: left;
+  line-height: 1.6;
+  font-size: 16px;
+  /* Standard enterprise size */
 }
 
 a {
   color: inherit;
   text-decoration: none;
-  transition: color var(--transition);
-}
-
-a:focus-visible {
-  outline: var(--focus-ring);
-  outline-offset: var(--focus-offset);
-  border-radius: var(--radius);
+  transition: all var(--transition);
 }
 
 button {
@@ -131,12 +100,7 @@ button {
   cursor: pointer;
   border: none;
   background: none;
-}
-
-button:focus-visible {
-  outline: var(--focus-ring);
-  outline-offset: var(--focus-offset);
-  border-radius: var(--radius);
+  transition: all var(--transition-fast);
 }
 
 input,
@@ -144,6 +108,19 @@ textarea,
 select {
   font-family: inherit;
   font-size: inherit;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  padding: 0.6rem 1rem;
+  background: var(--color-surface);
+  transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+input:focus,
+textarea:focus,
+select:focus {
+  outline: none;
+  border-color: var(--color-accent);
+  box-shadow: 0 0 0 3px rgba(196, 154, 108, 0.1);
 }
 
 @media (hover: none) {

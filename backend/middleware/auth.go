@@ -34,10 +34,26 @@ func OptionalAuth() gin.HandlerFunc {
 			c.Next()
 			return
 		}
-		c.Set("claims", claims)
-		c.Set("user_id", claims.UserID)
-		c.Set("user_email", claims.Email)
-		c.Set("user_role", string(claims.Role))
+
+		// Security: verify user is still Active in database if they claim to be logged in
+		uid, errOid := primitive.ObjectIDFromHex(claims.UserID)
+		if errOid == nil {
+			col := database.DB.Collection("users")
+			var user struct {
+				Active bool `bson:"active"`
+			}
+			if err := col.FindOne(c.Request.Context(), bson.M{"_id": uid}, options.FindOne().SetProjection(bson.M{"active": 1})).Decode(&user); err == nil {
+				if user.Active {
+					c.Set("claims", claims)
+					c.Set("user_id", claims.UserID)
+					c.Set("user_email", claims.Email)
+					c.Set("user_role", string(claims.Role))
+				} else {
+					logger.Warnf("OptionalAuth: deactivated user attempted access: email=%s id=%s", claims.Email, claims.UserID)
+				}
+			}
+		}
+
 		c.Next()
 	}
 }

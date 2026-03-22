@@ -45,14 +45,15 @@ func ListAddresses(c *gin.Context) {
 }
 
 type CreateAddressRequest struct {
-	Label     string `json:"label"`
-	Street    string `json:"street" binding:"required"`
-	City      string `json:"city" binding:"required"`
-	State     string `json:"state"`
-	Zip       string `json:"zip" binding:"required"`
-	Country   string `json:"country" binding:"required"`
-	Phone     string `json:"phone"`
-	IsDefault bool   `json:"isDefault"`
+	Label          string `json:"label"`
+	Street         string `json:"street" binding:"required"`
+	City           string `json:"city" binding:"required"`
+	State          string `json:"state"`
+	Zip            string `json:"zip" binding:"required"`
+	Country        string `json:"country" binding:"required"`
+	Phone          string `json:"phone"`
+	SecondaryPhone string `json:"secondaryPhone"`
+	IsDefault      bool   `json:"isDefault"`
 }
 
 // CreateAddress adds a new address for the current user
@@ -76,16 +77,17 @@ func CreateAddress(c *gin.Context) {
 	}
 
 	addr := models.UserAddress{
-		ID:        primitive.NewObjectID(),
-		UserID:    userID,
-		Label:     req.Label,
-		Street:    req.Street,
-		City:      req.City,
-		State:     req.State,
-		Zip:       req.Zip,
-		Country:   req.Country,
-		Phone:     req.Phone,
-		IsDefault: req.IsDefault,
+		ID:             primitive.NewObjectID(),
+		UserID:         userID,
+		Label:          req.Label,
+		Street:         req.Street,
+		City:           req.City,
+		State:          req.State,
+		Zip:            req.Zip,
+		Country:        req.Country,
+		Phone:          req.Phone,
+		SecondaryPhone: req.SecondaryPhone,
+		IsDefault:      req.IsDefault,
 	}
 	_, err := col.InsertOne(context.Background(), addr)
 	if err != nil {
@@ -96,14 +98,15 @@ func CreateAddress(c *gin.Context) {
 }
 
 type UpdateAddressRequest struct {
-	Label     *string `json:"label"`
-	Street    *string `json:"street"`
-	City      *string `json:"city"`
-	State     *string `json:"state"`
-	Zip       *string `json:"zip"`
-	Country   *string `json:"country"`
-	Phone     *string `json:"phone"`
-	IsDefault *bool   `json:"isDefault"`
+	Label          *string `json:"label"`
+	Street         *string `json:"street"`
+	City           *string `json:"city"`
+	State          *string `json:"state"`
+	Zip            *string `json:"zip"`
+	Country        *string `json:"country"`
+	Phone          *string `json:"phone"`
+	SecondaryPhone *string `json:"secondaryPhone"`
+	IsDefault      *bool   `json:"isDefault"`
 }
 
 // UpdateAddress updates an address belonging to the current user
@@ -162,6 +165,9 @@ func UpdateAddress(c *gin.Context) {
 	}
 	if req.Phone != nil {
 		update["phone"] = *req.Phone
+	}
+	if req.SecondaryPhone != nil {
+		update["secondary_phone"] = *req.SecondaryPhone
 	}
 	if req.IsDefault != nil && *req.IsDefault {
 		_, _ = col.UpdateMany(context.Background(), bson.M{"user_id": userID}, bson.M{"$set": bson.M{"is_default": false}})

@@ -7,10 +7,13 @@ import { PageSkeletonGrid } from '../components/Skeleton'
 import { useTranslation } from 'react-i18next'
 import { getProductDisplay, categoryKey } from '../utils/productI18n'
 import { WHY_SECTION_DEFAULTS, truncate } from '../config/whySection'
+import { useFeatures } from '../context/FeaturesContext'
+import ProductCard from '../components/ProductCard'
 import s from './Home.module.css'
 
 export default function Home() {
   const { t, i18n } = useTranslation()
+  const globalFeatures = useFeatures()
   const locale = i18n.language || 'en'
   const [products, setProducts] = useState([])
   const [newArrivals, setNewArrivals] = useState([])
@@ -20,8 +23,6 @@ export default function Home() {
     discounted_section_enabled: true,
     featured_section_enabled: true,
     why_section_enabled: true,
-    category_section_enabled: true,
-    marquee_section_enabled: true,
   })
   const [apiError, setApiError] = useState(null)
   const [loading, setLoading] = useState(true)
@@ -61,9 +62,7 @@ export default function Home() {
           hero_description: locale === 'ar' ? f.hero_description_ar : f.hero_description_en,
           hero_button_text: locale === 'ar' ? f.hero_button_text_ar : f.hero_button_text_en,
           hero_images: Array.isArray(f.hero_images) && f.hero_images.length > 0 ? f.hero_images : ['/images/premium-hero.png'],
-          category_section_enabled: f.category_section_enabled !== false,
-          marquee_section_enabled: f.marquee_section_enabled !== false,
-          marquee_items: locale === 'ar' ? f.marquee_items_ar : f.marquee_items_en,
+          hero_images: Array.isArray(f.hero_images) && f.hero_images.length > 0 ? f.hero_images : ['/images/premium-hero.png'],
         })
         setProducts(data.products || [])
         setNewArrivals(data.new_arrivals || [])
@@ -162,12 +161,12 @@ export default function Home() {
       </section>
 
       {/* Marquee strip — as seen on myop top bar/section */}
-      {features.marquee_section_enabled && features.marquee_items && features.marquee_items.length > 0 && (
+      {globalFeatures.marqueeSectionEnabled && globalFeatures.marqueeItems && globalFeatures.marqueeItems.length > 0 && (
         <div className={s.marqueeOuter}>
           <div className={s.marqueeTrack}>
             {[...Array(6)].map((_, i) => (
               <div key={i} className={s.marqueeItem}>
-                {features.marquee_items.map((item, idx) => (
+                {globalFeatures.marqueeItems.map((item, idx) => (
                   <React.Fragment key={idx}>
                     <span>✦</span>
                     <span>{item}</span>
@@ -180,7 +179,7 @@ export default function Home() {
       )}
 
       {/* Category Grid — Shop by Scent (myop style circles/squares) */}
-      {features.category_section_enabled && (
+      {globalFeatures.categorySectionEnabled && (
         <section className={s.categories} aria-labelledby="cat-heading">
           <div className={s.sectionHeaderCentered}>
             <p className={s.sectionLabel}>{features.cat_section_label}</p>
@@ -243,34 +242,9 @@ export default function Home() {
             <Link to="/shop" className={s.viewAll}>{t('home.viewAll')}</Link>
           </div>
           <div className={s.grid}>
-            {products.map((p, i) => {
-              const { name, description } = getProductDisplay(p, locale)
-              return (
-                <Link key={p.id} to={`/product/${p.id}`} className={s.card} style={{ animationDelay: `${i * 0.06}s` }}>
-                  <div className={s.imageWrap}>
-                    {p.stock <= 0 && <span className={s.badgeStock}>{t('product.outOfStock')}</span>}
-                    <img
-                      src={getMediaUrl(p.imageUrl) || 'https://placehold.co/400x500/e2e8f0/94a3b8?text=·'}
-                      alt={name}
-                      loading="lazy"
-                    />
-                  </div>
-                  <span className={s.category}>{t(`category.${categoryKey(p.category)}`, { defaultValue: p.category || 'Fragrance' })}</span>
-                  <h3 className={s.name}>{name}</h3>
-                  {p.notes && p.notes.length > 0 && (
-                    <div className={s.scentNotes}>
-                      {p.notes.slice(0, 3).map((note, idx) => (
-                        <span key={idx} className={s.scentTag}>{note}</span>
-                      ))}
-                    </div>
-                  )}
-                  {description && (
-                    <p className={s.desc}>{description.length > 80 ? description.slice(0, 80) + '…' : description}</p>
-                  )}
-                  <p className={s.price}>{formatPrice(p.price)}</p>
-                </Link>
-              )
-            })}
+            {products.map((p) => (
+              <ProductCard key={p.id} product={p} />
+            ))}
           </div>
         </section>
       )}
@@ -285,35 +259,9 @@ export default function Home() {
             <Link to="/shop?new_arrival=1" className={s.viewAll}>{t('home.viewAll')}</Link>
           </div>
           <div className={s.grid}>
-            {newArrivals.map((p, i) => {
-              const { name, description } = getProductDisplay(p, locale)
-              return (
-                <Link key={p.id} to={`/product/${p.id}`} className={s.card} style={{ animationDelay: `${i * 0.06}s` }}>
-                  <div className={s.imageWrap}>
-                    <span className={s.badgeNew}>{t('product.new')}</span>
-                    {p.stock <= 0 && <span className={s.badgeStock}>{t('product.outOfStock')}</span>}
-                    <img
-                      src={getMediaUrl(p.imageUrl) || 'https://placehold.co/400x500/e2e8f0/94a3b8?text=·'}
-                      alt={name}
-                      loading="lazy"
-                    />
-                  </div>
-                  <span className={s.category}>{t(`category.${categoryKey(p.category)}`, { defaultValue: p.category || 'Fragrance' })}</span>
-                  <h3 className={s.name}>{name}</h3>
-                  {p.notes && p.notes.length > 0 && (
-                    <div className={s.scentNotes}>
-                      {p.notes.slice(0, 3).map((note, idx) => (
-                        <span key={idx} className={s.scentTag}>{note}</span>
-                      ))}
-                    </div>
-                  )}
-                  {description && (
-                    <p className={s.desc}>{description.length > 80 ? description.slice(0, 80) + '…' : description}</p>
-                  )}
-                  <p className={s.price}>{formatPrice(p.price)}</p>
-                </Link>
-              )
-            })}
+            {newArrivals.map((p) => (
+              <ProductCard key={p.id} product={p} />
+            ))}
           </div>
         </section>
       )}
@@ -328,44 +276,9 @@ export default function Home() {
             <Link to="/shop?on_sale=1" className={s.viewAll}>{t('home.viewAll')}</Link>
           </div>
           <div className={s.grid}>
-            {discounted.map((p, i) => {
-              const { name, description } = getProductDisplay(p, locale)
-              return (
-                <Link key={p.id} to={`/product/${p.id}`} className={s.card} style={{ animationDelay: `${i * 0.06}s` }}>
-                  <div className={s.imageWrap}>
-                    {p.discountPercent > 0 && <span className={s.badgeSale}>{t('product.percentOff', { percent: p.discountPercent })}</span>}
-                    {p.stock <= 0 && <span className={s.badgeStock}>{t('product.outOfStock')}</span>}
-                    <img
-                      src={getMediaUrl(p.imageUrl) || 'https://placehold.co/400x500/e2e8f0/94a3b8?text=·'}
-                      alt={name}
-                      loading="lazy"
-                    />
-                  </div>
-                  <span className={s.category}>{t(`category.${categoryKey(p.category)}`, { defaultValue: p.category || 'Fragrance' })}</span>
-                  <h3 className={s.name}>{name}</h3>
-                  {p.notes && p.notes.length > 0 && (
-                    <div className={s.scentNotes}>
-                      {p.notes.slice(0, 3).map((note, idx) => (
-                        <span key={idx} className={s.scentTag}>{note}</span>
-                      ))}
-                    </div>
-                  )}
-                  {description && (
-                    <p className={s.desc}>{description.length > 80 ? description.slice(0, 80) + '…' : description}</p>
-                  )}
-                  <p className={s.price}>
-                    {p.onSale && p.discountPercent > 0 && p.price != null ? (
-                      <>
-                        <span className={s.originalPrice}>{formatPrice(p.price)}</span>
-                        <span className={s.salePrice}>{formatPrice(p.price * (1 - (p.discountPercent || 0) / 100))}</span>
-                      </>
-                    ) : (
-                      formatPrice(p.price)
-                    )}
-                  </p>
-                </Link>
-              )
-            })}
+            {discounted.map((p) => (
+              <ProductCard key={p.id} product={p} />
+            ))}
           </div>
         </section>
       )}

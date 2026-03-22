@@ -391,6 +391,51 @@
   .shopLayout {
     flex-direction: column;
   }
+
+  .toolbar {
+    flex-direction: column;
+    align-items: stretch;
+    gap: var(--space-md);
+  }
+
+  .searchWrap {
+    max-width: none;
+    width: 100%;
+  }
+
+  .sortLabel {
+    flex: 1;
+    justify-content: space-between;
+  }
+
+  .sortSelect {
+    flex: 1;
+    min-width: 0;
+  }
+
+  /* Create a row for sort and refine on mobile */
+  .toolbar>*:not(.searchWrap) {
+    display: flex;
+    gap: var(--space-md);
+    width: 100%;
+  }
+
+  .toolbar {
+    display: grid;
+    grid-template-columns: 1fr;
+  }
+
+  .searchWrap {
+    grid-row: 1;
+  }
+
+  .controlsRow {
+    grid-row: 2;
+    display: flex;
+    gap: var(--space-md);
+    align-items: center;
+    width: 100%;
+  }
 }
 
 /* ── Product Grid ────────────────────── */

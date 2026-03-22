@@ -439,8 +439,9 @@ func CreateOrder(c *gin.Context) {
 		req.Items = append(req.Items, OrderItemRequest{ProductID: pid, Quantity: qty})
 	}
 	if strings.TrimSpace(req.Address.Street) == "" || strings.TrimSpace(req.Address.City) == "" ||
-		strings.TrimSpace(req.Address.Zip) == "" || strings.TrimSpace(req.Address.Country) == "" {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Address must include street, city, zip, and country"})
+		strings.TrimSpace(req.Address.Zip) == "" || strings.TrimSpace(req.Address.Country) == "" ||
+		strings.TrimSpace(req.Address.Phone) == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Address must include street, city, zip, country, and phone number"})
 		return
 	}
 

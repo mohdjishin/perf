@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next'
 import { api, getMediaUrl } from '../api/client'
 import { formatPrice } from '../utils/currency'
 import { getProductDisplay, categoryKey } from '../utils/productI18n'
+import ProductCard from '../components/ProductCard'
 import { PageSkeletonGrid } from '../components/Skeleton'
 import { EmptyState } from '../components/EmptyState'
 import { StarRatingDisplay } from '../components/StarRating'
@@ -153,29 +154,31 @@ export default function Shop() {
               {t('shop.search')}
             </button>
           </div>
-          <label className={s.sortLabel}>
-            <span className={s.sortLabelText}>{t('shop.sortLabel')}</span>
-            <select
-              value={sortBy}
-              onChange={(e) => setSortBy(e.target.value)}
-              className={s.sortSelect}
-              aria-label={t('shop.sortLabel')}
+          <div className={s.controlsRow}>
+            <label className={s.sortLabel}>
+              <span className={s.sortLabelText}>{t('shop.sortLabel')}</span>
+              <select
+                value={sortBy}
+                onChange={(e) => setSortBy(e.target.value)}
+                className={s.sortSelect}
+                aria-label={t('shop.sortLabel')}
+              >
+                <option value="">{t('shop.sortNewest')}</option>
+                <option value="price_asc">{t('shop.sortPriceAsc')}</option>
+                <option value="price_desc">{t('shop.sortPriceDesc')}</option>
+                <option value="rating_desc">{t('shop.sortRatingDesc')}</option>
+                <option value="rating_asc">{t('shop.sortRatingAsc')}</option>
+              </select>
+            </label>
+            <button
+              type="button"
+              className={`${s.refineBtn} ${filterOpen ? s.refineBtnActive : ''}`}
+              onClick={() => setFilterOpen(!filterOpen)}
+              aria-expanded={filterOpen}
             >
-              <option value="">{t('shop.sortNewest')}</option>
-              <option value="price_asc">{t('shop.sortPriceAsc')}</option>
-              <option value="price_desc">{t('shop.sortPriceDesc')}</option>
-              <option value="rating_desc">{t('shop.sortRatingDesc')}</option>
-              <option value="rating_asc">{t('shop.sortRatingAsc')}</option>
-            </select>
-          </label>
-          <button
-            type="button"
-            className={`${s.refineBtn} ${filterOpen ? s.refineBtnActive : ''}`}
-            onClick={() => setFilterOpen(!filterOpen)}
-            aria-expanded={filterOpen}
-          >
-            {t('shop.refine')}
-          </button>
+              {t('shop.refine')}
+            </button>
+          </div>
         </div>
 
         {searchQuery && (
@@ -280,66 +283,9 @@ export default function Shop() {
             ) : (
               <>
                 <div className={s.grid}>
-                  {products.map((p, i) => {
-                    const { name, description } = getProductDisplay(p, locale)
-                    return (
-                      <Link
-                        key={p.id}
-                        to={`/product/${p.id}`}
-                        className={s.card}
-                        style={{ animationDelay: `${i * 0.05}s` }}
-                      >
-                        <div className={s.imageWrap}>
-                          {(p.newArrival || p.onSale || p.stock <= 0) && (
-                            <div className={s.badges}>
-                              {p.newArrival && <span className={s.badgeNew}>{t('product.new')}</span>}
-                              {p.onSale && p.discountPercent > 0 && (
-                                <span className={s.badgeSale}>{t('product.percentOff', { percent: p.discountPercent })}</span>
-                              )}
-                              {p.stock <= 0 && <span className={s.badgeStock}>{t('product.outOfStock')}</span>}
-                            </div>
-                          )}
-                          <img
-                            src={getMediaUrl(p.imageUrl) || 'https://placehold.co/400x500/e2e8f0/94a3b8?text=·'}
-                            alt={name}
-                            loading="lazy"
-                          />
-                        </div>
-                        <div className={s.cardBody}>
-                          <span className={s.category}>{t(`category.${categoryKey(p.category)}`, { defaultValue: p.category || 'Fragrance' })}</span>
-                          {p.audience && (
-                            <span className={s.audience}>
-                              {p.audience === 'men' ? t('product.forHim') : p.audience === 'women' ? t('product.forHer') : t('product.unisex')}
-                            </span>
-                          )}
-                          <h3 className={s.name}>{name}</h3>
-                          {p.notes && p.notes.length > 0 && (
-                            <div className={s.scentNotes}>
-                              {p.notes.slice(0, 3).map((note, idx) => (
-                                <span key={idx} className={s.scentTag}>{note}</span>
-                              ))}
-                            </div>
-                          )}
-                          {description && (
-                            <p className={s.desc}>{description.length > 100 ? description.slice(0, 100) + '…' : description}</p>
-                          )}
-                          {p.rating > 0 && (
-                            <StarRatingDisplay value={p.rating} className={s.cardRating} />
-                          )}
-                          <p className={s.price}>
-                            {p.onSale && p.discountPercent > 0 && p.price != null ? (
-                              <>
-                                <span className={s.originalPrice}>{formatPrice(p.price)}</span>
-                                <span className={s.salePrice}>{formatPrice(p.price * (1 - (p.discountPercent || 0) / 100))}</span>
-                              </>
-                            ) : (
-                              formatPrice(p.price)
-                            )}
-                          </p>
-                        </div>
-                      </Link>
-                    )
-                  })}
+                  {products.map((p) => (
+                    <ProductCard key={p.id} product={p} />
+                  ))}
                 </div>
                 {pagination?.totalPages > 1 && (
                   <Pagination

@@ -8,7 +8,7 @@ import { BackButton } from '../components/BackButton'
 import { Toast } from '../components/Toast'
 import s from './Checkout.module.css'
 
-const emptyAddress = { street: '', city: '', state: '', zip: '', country: '' }
+const emptyAddress = { street: '', city: '', state: '', zip: '', country: '', phone: '', secondaryPhone: '' }
 
 const ADDRESS_LABELS = ['Home', 'Office', 'Other']
 
@@ -36,6 +36,7 @@ export default function Checkout() {
   const [addresses, setAddresses] = useState([])
   const [selectedId, setSelectedId] = useState(null)
   const [useNewAddress, setUseNewAddress] = useState(false)
+  const [editingSavedId, setEditingSavedId] = useState(null)
   const [address, setAddress] = useState(emptyAddress)
   const [saveAddressForLater, setSaveAddressForLater] = useState(false)
   const [saveAddressLabel, setSaveAddressLabel] = useState('Home')
@@ -85,6 +86,8 @@ export default function Checkout() {
             state: defaultAddr.state || '',
             zip: defaultAddr.zip,
             country: defaultAddr.country,
+            phone: defaultAddr.phone || '',
+            secondaryPhone: defaultAddr.secondaryPhone || '',
           })
         } else {
           setUseNewAddress(true)
@@ -103,13 +106,31 @@ export default function Checkout() {
       state: addr.state || '',
       zip: addr.zip,
       country: addr.country,
+      phone: addr.phone || '',
+      secondaryPhone: addr.secondaryPhone || '',
     })
   }
 
   const handleUseNewAddress = () => {
     setUseNewAddress(true)
     setSelectedId(null)
+    setEditingSavedId(null)
     setAddress(emptyAddress)
+  }
+
+  const handleEditAddress = (addr) => {
+    setEditingSavedId(addr.id)
+    setUseNewAddress(true)
+    setSelectedId(null)
+    setAddress({
+      street: addr.street,
+      city: addr.city,
+      state: addr.state || '',
+      zip: addr.zip,
+      country: addr.country,
+      phone: addr.phone || '',
+      secondaryPhone: addr.secondaryPhone || '',
+    })
   }
 
   const handleChange = (e) => {
@@ -117,38 +138,68 @@ export default function Checkout() {
     if (selectedId) setSelectedId(null)
   }
 
-  const saveAddressToAccount = async () => {
-    if (!address.street?.trim() || !address.city?.trim() || !address.zip?.trim() || !address.country?.trim()) return
+  const performSaveAddress = async (addrData) => {
+    if (!addrData.street?.trim() || !addrData.city?.trim() || !addrData.zip?.trim() || !addrData.country?.trim() || !addrData.phone?.trim()) return
     const labelToSave = saveAddressLabel === 'Custom' ? saveAddressLabelCustom.trim() : saveAddressLabel
-    if (!labelToSave && saveAddressLabel === 'Custom') {
-      setError('Enter a name for this address (e.g. Parents, Villa)')
-      return
-    }
+    return api('/addresses', {
+      method: 'POST',
+      body: JSON.stringify({
+        label: labelToSave || 'Other',
+        street: addrData.street.trim(),
+        city: addrData.city.trim(),
+        state: (addrData.state || '').trim(),
+        zip: addrData.zip.trim(),
+        country: addrData.country.trim(),
+        phone: addrData.phone.trim(),
+        secondaryPhone: (addrData.secondaryPhone || '').trim(),
+      }),
+    })
+  }
+
+  const saveAddressToAccount = async () => {
     setSaveAddressLoading(true)
     setError('')
     try {
-      const created = await api('/addresses', {
-        method: 'POST',
-        body: JSON.stringify({
-          label: labelToSave || 'Other',
-          street: address.street.trim(),
-          city: address.city.trim(),
-          state: (address.state || '').trim(),
-          zip: address.zip.trim(),
-          country: address.country.trim(),
-        }),
-      })
-      setAddresses((prev) => [...prev, created])
-      setSelectedId(created.id)
-      setUseNewAddress(false)
-      setAddress({
-        street: created.street,
-        city: created.city,
-        state: created.state || '',
-        zip: created.zip,
-        country: created.country,
-      })
-      setToastMessage('Address saved to your account')
+      let created
+      if (editingSavedId) {
+        created = await api(`/addresses/${editingSavedId}`, {
+          method: 'PUT',
+          body: JSON.stringify({
+            label: saveAddressLabel === 'Custom' ? saveAddressLabelCustom.trim() : saveAddressLabel,
+            street: address.street.trim(),
+            city: address.city.trim(),
+            state: (address.state || '').trim(),
+            zip: address.zip.trim(),
+            country: address.country.trim(),
+            phone: address.phone.trim(),
+            secondaryPhone: (address.secondaryPhone || '').trim(),
+          }),
+        })
+        // PUT might return {ok: true} or the updated object. Assuming it returns {ok:true} for now based on usual patterns, 
+        // but if it doesn't return the object, we just refresh or manually update state.
+        // Let's assume we need to refresh the list.
+        const updatedList = await api('/addresses')
+        setAddresses(updatedList.addresses || [])
+        created = (updatedList.addresses || []).find(a => a.id === editingSavedId)
+      } else {
+        created = await performSaveAddress(address)
+      }
+
+      if (created) {
+        setAddresses((prev) => [...prev, created])
+        setSelectedId(created.id)
+        setUseNewAddress(false)
+        setAddress({
+          street: created.street,
+          city: created.city,
+          state: created.state || '',
+          zip: created.zip,
+          country: created.country,
+          phone: created.phone || '',
+          secondaryPhone: created.secondaryPhone || '',
+        })
+        setToastMessage('Address saved to your account')
+      }
     } catch (err) {
       setError(err.data?.error || err.message)
     } finally {
@@ -172,19 +223,8 @@ export default function Checkout() {
       })
 
       // 2. Save address if requested
-      if (saveAddressForLater && address.street?.trim() && address.city?.trim() && address.zip?.trim() && address.country?.trim()) {
-        const labelToSave = saveAddressLabel === 'Custom' ? saveAddressLabelCustom.trim() : saveAddressLabel
-        api('/addresses', {
-          method: 'POST',
-          body: JSON.stringify({
-            label: labelToSave || 'Other',
-            street: address.street.trim(),
-            city: address.city.trim(),
-            state: (address.state || '').trim(),
-            zip: address.zip.trim(),
-            country: address.country.trim(),
-          }),
-        }).catch(() => { })
+      if (saveAddressForLater) {
+        performSaveAddress(address).catch(() => { })
       }
 
       // 3. Redirect to Stripe Checkout hosted page
@@ -230,7 +270,8 @@ export default function Checkout() {
       <form onSubmit={handleSubmit} className={s.form}>
         <div className={s.section}>
           <h3 className={s.sectionTitle}>Shipping Address</h3>
-          {addresses.length > 0 && (
+          {!(useNewAddress || editingSavedId) ? (
+            /* LIST VIEW */
             <div className={s.addressOptions}>
               {(() => {
                 const grouped = groupAddressesByLabel(addresses)
@@ -240,17 +281,22 @@ export default function Checkout() {
                   { key: 'Other', addrs: grouped.Other },
                   { key: null, addrs: grouped.rest },
                 ].filter((s) => s.addrs.length > 0)
+                if (sections.length === 0) return (
+                  <button type="button" className={s.addNewAddrBtn} onClick={handleUseNewAddress}>
+                    + Add shipping address
+                  </button>
+                )
                 return (
                   <>
                     {sections.map(({ key, addrs }) => (
                       <div key={key || 'other'} className={s.addressGroup}>
                         {key && <span className={s.addressGroupLabel}>{key}</span>}
                         {addrs.map((addr) => (
-                          <label key={addr.id} className={`${s.addressOption} ${selectedId === addr.id && !useNewAddress ? s.selected : ''}`}>
+                          <label key={addr.id} className={`${s.addressOption} ${selectedId === addr.id ? s.selected : ''}`}>
                             <input
                               type="radio"
                               name="addressChoice"
-                              checked={selectedId === addr.id && !useNewAddress}
+                              checked={selectedId === addr.id}
                               onChange={() => handleSelectAddress(addr)}
                             />
                             <div className={s.addressOptionContent}>
@@ -258,120 +304,146 @@ export default function Checkout() {
                               <span className={s.addressText}>
                                 {addr.street}<br />
                                 {addr.city}{addr.state ? `, ${addr.state}` : ''} {addr.zip}, {addr.country}
+                                {addr.phone && <><br />Phone: {addr.phone}</>}
                               </span>
+                              <button
+                                type="button"
+                                className={s.editAddrBtn}
+                                onClick={(e) => {
+                                  e.preventDefault()
+                                  e.stopPropagation()
+                                  handleEditAddress(addr)
+                                }}
+                              >
+                                Edit
+                              </button>
                             </div>
                           </label>
                         ))}
                       </div>
                     ))}
-                    <label className={`${s.addressOption} ${useNewAddress ? s.selected : ''}`}>
-                      <input
-                        type="radio"
-                        name="addressChoice"
-                        checked={useNewAddress}
-                        onChange={handleUseNewAddress}
-                      />
-                      <span>Add new address</span>
-                    </label>
+                    <button type="button" className={s.addNewAddrBtn} onClick={handleUseNewAddress}>
+                      + Add new address
+                    </button>
                   </>
                 )
               })()}
             </div>
-          )}
-          {useNewAddress ? (
-            <div className={s.addressForm}>
-              <input
-                name="street"
-                placeholder="Street / Building"
-                value={address.street}
-                onChange={handleChange}
-                required
-                className={s.input}
-              />
-              <div className={s.row}>
-                <input
-                  name="city"
-                  placeholder="City"
-                  value={address.city}
-                  onChange={handleChange}
-                  required
-                  className={s.input}
-                />
-                <input
-                  name="state"
-                  placeholder="Emirate"
-                  value={address.state}
-                  onChange={handleChange}
-                  className={s.input}
-                />
-                <input
-                  name="zip"
-                  placeholder="P.O. Box"
-                  value={address.zip}
-                  onChange={handleChange}
-                  required
-                  className={s.input}
-                />
-              </div>
-              <input
-                name="country"
-                placeholder="Country (e.g. UAE)"
-                value={address.country}
-                onChange={handleChange}
-                required
-                className={s.input}
-              />
-              <div className={s.saveAddressRow}>
-                <div className={s.saveAddressLabelRow}>
-                  <span className={s.saveAddressLabelText}>Save as</span>
-                  <select
-                    value={saveAddressLabel}
-                    onChange={(e) => setSaveAddressLabel(e.target.value)}
-                    className={s.saveAddressSelect}
-                  >
-                    {ADDRESS_LABELS.map((l) => (
-                      <option key={l} value={l}>{l}</option>
-                    ))}
-                    <option value="Custom">Custom</option>
-                  </select>
-                  {saveAddressLabel === 'Custom' && (
-                    <input
-                      type="text"
-                      placeholder="e.g. Parents, Villa, Work"
-                      value={saveAddressLabelCustom}
-                      onChange={(e) => setSaveAddressLabelCustom(e.target.value)}
-                      className={s.saveAddressCustomInput}
-                    />
-                  )}
-                </div>
-                <div className={s.saveAddressActions}>
-                  <button
-                    type="button"
-                    onClick={saveAddressToAccount}
-                    disabled={!address.street?.trim() || !address.city?.trim() || !address.zip?.trim() || !address.country?.trim() || saveAddressLoading || (saveAddressLabel === 'Custom' && !saveAddressLabelCustom.trim())}
-                    className={s.saveAddressBtn}
-                  >
-                    {saveAddressLoading ? 'Saving…' : 'Save to my addresses'}
-                  </button>
-                  <label className={s.saveAddressCheckbox}>
-                    <input
-                      type="checkbox"
-                      checked={saveAddressForLater}
-                      onChange={(e) => setSaveAddressForLater(e.target.checked)}
-                    />
-                    Also save when I place this order
-                  </label>
-                </div>
-              </div>
-            </div>
           ) : (
-            <div className={s.addressDisplay}>
-              <p className={s.deliveryLabel}>Delivery to</p>
-              <p className={s.addressLine}>{address.street || '—'}</p>
-              <p className={s.addressLine}>
-                {[address.city, address.state, address.zip].filter(Boolean).join(', ') || '—'}
-              </p>
-              <p className={s.addressLine}>{address.country || '—'}</p>
+            /* FORM VIEW (ADD OR EDIT) */
+            <div className={s.addressFormWrap}>
+              <div className={s.formHeader}>
+                <h4 className={s.formTitle}>{editingSavedId ? 'Edit Address' : 'New Address'}</h4>
+                <button type="button" className={s.backToAddressesBtn} onClick={() => { setUseNewAddress(false); setEditingSavedId(null); if (selectedId) handleSelectAddress(addresses.find(a => a.id === selectedId)); }}>
+                  Back to addresses
+                </button>
+              </div>
+
+              <div className={s.addressForm}>
+                <input
+                  name="street"
+                  placeholder="Street / Building"
+                  value={address.street}
+                  onChange={handleChange}
+                  required
+                  className={s.input}
+                />
+                <div className={s.row}>
+                  <input
+                    name="city"
+                    placeholder="City"
+                    value={address.city}
+                    onChange={handleChange}
+                    required
+                    className={s.input}
+                  />
+                  <input
+                    name="state"
+                    placeholder="Emirate"
+                    value={address.state}
+                    onChange={handleChange}
+                    className={s.input}
+                  />
+                  <input
+                    name="zip"
+                    placeholder="P.O. Box"
+                    value={address.zip}
+                    onChange={handleChange}
+                    required
+                    className={s.input}
+                  />
+                </div>
+                <input
+                  name="country"
+                  placeholder="Country (e.g. UAE) *"
+                  value={address.country}
+                  onChange={handleChange}
+                  required
+                  className={s.input}
+                />
+                <div className={s.row}>
+                  <input
+                    name="phone"
+                    placeholder="Phone Number *"
+                    value={address.phone}
+                    onChange={handleChange}
+                    required
+                    className={s.input}
+                  />
+                  <input
+                    name="secondaryPhone"
+                    placeholder="Secondary Phone (Optional)"
+                    value={address.secondaryPhone}
+                    onChange={handleChange}
+                    className={s.input}
+                  />
+                </div>
+
+                <div className={s.saveAddressRow}>
+                  <div className={s.saveAddressLabelRow}>
+                    <span className={s.saveAddressLabelText}>Save as</span>
+                    <select
+                      value={saveAddressLabel}
+                      onChange={(e) => setSaveAddressLabel(e.target.value)}
+                      className={s.saveAddressSelect}
+                    >
+                      {ADDRESS_LABELS.map((l) => (
+                        <option key={l} value={l}>{l}</option>
+                      ))}
+                      <option value="Custom">Custom</option>
+                    </select>
+                    {saveAddressLabel === 'Custom' && (
+                      <input
+                        type="text"
+                        placeholder="e.g. Parents, Villa"
+                        value={saveAddressLabelCustom}
+                        onChange={(e) => setSaveAddressLabelCustom(e.target.value)}
+                        className={s.saveAddressCustomInput}
+                      />
+                    )}
+                  </div>
+
+                  <div className={s.saveAddressActions}>
+                    <button
+                      type="button"
+                      onClick={saveAddressToAccount}
+                      disabled={!address.street?.trim() || !address.city?.trim() || !address.zip?.trim() || !address.country?.trim() || !address.phone?.trim() || saveAddressLoading || (saveAddressLabel === 'Custom' && !saveAddressLabelCustom.trim())}
+                      className={s.saveAddressBtn}
+                    >
+                      {saveAddressLoading ? 'Saving…' : (editingSavedId ? 'Update Address' : 'Save address')}
+                    </button>
+
+                    <label className={s.saveAddressCheckbox}>
+                      <input
+                        type="checkbox"
+                        checked={saveAddressForLater}
+                        onChange={(e) => setSaveAddressForLater(e.target.checked)}
+                      />
+                      Save to account for later
+                    </label>
+                  </div>
+                </div>
+              </div>
             </div>
           )}
         </div>

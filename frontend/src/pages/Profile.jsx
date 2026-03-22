@@ -29,6 +29,7 @@ const emptyAddress = {
   zip: '',
   country: '',
   phone: '',
+  secondaryPhone: '',
   isDefault: false,
 }
 
@@ -80,6 +81,7 @@ export default function Profile() {
         zip: addressForm.zip,
         country: addressForm.country,
         phone: addressForm.phone || undefined,
+        secondaryPhone: addressForm.secondaryPhone || undefined,
         isDefault: addressForm.isDefault,
       }
       if (editingId) {
@@ -126,6 +128,7 @@ export default function Profile() {
       zip: addr.zip,
       country: addr.country,
       phone: addr.phone || '',
+      secondaryPhone: addr.secondaryPhone || '',
       isDefault: addr.isDefault || false,
     })
     setShowAddForm(false)
@@ -260,130 +263,184 @@ export default function Profile() {
         <div className={s.modalOverlay} onClick={() => !addrLoading && setShowAddressModal(false)} role="dialog" aria-modal="true" aria-labelledby="addresses-title">
           <div className={`${s.modal} ${s.modalWide}`} onClick={(e) => e.stopPropagation()}>
             <div className={s.modalHeader}>
-              <h2 id="addresses-title" className={s.modalTitle}>Saved Addresses</h2>
+              <h2 id="addresses-title" className={s.modalTitle}>
+                {editingId ? 'Edit Address' : showAddForm ? 'New Address' : 'Saved Addresses'}
+              </h2>
               <button type="button" className={s.modalClose} onClick={() => !addrLoading && setShowAddressModal(false)} aria-label="Close">×</button>
             </div>
-            <p className={s.hint}>Manage your shipping addresses for faster checkout. Group by Home, Office, or Other.</p>
+            {!editingId && !showAddForm && <p className={s.hint}>Manage your shipping addresses for fashion checkout.</p>}
             <div className={s.modalScroll}>
-              {(() => {
-                const grouped = groupAddressesByLabel(addresses)
-                const sections = [
-                  { key: 'Home', addrs: grouped.Home },
-                  { key: 'Office', addrs: grouped.Office },
-                  { key: 'Other', addrs: grouped.Other },
-                  { key: 'Other addresses', addrs: grouped.rest },
-                ].filter((s) => s.addrs.length > 0)
-                return (
-                  <>
-                    {sections.map(({ key, addrs }) => (
-                      <div key={key} className={s.addressSection}>
-                        <h4 className={s.addressSectionTitle}>{key}</h4>
-                        {addrs.map((addr) => (
-                          <div key={addr.id} className={s.addressCard}>
-                            <div className={s.addressContent}>
-                              {addr.label && addr.label !== key && <span className={s.addressLabel}>{addr.label}</span>}
-                              <span>{addr.street}, {addr.city}{addr.state ? `, ${addr.state}` : ''} {addr.zip}, {addr.country}</span>
-                              {addr.phone && <span className={s.addressPhone}>{addr.phone}</span>}
-                              {addr.isDefault && <span className={s.defaultBadge}>Default</span>}
-                            </div>
-                            <div className={s.addressActions}>
-                              <button type="button" className={s.smallBtn} onClick={() => startEdit(addr)}>Edit</button>
-                              <button type="button" className={s.smallBtnDanger} onClick={() => handleDeleteAddress(addr.id)}>Delete</button>
-                            </div>
+              {!(showAddForm || editingId) ? (
+                <>
+                  {(() => {
+                    const grouped = groupAddressesByLabel(addresses)
+                    const sections = [
+                      { key: 'Home', addrs: grouped.Home },
+                      { key: 'Office', addrs: grouped.Office },
+                      { key: 'Other', addrs: grouped.Other },
+                      { key: 'Other addresses', addrs: grouped.rest },
+                    ].filter((s) => s.addrs.length > 0)
+                    if (sections.length === 0) return <p className={s.emptyMsg}>No addresses saved yet.</p>
+                    return (
+                      <>
+                        {sections.map(({ key, addrs }) => (
+                          <div key={key} className={s.addressSection}>
+                            <h4 className={s.addressSectionTitle}>{key}</h4>
+                            {addrs.map((addr) => (
+                              <div key={addr.id} className={s.addressCard}>
+                                <div className={s.addressContent}>
+                                  {addr.label && addr.label !== key && <span className={s.addressLabel}>{addr.label}</span>}
+                                  <span>{addr.street}, {addr.city}{addr.state ? `, ${addr.state}` : ''} {addr.zip}, {addr.country}</span>
+                                  {addr.phone && <span className={s.addressPhone}>{addr.phone}</span>}
+                                  {addr.isDefault && <span className={s.defaultBadge}>Default</span>}
+                                </div>
+                                <div className={s.addressActions}>
+                                  <button type="button" className={s.smallBtn} onClick={() => startEdit(addr)}>Edit</button>
+                                  <button type="button" className={s.smallBtnDanger} onClick={() => handleDeleteAddress(addr.id)}>Delete</button>
+                                </div>
+                              </div>
+                            ))}
                           </div>
                         ))}
-                      </div>
-                    ))}
-                  </>
-                )
-              })()}
-              {(showAddForm || editingId) ? (
+                      </>
+                    )
+                  })()}
+                  <button type="button" className={s.addNewBtn} onClick={() => { setShowAddForm(true); setAddressForm(emptyAddress); setAddrError(null); }}>
+                    + Add new address
+                  </button>
+                </>
+              ) : (
                 <form onSubmit={handleAddressSubmit} className={`${s.form} ${s.addressFormWrap}`}>
                   <div className={s.labelRow}>
-                    <label className={s.labelFieldLabel}>Label</label>
-                    <select
-                      value={ADDRESS_LABELS.includes(addressForm.label) ? addressForm.label : 'Custom'}
-                      onChange={(e) => setAddressForm((f) => ({ ...f, label: e.target.value, labelCustom: e.target.value === 'Custom' ? f.labelCustom : '' }))}
-                      className={s.select}
-                    >
+                    <label className={s.labelFieldLabel}>Address Label</label>
+                    <div className={s.labelSelection}>
                       {ADDRESS_LABELS.map((l) => (
-                        <option key={l} value={l}>{l}</option>
+                        <button
+                          key={l}
+                          type="button"
+                          className={`${s.labelTag} ${addressForm.label === l ? s.activeLabel : ''}`}
+                          onClick={() => setAddressForm(f => ({ ...f, label: l, labelCustom: '' }))}
+                        >
+                          {l}
+                        </button>
                       ))}
-                      <option value="Custom">Other</option>
-                    </select>
-                    {(!addressForm.label || addressForm.label === 'Custom') && (
+                      <button
+                        type="button"
+                        className={`${s.labelTag} ${addressForm.label === 'Custom' ? s.activeLabel : ''}`}
+                        onClick={() => setAddressForm(f => ({ ...f, label: 'Custom' }))}
+                      >
+                        Custom
+                      </button>
+                    </div>
+                    {addressForm.label === 'Custom' && (
                       <input
-                        placeholder="Custom label (e.g. Parents, Villa)"
+                        placeholder="e.g. Parents' House"
                         value={addressForm.labelCustom}
                         onChange={(e) => setAddressForm((f) => ({ ...f, labelCustom: e.target.value }))}
                         className={s.input}
+                        autoFocus
                       />
                     )}
                   </div>
-                  <input
-                    placeholder="Street / Building"
-                    value={addressForm.street}
-                    onChange={(e) => setAddressForm((f) => ({ ...f, street: e.target.value }))}
-                    required
-                    className={s.input}
-                  />
-                  <div className={s.row2}>
+
+                  <div className={s.formGroup}>
+                    <label className={s.fieldLabel}>Street / Building</label>
                     <input
-                      placeholder="City"
-                      value={addressForm.city}
-                      onChange={(e) => setAddressForm((f) => ({ ...f, city: e.target.value }))}
-                      required
-                      className={s.input}
-                    />
-                    <input
-                      placeholder="Emirate"
-                      value={addressForm.state}
-                      onChange={(e) => setAddressForm((f) => ({ ...f, state: e.target.value }))}
-                      className={s.input}
-                    />
-                    <input
-                      placeholder="P.O. Box"
-                      value={addressForm.zip}
-                      onChange={(e) => setAddressForm((f) => ({ ...f, zip: e.target.value }))}
+                      placeholder="e.g. Sheikh Zayed Road, Villa 42"
+                      value={addressForm.street}
+                      onChange={(e) => setAddressForm((f) => ({ ...f, street: e.target.value }))}
                       required
                       className={s.input}
                     />
                   </div>
-                  <input
-                    placeholder="Country (e.g. UAE)"
-                    value={addressForm.country}
-                    onChange={(e) => setAddressForm((f) => ({ ...f, country: e.target.value }))}
-                    required
-                    className={s.input}
-                  />
-                  <input
-                    placeholder="Phone (optional)"
-                    value={addressForm.phone}
-                    onChange={(e) => setAddressForm((f) => ({ ...f, phone: e.target.value }))}
-                    className={s.input}
-                  />
+
+                  <div className={s.row2}>
+                    <div className={s.formGroup}>
+                      <label className={s.fieldLabel}>City</label>
+                      <input
+                        placeholder="Dubai"
+                        value={addressForm.city}
+                        onChange={(e) => setAddressForm((f) => ({ ...f, city: e.target.value }))}
+                        required
+                        className={s.input}
+                      />
+                    </div>
+                    <div className={s.formGroup}>
+                      <label className={s.fieldLabel}>Emirate</label>
+                      <input
+                        placeholder="Dubai"
+                        value={addressForm.state}
+                        onChange={(e) => setAddressForm((f) => ({ ...f, state: e.target.value }))}
+                        className={s.input}
+                      />
+                    </div>
+                  </div>
+
+                  <div className={s.row2}>
+                    <div className={s.formGroup}>
+                      <label className={s.fieldLabel}>P.O. Box</label>
+                      <input
+                        placeholder="12345"
+                        value={addressForm.zip}
+                        onChange={(e) => setAddressForm((f) => ({ ...f, zip: e.target.value }))}
+                        required
+                        className={s.input}
+                      />
+                    </div>
+                    <div className={s.formGroup}>
+                      <label className={s.fieldLabel}>Country</label>
+                      <input
+                        placeholder="UAE"
+                        value={addressForm.country}
+                        onChange={(e) => setAddressForm((f) => ({ ...f, country: e.target.value }))}
+                        required
+                        className={s.input}
+                      />
+                    </div>
+                  </div>
+
+                  <div className={s.row2}>
+                    <div className={s.formGroup}>
+                      <label className={s.fieldLabel}>Main Phone</label>
+                      <input
+                        placeholder="05xxxxxxx"
+                        value={addressForm.phone}
+                        onChange={(e) => setAddressForm((f) => ({ ...f, phone: e.target.value }))}
+                        required
+                        className={s.input}
+                      />
+                    </div>
+                    <div className={s.formGroup}>
+                      <label className={s.fieldLabel}>Secondary Phone</label>
+                      <input
+                        placeholder="Optional"
+                        value={addressForm.secondaryPhone}
+                        onChange={(e) => setAddressForm((f) => ({ ...f, secondaryPhone: e.target.value }))}
+                        className={s.input}
+                      />
+                    </div>
+                  </div>
+
                   <label className={s.checkbox}>
                     <input
                       type="checkbox"
                       checked={addressForm.isDefault}
                       onChange={(e) => setAddressForm((f) => ({ ...f, isDefault: e.target.checked }))}
                     />
-                    Set as default
+                    Set as default address
                   </label>
+
                   {addrError && <p className={s.error}>{addrError}</p>}
+
                   <div className={s.btnRow}>
                     <button type="submit" className={s.btn} disabled={addrLoading}>
-                      {addrLoading ? 'Saving...' : (editingId ? 'Update' : 'Add')}
+                      {addrLoading ? 'Saving...' : (editingId ? 'Save Changes' : 'Add Address')}
                     </button>
                     <button type="button" className={s.btnSecondary} onClick={cancelEdit}>
-                      Cancel
+                      Back to list
                     </button>
                   </div>
                 </form>
-              ) : (
-                <button type="button" className={s.btnSecondary} onClick={() => { setShowAddForm(true); setAddressForm(emptyAddress); setAddrError(null); }}>
-                  + Add new address
-                </button>
               )}
             </div>
             <div className={s.modalFooter}>
