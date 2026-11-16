@@ -87,7 +87,7 @@ func corsMiddleware() gin.HandlerFunc {
 	}
 	return func(c *gin.Context) {
 		origin := c.GetHeader("Origin")
-		if origin != "" && allowedSet[origin] {
+		if origin != "" && (allowedSet[origin] || strings.HasSuffix(origin, ".onrender.com") || strings.HasSuffix(origin, ".vercel.app")) {
 			c.Writer.Header().Set("Access-Control-Allow-Origin", origin)
 		} else {
 			if origin != "" {
