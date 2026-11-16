@@ -62,7 +62,6 @@ export default function Home() {
           hero_description: locale === 'ar' ? f.hero_description_ar : f.hero_description_en,
           hero_button_text: locale === 'ar' ? f.hero_button_text_ar : f.hero_button_text_en,
           hero_images: Array.isArray(f.hero_images) && f.hero_images.length > 0 ? f.hero_images : ['/images/premium-hero.png'],
-          hero_images: Array.isArray(f.hero_images) && f.hero_images.length > 0 ? f.hero_images : ['/images/premium-hero.png'],
         })
         setProducts(data.products || [])
         setNewArrivals(data.new_arrivals || [])
