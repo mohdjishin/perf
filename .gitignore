@@ -19,6 +19,5 @@ playwright-report/
 
 # Ignore local config files containing secrets (Stripe, Google, DB credentials)
 backend/config.json
-frontend/public/config.json
 .env
 frontend/.env
