@@ -1,7 +1,7 @@
 {
     "port": "8080",
     "host": "0.0.0.0",
-    "mongo_uri": "mongodb://localhost:27017",
+    "mongo_uri": "mongodb+srv://<username>:<password>@cluster0.ncu2lde.mongodb.net/perfume_store?retryWrites=true&w=majority",
     "jwt_secret": "your-256-bit-secret",
     "cors_origins": [
         "http://localhost:5173",

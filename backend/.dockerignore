@@ -1,0 +1,6 @@
+perfume-server
+*.exe
+config.json
+uploads/
+.git
+.gitignore
