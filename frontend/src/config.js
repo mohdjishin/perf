@@ -16,7 +16,12 @@ export async function loadConfig() {
       delete config.google_client_id
       delete config.stripe_publishable_key
     }
-  } catch (_) { }
+  } catch (_) {
+    // config.json not found (normal in production — uses VITE_API_URL env var)
+  }
+  if (import.meta.env.DEV) {
+    console.log('[config] apiBaseUrl:', config.apiBaseUrl)
+  }
   return config
 }
 
